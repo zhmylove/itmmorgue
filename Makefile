@@ -1,22 +1,24 @@
 EXECUTABLE=itmmorgue
 SOURCES=itmmorgue.c
-OBJECTS=$(SOURCES:.c=.o)
-WORKDIR=bin/
+OBJ=$(SOURCES:.c=.o)
+OBJECTS=$(addprefix $(WORKDIR)/, $(OBJ))
+WORKDIR=bin
+VPATH=src:$(WORKDIR)
 
 CC=gcc
 CFLAGS=-std=c99 -pedantic -Wall -Wextra -Werror
 LDFLAGS=
 
-all: $(WORKDIR) $(SOURCES) $(EXECUTABLE)
+all: $(EXECUTABLE)
 
-$(WORKDIR): $(WORKDIR)
+$(WORKDIR):
 	mkdir $(WORKDIR)
 
 $(EXECUTABLE): $(OBJECTS)
-	$(CC) $(LDFLAGS) $(OBJECTS) -o $(WORKID)/$@
+	$(CC) $(LDFLAGS) $(OBJECTS) -o $(WORKDIR)/$@
 
-.c.o:
-	$(CC) $(CFLAGS) -c src/$< -o $(WORKDIR)/$@
+$(OBJECTS): $(SOURCES)
+	$(CC) $(CFLAGS) -c $< -o $(WORKDIR)/$@
 
 clean:
 	$(RM) -rf $(WORKDIR)/
