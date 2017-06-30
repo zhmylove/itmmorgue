@@ -17,6 +17,7 @@ void panic(char *msg) {
 
 int main(int argc, char *argv[]) {
     // TODO parse argv and run server / client
+    // TODO parse config file
 
     client();
 

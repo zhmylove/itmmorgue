@@ -1,3 +1,4 @@
+// vim: sw=4 ts=4 et :
 #ifndef ITMMORGUE_H
 #define ITMMORGUE_H
 
@@ -7,12 +8,13 @@
 #else
 #include <ncurses/ncurses.h>
 #endif /* __FreeBSD__ */
-#include <sys/types.h>
-#include <wchar.h>
-#include <locale.h>
 #include <stdlib.h>
 #include <string.h>
 #include <stdio.h>
+#include <sys/types.h>
+#include <signal.h>
+#include <wchar.h>
+#include <locale.h>
 
 int client(void);
 void warn(char *msg);
