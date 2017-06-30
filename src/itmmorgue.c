@@ -1,6 +1,25 @@
-#include <unistd.h>
+// vim: sw=4 ts=4 et :
+#include "itmmorgue.h"
+
+void warn(char *msg) {
+    if (msg) {
+        fprintf(stderr, "%s\n", msg);
+    }
+}
+
+void panic(char *msg) {
+    endwin();
+
+    warn(msg);
+
+    exit(EXIT_FAILURE);
+}
 
 int main(int argc, char *argv[]) {
-	(void)argc, (void)argv;
-	return 5 == write(1, "japh,", 5);
+    // TODO parse argv and run server / client
+
+    client();
+
+    (void)argc, (void)argv;
+    return EXIT_SUCCESS;
 }
