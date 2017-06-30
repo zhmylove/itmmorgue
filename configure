@@ -4,12 +4,12 @@
 OS=`uname -s`
 EXECUTABLE='itmmorgue'
 SRC='itmmorgue.c client.c'
-HDR='itmmorgue.h'
+HDR='itmmorgue.h client.h'
 SRCDIR='src'
 WORKDIR='bin'
 
 CC='gcc'
-CFLAGS='-std=c99 -pedantic -Wall -Wextra -Werror -lncursesw -ggdb3'
+CFLAGS='--std=gnu99 -pedantic -Wall -Wextra -Werror -lncursesw -ggdb3'
 LDFLAGS=''
 MAKE='make'
 
