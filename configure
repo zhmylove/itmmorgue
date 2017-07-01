@@ -9,20 +9,24 @@ SRCDIR='src'
 WORKDIR='bin'
 
 CC='gcc'
-CFLAGS='--std=gnu99 -pedantic -Wall -Wextra -Werror -lncursesw -ggdb3'
+CFLAGS='--std=gnu99 -pedantic -Wall -Wextra -Werror -ggdb3'
 LDFLAGS=''
 MAKE='make'
 
 case $OS in
     SunOS) 
         LDFLAGS="$LDFLAGS -L /opt/csw/lib/"
-        CFLAGS="$CFLAGS -L /opt/csw/lib/ -I /opt/sfw/include/"
+        CFLAGS="$CFLAGS -L /opt/csw/lib/ -I /opt/sfw/include/ -lncursesw"
         MAKE=gmake
         VARS_CLIENT='TERM=screen'
         ;;
-    FreeBSD) echo Please add platfrom support! >&2 ; exit 2
+    FreeBSD)
+        CC=cc
+        MAKE=gmake
+        LDFLAGS="$LDFLAGS -L /usr/local/lib/ -lncursesw -ltinfow"
         ;;
     Linux)
+        CFLAGS="$CFLAGS -lncursesw"
         ;;
     *) echo Unsupported platform! >&2 ; exit 2
         ;;
