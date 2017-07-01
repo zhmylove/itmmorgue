@@ -3,7 +3,7 @@
 #define ITMMORGUE_H
 
 #include <unistd.h>
-#ifdef __FreeBSD__
+#if defined(__FreeBSD__) || defined(__linux__)
 #include <ncurses.h>
 #else
 #include <ncurses/ncurses.h>
