@@ -19,7 +19,15 @@
 #include "config.h"
 
 int client(void);
+
+// Panic related definitions
 void warn(char *msg);
 void panic(char *msg);
+#define panicf(fmt, ...)                         \
+    do {                                         \
+        char buf[BUFSIZ];                        \
+        snprintf(buf, BUFSIZ, fmt, __VA_ARGS__); \
+        panic(buf);                              \
+    } while(0)
 
 #endif /* ITMMORGUE_H */

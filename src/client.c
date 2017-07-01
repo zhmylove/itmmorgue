@@ -1,6 +1,7 @@
 // vim: sw=4 ts=4 et :
 #include "itmmorgue.h"
 #include "client.h"
+#include "config.h"
 
 void at_exit(void) {
     if (! isendwin()) {
@@ -39,13 +40,29 @@ void init_screen() {
 
     erase();
     refresh();
+    windows[0].w = stdscr;
     getmaxyx(stdscr, max_y, max_x);
 }
 
 void redraw() {
     mvwprintw(stdscr, 1, 1, "%d %d", max_y, max_x);
-    box(stdscr, '|', '-');
-    box(w_area, '+', '+');
+
+    // Draw all windows
+    for (size_t i = 0; i < W_SIZE; i++) {
+        // Restore window size and position
+        wresize(W(i), windows[i].max_y, windows[i].max_x);
+        if (i != 0) {
+            mvderwin(W(i), windows[i].y, windows[i].x);
+        }
+
+        // Draw borders
+        box(W(i), '|', '-');
+    }
+
+    w_color(W(2), D_BLUE);
+    w_color(W(3), D_YELLOW);
+    mvwprintw(W(2), 0, 0, "1234567890abcdefghijklmnopqrstuvwxyzABCDEFJHIJKLMNOPQRSTUVWXYZ0123456789");
+    mvwprintw(W(3), 0, 0, "1234567890abcdefghijklmnopqrstuvwxyzABCDEFJHIJKLMNOPQRSTUVWXYZ0123456789");
 
     refresh();
 }
@@ -72,19 +89,54 @@ int client() {
         panic("Unable to set locale (ru,en)UTF-8!");
     }
 
+    // Dynamic assertions to check compile-time error ;-)
+    if (W_SIZE != sizeof(windows_names) / sizeof(char *) - 1) {
+        panic("SOURCE CODE ERROR: windows inconsistency!");
+    }
+
     init_screen();
 
     struct sigaction sa_winch;
     sa_winch.sa_handler = &sigwinch;
     sigaction(SIGWINCH, &sa_winch, NULL);
 
-    w_color(stdscr, LGREEN);
+    w_color(stdscr, L_GREEN);
 
-    if ((w_area = subwin(stdscr, 5, 20, 3, 2)) == NULL) {
-        panic("Window creation failure!");
+    char buf[BUFSIZ]; // for config parameter prefix
+    for (int i = 0; i < W_SIZE; i++) {
+        strncpy(buf, "win_", 5);                    // buf  = "win_"
+        strncat(buf, windows_names[i], BUFSIZ - 5); // buf  = "win_area"
+
+#define FILL_WIN_PARAMETER(prefix, parameter)                   \
+        do { char buf2[BUFSIZ]; /* for full config parameter */ \
+            strcpy(buf2, prefix);                               \
+            strncat(buf2, "_"#parameter, BUFSIZ - strlen(buf)); \
+            windows[i].parameter = conf(buf2).ival;             \
+        } while(0);
+
+        FILL_WIN_PARAMETER(buf, y);
+        FILL_WIN_PARAMETER(buf, x);
+        FILL_WIN_PARAMETER(buf, max_y);
+        FILL_WIN_PARAMETER(buf, max_x);
+        FILL_WIN_PARAMETER(buf, state);
+#undef FILL_WIN_PARAMETER
+
+        if (i == 0) {
+            windows[0].w = stdscr;
+            continue;
+        }
+
+        if ((W(i) = subwin(stdscr,
+                        windows[i].max_y,
+                        windows[i].max_x,
+                        windows[i].y,
+                        windows[i].x
+                        )) == NULL) {
+            panic("Window creation failure!");
+        }
     }
 
-    w_color(w_area, LRED);
+    w_color(W(W_AREA), L_RED);
 
     int ch;
     do {
