@@ -3,8 +3,8 @@
 
 OS=`uname -s`
 EXECUTABLE='itmmorgue'
-SRC='itmmorgue.c client.c'
-HDR='itmmorgue.h client.h'
+SRC='itmmorgue.c client.c config.c'
+HDR='itmmorgue.h client.h config.h'
 SRCDIR='src'
 WORKDIR='bin'
 

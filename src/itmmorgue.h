@@ -16,6 +16,8 @@
 #include <wchar.h>
 #include <locale.h>
 
+#include "config.h"
+
 int client(void);
 void warn(char *msg);
 void panic(char *msg);
