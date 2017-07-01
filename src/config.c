@@ -39,6 +39,7 @@ conf_t splash_conf(char *key) {
     conf_t rc;
 
     if (key == strstr(key, "delay")) rc.ival = 30000;
+    if (key == strstr(key, "time")) rc.ival = 1000000;
 
     return rc;
 }

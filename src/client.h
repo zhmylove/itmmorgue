@@ -18,7 +18,7 @@ enum windows {
     W_INVENTORY,
     W_SIZE
 };
-char *windows_names[] = {
+static char *windows_names[] = {
     "stdscr",
     "area",
     "chat",
@@ -45,7 +45,10 @@ typedef struct win_info {
 void init_screen();
 void resize();
 void sigwinch(int signum);
+int w_color(WINDOW *win, int color);
 int client();
+
+extern void splash_screen();
 
 win_info_t windows[W_SIZE];
 
