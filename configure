@@ -22,7 +22,7 @@ case $OS in
         ;;
     FreeBSD) echo Please add platfrom support! >&2 ; exit 2
         ;;
-    Linux) echo Please add platfrom support! >&2 ; exit 2
+    Linux)
         ;;
     *) echo Unsupported platform! >&2 ; exit 2
         ;;
