@@ -2,7 +2,7 @@
 #ifndef CLIENT_H
 #define CLIENT_H
 
-int max_x, max_y;
+int max_x, max_y, last_key;
 
 // Dark and light colors for w_color()
 enum colors {

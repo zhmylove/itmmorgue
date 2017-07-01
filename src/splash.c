@@ -7,7 +7,15 @@ void splash_screen() {
     if ((splash = newwin(0, 0, 0, 0)) == NULL) {
         panic("Unable to create splash window!");
     }
-    nodelay(splash, FALSE);
+
+    int skip = 0;
+
+    if (conf("splash_time").ival == 0) {
+        endwin();
+        return;
+    }
+
+    wtimeout(splash, 20);
 
     for (int i = max_y - 1; i >= 0; i--) {
         w_color(splash, 8 + i % 8);
@@ -16,13 +24,13 @@ void splash_screen() {
             wprintw(splash, ".");
         }
         wrefresh(splash);
-        usleep(20000);
+        if (! skip && wgetch(splash) != ERR) {
+            skip = 1;
+        }
     }
 
     werase(splash);
     wrefresh(splash);
-
-    int splash_delay = conf("splash_delay").ival;
 
     int A = 0, B = 0, C = 0, D = 0;
     B -= 10; D -= 10;
@@ -44,13 +52,16 @@ void splash_screen() {
         D += (int)(max_x / 2) - 38;
     }
 
-#define s(y1, x1, c1, y2, x2, c2)  \
-    w_color(splash, L_RED);        \
-    mvwprintw(splash, y1, x1, c1); \
-    w_color(splash, L_BLUE);       \
-    mvwprintw(splash, y2, x2, c2); \
-    wrefresh(splash);              \
-    usleep(splash_delay);
+    wtimeout(splash, conf("splash_delay").ival / 1000);
+
+#define s(y1, x1, c1, y2, x2, c2)        \
+    w_color(splash, L_RED);              \
+    mvwprintw(splash, y1, x1, c1);       \
+    w_color(splash, L_BLUE);             \
+    mvwprintw(splash, y2, x2, c2);       \
+    wrefresh(splash);                    \
+    if (! skip && wgetch(splash) != ERR) \
+    skip = 1;
 
     s(    A+0,    B+43,     "-",    C+0,    D+48,     "-");
     s(    A+0,    B+42,     "-",    C+0,    D+49,     "-");
@@ -239,7 +250,10 @@ void splash_screen() {
 #undef s
 
 nosplash:
-    usleep( conf("splash_time").ival );
+    if (! skip) {
+        wtimeout(splash, conf("splash_time").ival / 1000);
+        wgetch(splash);
+    }
 
     delwin(splash);
 }

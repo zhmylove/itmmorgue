@@ -25,7 +25,7 @@ void init_screen() {
 
     start_color();
     noecho();
-    nodelay(stdscr, FALSE);
+    nodelay(stdscr, TRUE);
     keypad(stdscr, TRUE);
     curs_set(FALSE);
 
@@ -45,7 +45,11 @@ void init_screen() {
 }
 
 void redraw() {
-    mvwprintw(stdscr, 1, 1, "%d %d", max_y, max_x);
+    mvwprintw(stdscr, 1, 1,
+            "%d x %d Key: %d       ",
+            max_y,
+            max_x,
+            last_key);
 
     // Draw all windows
     for (size_t i = 0; i < W_SIZE; i++) {
@@ -96,6 +100,10 @@ int client() {
         panic("SOURCE CODE ERROR: windows inconsistency!");
     }
 
+    struct sigaction sa_ignore;
+    sa_ignore.sa_handler = SIG_IGN;
+    sigaction(SIGTSTP, &sa_ignore, NULL);
+
     init_screen();
 
     struct sigaction sa_winch;
@@ -142,11 +150,22 @@ int client() {
 
     w_color(W(W_AREA), L_RED);
 
-    int ch;
+    int end = 0;
     do {
         redraw();
-        usleep(10000);
-    } while ((ch = mvgetch(max_y - 1, max_x - 1)) != 'q');
+
+        wtimeout(stdscr, 100);
+        switch (last_key = mvgetch(max_y - 1, max_x - 1)) {
+            case 'q':
+            case 'Q':
+                end = 1;
+                break;
+            case 0xC: // Control-L
+                wclear(stdscr);
+                wrefresh(stdscr);
+                break;
+        }
+    } while (! end);
 
 
     return 0;
