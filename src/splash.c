@@ -18,7 +18,7 @@ void splash_screen() {
     wtimeout(splash, 20);
 
     for (int i = max_y - 1; i >= 0; i--) {
-        w_color(splash, 8 + i % 8);
+        wcolor(splash, 8 + i % 8);
         mvwprintw(splash, i, 0, ".");
         for (int j = 1; j < max_x; j++) {
             wprintw(splash, ".");
@@ -55,9 +55,9 @@ void splash_screen() {
     wtimeout(splash, conf("splash_delay").ival / 1000);
 
 #define s(y1, x1, c1, y2, x2, c2)        \
-    w_color(splash, L_RED);              \
+    wcolor(splash, L_RED);              \
     mvwprintw(splash, y1, x1, c1);       \
-    w_color(splash, L_BLUE);             \
+    wcolor(splash, L_BLUE);             \
     mvwprintw(splash, y2, x2, c2);       \
     wrefresh(splash);                    \
     if (! skip && wgetch(splash) != ERR) \

@@ -10,7 +10,7 @@ enum menus {
     M_SIZE
 };
 
-// Dark and light colors for w_color()
+// Dark and light colors for wcolor()
 enum colors {
     D_WHITE, D_YELLOW, D_RED, D_GREEN, D_BLUE, D_BLACK, D_CYAN, D_MAGENTA,
     L_WHITE, L_YELLOW, L_RED, L_GREEN, L_BLUE, L_BLACK, L_CYAN, L_MAGENTA
@@ -51,7 +51,7 @@ typedef struct win_info {
 void init_screen();
 void resize();
 void sigwinch(int signum);
-int w_color(WINDOW *win, int color);
+int wcolor(WINDOW *win, int color);
 int client();
 
 extern void menu(size_t menu_id);

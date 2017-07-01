@@ -9,7 +9,7 @@ void at_exit(void) {
     }
 }
 
-int w_color(WINDOW *win, int color) {
+int wcolor(WINDOW *win, int color) {
     if (++color > 8) {
         color = COLOR_PAIR(color - 8);
         color |= A_BOLD;
@@ -64,8 +64,8 @@ void redraw() {
         box(W(i), '|', '-');
     }
 
-    w_color(W(2), D_BLUE);
-    w_color(W(3), D_YELLOW);
+    wcolor(W(2), D_BLUE);
+    wcolor(W(3), D_YELLOW);
     mvwprintw(W(2), 0, 0, "1234567890abcdefghijklmnopqrstuvwxyz");
     wprintw(W(2), "ABCDEFJHIJKLMNOPQRSTUVWXYZ0123456789");
     mvwprintw(W(3), 0, 0, "1234567890abcdefghijklmnopqrstuvwxyz");
@@ -116,7 +116,7 @@ int client() {
 
     splash_screen();
 
-    w_color(stdscr, L_GREEN);
+    wcolor(stdscr, L_GREEN);
 
     char buf[BUFSIZ]; // for config parameter prefix
     for (int i = 0; i < W_SIZE; i++) {
@@ -152,7 +152,7 @@ int client() {
         }
     }
 
-    w_color(W(W_AREA), L_RED);
+    wcolor(W(W_AREA), L_RED);
 
     int end = 0;
     do {
