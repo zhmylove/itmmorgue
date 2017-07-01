@@ -46,9 +46,10 @@ void init_screen() {
 
 void redraw() {
     mvwprintw(stdscr, 1, 1,
-            "%d x %d Key: %d       ",
+            "%d x %d %s %d       ",
             max_y,
             max_x,
+            _("Key:"),
             last_key);
 
     // Draw all windows
@@ -94,6 +95,9 @@ int client() {
             setlocale(LC_ALL, "en_US.UTF-8") == NULL) {
         panic("Unable to set locale (ru,en)UTF-8!");
     }
+
+    // TODO put here path to file w/ locale
+    i18n_init("lang/ru");
 
     // Dynamic assertions to check compile-time error ;-)
     if (W_SIZE != sizeof(windows_names) / sizeof(char *) - 1) {

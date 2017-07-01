@@ -49,6 +49,8 @@ int w_color(WINDOW *win, int color);
 int client();
 
 extern void splash_screen();
+extern void i18n_init(char *file);
+extern char *_(char*);
 
 win_info_t windows[W_SIZE];
 
