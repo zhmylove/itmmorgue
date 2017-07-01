@@ -160,6 +160,9 @@ int client() {
 
         wtimeout(stdscr, 100);
         switch (last_key = mvgetch(max_y - 1, max_x - 1)) {
+            case 'm':
+                menu(M_MAIN);
+                break;
             case 'q':
             case 'Q':
                 end = 1;

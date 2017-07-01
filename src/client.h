@@ -4,6 +4,12 @@
 
 int max_x, max_y, last_key;
 
+// Menus
+enum menus {
+    M_MAIN,
+    M_SIZE
+};
+
 // Dark and light colors for w_color()
 enum colors {
     D_WHITE, D_YELLOW, D_RED, D_GREEN, D_BLUE, D_BLACK, D_CYAN, D_MAGENTA,
@@ -48,6 +54,7 @@ void sigwinch(int signum);
 int w_color(WINDOW *win, int color);
 int client();
 
+extern void menu(size_t menu_id);
 extern void splash_screen();
 extern void i18n_init(char *file);
 extern char *_(char*);
