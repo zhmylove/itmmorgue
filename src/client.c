@@ -99,13 +99,15 @@ void splash_screen() {
     werase(splash);
     wrefresh(splash);
 
+    int splash_delay = conf("splash_delay").ival;
+
 #define s(y1, x1, c1, y2, x2, c2)  \
     w_color(splash, L_RED);        \
     mvwprintw(splash, y1, x1, c1); \
     w_color(splash, L_BLUE);       \
     mvwprintw(splash, y2, x2, c2); \
     wrefresh(splash);              \
-    usleep(1000);
+    usleep(splash_delay);
 
     s(    7, 35, "-",   7, 40, "-");
     s(    7, 34, "-",   7, 41, "-");

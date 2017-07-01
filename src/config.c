@@ -35,12 +35,21 @@ conf_t win_conf(char *key) {
     return rc;
 }
 
+conf_t splash_conf(char *key) {
+    conf_t rc;
+
+    if (key == strstr(key, "delay")) rc.ival = 30000;
+
+    return rc;
+}
+
 // Prefixes for config sections/subsections with parser pointers
 struct conf_prefix {
     char *prefix;
     conf_t (*parser)(char *);
 } pr_global[] = {
-    { "win_", win_conf }
+    { "win_", win_conf },
+    { "splash_", splash_conf }
 };
 
 // Entry point to get all config values
@@ -51,7 +60,7 @@ conf_t conf(char *key) {
             i < sizeof(pr_global) / sizeof(struct conf_prefix);
             i++) {
         if (key == strstr(key, pr_global[i].prefix)) {
-            rc = win_conf(key + strlen(pr_global[i].prefix));
+            rc = pr_global[i].parser(key + strlen(pr_global[i].prefix));
             break;
         }
     }
