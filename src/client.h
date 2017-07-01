@@ -48,6 +48,11 @@ typedef struct win_info {
     } state;
 } win_info_t;
 
+typedef struct menu {
+    void (*f)(int id, WINDOW *);
+    char *caption;
+} menu_t;
+
 void init_screen();
 void resize();
 void sigwinch(int signum);
