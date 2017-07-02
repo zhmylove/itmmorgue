@@ -15,6 +15,19 @@ void panic(char *msg) {
     exit(EXIT_FAILURE);
 }
 
+int strtoi(const char *nptr, char **endptr, int base) {
+    long lval = strtol(nptr, endptr, base);
+    if (lval < INT_MIN) {
+        errno = ERANGE;
+        return INT_MIN;
+    }
+    if (lval > INT_MAX) {
+        errno = ERANGE;
+        return INT_MAX;
+    }
+    return (int) lval;
+}
+
 int main(int argc, char *argv[]) {
     // TODO parse argv and run server / client
     // TODO parse config file

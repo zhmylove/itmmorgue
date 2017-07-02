@@ -17,6 +17,8 @@
 #include <signal.h>
 #include <wchar.h>
 #include <locale.h>
+#include <errno.h>
+#include <limits.h>
 
 #include "config.h"
 
@@ -31,5 +33,7 @@ void panic(char *msg);
         snprintf(buf, BUFSIZ, fmt, __VA_ARGS__); \
         panic(buf);                              \
     } while(0)
+// Wrapper for strtol(3) for int numbers
+int strtoi(const char *nptr, char **endptr, int base);
 
 #endif /* ITMMORGUE_H */
