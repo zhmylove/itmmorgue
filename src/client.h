@@ -24,13 +24,9 @@ enum windows {
     W_INVENTORY,
     W_SIZE
 };
-static char *windows_names[] = {
-    "stdscr",
-    "area",
-    "chat",
-    "inventory",
-    NULL
-};
+// String representation of their names
+// Defined in client.c
+extern char *windows_names[];
 
 // WINDOW pointer by NAME
 #define W(NAME) (windows[NAME].w)

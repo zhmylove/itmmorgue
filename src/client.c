@@ -3,6 +3,15 @@
 #include "client.h"
 #include "config.h"
 
+// String representation of windows names
+char *windows_names[] = {
+    "stdscr",
+    "area",
+    "chat",
+    "inventory",
+    NULL
+};
+
 void at_exit(void) {
     if (! isendwin()) {
         endwin();
