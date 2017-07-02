@@ -7,7 +7,7 @@
 #include <ncurses.h>
 #else
 #include <ncurses/ncurses.h>
-#endif /* __FreeBSD__ */
+#endif /* __FreeBSD__ || __linux__ */
 #include <stdlib.h>
 #include <string.h>
 #include <stdio.h>

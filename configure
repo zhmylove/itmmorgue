@@ -1,6 +1,8 @@
 #!/bin/sh
 # vim: sw=4 ts=4 et :
 
+exec >&2
+
 OS=`uname -s`
 EXECUTABLE='itmmorgue'
 SRC='itmmorgue.c client.c config.c splash.c i18n.c menu.c'
@@ -8,8 +10,9 @@ HDR='itmmorgue.h client.h config.h'
 SRCDIR='src'
 WORKDIR='bin'
 
-CC='gcc'
-CFLAGS='--std=gnu99 -pedantic -Wall -Wextra -Werror -ggdb3'
+[ -n "$CC" ] && _CC="$CC"
+[ -n "$CFLAGS" ] && _CFLAGS="$CFLAGS"
+CFLAGS="--std=gnu99 -pedantic -Wall -Wextra -Werror -ggdb3"
 LDFLAGS=''
 MAKE='make'
 
@@ -21,17 +24,85 @@ case $OS in
         VARS_CLIENT='TERM=screen'
         ;;
     FreeBSD)
-        CC=cc
         MAKE=gmake
         LDFLAGS="$LDFLAGS -L /usr/local/lib/ -lncursesw -ltinfow"
         ;;
     Linux)
         CFLAGS="$CFLAGS -lncursesw"
+        CFLAGS_END="-lncursesw"
         ;;
-    *) echo Unsupported platform! >&2 ; exit 2
+    *)
+        echo Unsupported platform!
+        exit 2
         ;;
 esac
 
+# Prepare dir for configure checks
+mkdir -p bin
+ls bin >/dev/null || exit 1
+STYLE='-o bin/style.o -c doc/style.c'
+CURSES='-o bin/ncursesw bin/ncursesw.c'
+CFLAGS="$CFLAGS $_CFLAGS"
+
+# Check compiler itself
+printf "Checking C compiler..."
+if [ -n "$_CC" ] ;then
+    CC="$_CC"
+    echo "$_CC"
+elif cc -v 2>/dev/null ;then
+    if cc -v 2>&1 |grep '^gcc version' >/dev/null 2>&1 ;then
+        CC=gcc
+    else
+        CC=cc
+    fi
+
+    echo "$CC"
+elif gcc -v 2>/dev/null ;then
+    CC="gcc"
+    echo "$CC"
+else
+    echo FAIL
+fi
+
+# Check CFLAGS
+printf "Checking CFLAGS..."
+if $CC $CFLAGS $STYLE >/dev/null ;then
+    echo OK
+else
+    echo FAIL
+    exit 1
+fi
+
+# Check for ncursesw
+printf "Checking for ncursesw..."
+cat > bin/ncursesw.c <<EOF
+#if defined(__FreeBSD__) || defined(__linux__)
+#include <ncurses.h>
+#else
+#include <ncurses/ncurses.h>
+#endif /* __FreeBSD__ || __linux__ */
+int main(){initscr(); endwin(); return 0;}
+EOF
+if $CC $CFLAGS $CURSES $LDFLAGS $CFLAGS_END >/dev/null 2>&1 ;then
+    echo OK
+else
+    echo FAIL
+    exit 1
+fi
+
+# Check for latests versions of gcc
+printf "Checking -Wimplicit-fallthrough..."
+if $CC $CFLAGS $STYLE -Wimplicit-fallthrough=0 >/dev/null 2>&1 ;then
+    echo OK
+    CFLAGS="$CFLAGS -Wimplicit-fallthrough=0"
+else
+    echo FAIL
+fi
+
+# Remove stale files
+rm -f bin/style.o bin/ncursesw.c bin/ncursesw
+
+# Prepare Makefile
 cat > Makefile <<EOF
 # Makefile for $OS
 EXECUTABLE=$EXECUTABLE
@@ -45,6 +116,7 @@ OBJECTS=\$(addprefix \$(WORKDIR)/, \$(OBJ))
 
 CC=$CC
 CFLAGS=$CFLAGS
+CFLAGS_END=$CFLAGS_END
 LDFLAGS=$LDFLAGS
 
 all: \$(WORKDIR)/\$(EXECUTABLE)
@@ -53,7 +125,7 @@ all: \$(WORKDIR)/\$(EXECUTABLE)
 	mkdir \$(WORKDIR)
 
 \$(WORKDIR)/\$(EXECUTABLE): \$(OBJECTS)
-	\$(CC) \$(LDFLAGS) \$(CFLAGS) \$(OBJECTS) -o \$@
+	\$(CC) \$(LDFLAGS) \$(CFLAGS) \$(OBJECTS) -o \$@ \$(CFLAGS_END)
 
 \$(WORKDIR)/%.o : src/%.c
 	\$(CC) \$(CFLAGS) -c \$< -o \$@
@@ -71,4 +143,4 @@ clean:
 .SUFFIXES: .c .o
 EOF
 
-echo "Successfully configured for $OS. Please run $MAKE now." >&2
+echo "Successfully configured for $OS. Please run $MAKE now."
