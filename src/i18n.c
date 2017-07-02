@@ -58,6 +58,7 @@ void i18n_init(char *file) {
     }
 }
 
+// TODO total rewrite w/ trie & utf-8
 int get_from_index(char *str) {
     int curr = 0;
 

@@ -33,7 +33,12 @@ void panic(char *msg);
         snprintf(buf, BUFSIZ, fmt, __VA_ARGS__); \
         panic(buf);                              \
     } while(0)
+
 // Wrapper for strtol(3) for int numbers
 int strtoi(const char *nptr, char **endptr, int base);
+
+// strlen() alternatives for UTF-8 strings
+size_t anystrlen(const char *str);
+size_t anystrnlen(const char *str, size_t maxlen);
 
 #endif /* ITMMORGUE_H */

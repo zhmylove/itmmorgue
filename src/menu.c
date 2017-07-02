@@ -29,10 +29,28 @@ void m_main(int id, WINDOW *win) {
     };
 
     size_t items_len = sizeof(items) / sizeof(menu_t);
-    mvwprintw(win, 0, 0, _(menus[id].caption));
+
+    char *caption = _(menus[id].caption);
+    size_t caption_len = anystrlen(caption);
+    mvwprintw(win,
+            max_y / 2 - items_len - 3,
+            max_x / 2 - caption_len / 2,
+            caption);
+    for (size_t i = 0; i < caption_len; i++) {
+        mvwprintw(win,
+                max_y / 2 - items_len - 2,
+                max_x / 2 - caption_len / 2 + i,
+                "=");
+    }
 
     for (size_t i = 0; i < items_len; i++) {
-        mvwprintw(win, 1 + i, 0, "%d. %s", i + 1, _(items[i].caption));
+        char *item = _(items[i].caption);
+        mvwprintw(win,
+                max_y / 2 - items_len + i,
+                max_x / 2 - anystrlen(item) / 2 - 2,
+                "%d. %s",
+                i + 1,
+                item);
     }
 
     do {

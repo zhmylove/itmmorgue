@@ -77,7 +77,7 @@ void redraw() {
     wcolor(W(3), D_YELLOW);
     mvwprintw(W(2), 0, 0, "1234567890abcdefghijklmnopqrstuvwxyz");
     wprintw(W(2), "ABCDEFJHIJKLMNOPQRSTUVWXYZ0123456789");
-    mvwprintw(W(3), 0, 0, "1234567890abcdefghijklmnopqrstuvwxyz");
+    mvwprintw(W(3), 0, 0, "1234567890абвгдеёжзиклмнопрстуфхцчшщъыьэюя");
     wprintw(W(3), "ABCDEFJHIJKLMNOPQRSTUVWXYZ0123456789");
 
     refresh();
@@ -132,11 +132,11 @@ int client() {
         strncpy(buf, "win_", 5);                    // buf  = "win_"
         strncat(buf, windows_names[i], BUFSIZ - 5); // buf  = "win_area"
 
-#define FILL_WIN_PARAMETER(prefix, parameter)                   \
-        do { char buf2[BUFSIZ]; /* for full config parameter */ \
-            strcpy(buf2, prefix);                               \
-            strncat(buf2, "_"#parameter, BUFSIZ - strlen(buf)); \
-            windows[i].parameter = conf(buf2).ival;             \
+#define FILL_WIN_PARAMETER(prefix, parameter)                      \
+        do { char buf2[BUFSIZ]; /* for full config parameter */    \
+            strcpy(buf2, prefix);                                  \
+            strncat(buf2, "_"#parameter, BUFSIZ - anystrlen(buf)); \
+            windows[i].parameter = conf(buf2).ival;                \
         } while(0);
 
         FILL_WIN_PARAMETER(buf, y);
@@ -179,6 +179,18 @@ int client() {
             case 0xC: // Control-L
                 wclear(stdscr);
                 wrefresh(stdscr);
+                break;
+            case 'l':
+                windows[2].x += 1;
+                break;
+            case 'h':
+                windows[2].x -= 1;
+                break;
+            case 'j':
+                windows[2].y += 1;
+                break;
+            case 'k':
+                windows[2].y -= 1;
                 break;
         }
     } while (! end);
