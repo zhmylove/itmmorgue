@@ -7,7 +7,9 @@ OS=`uname -s`
 EXECUTABLE='itmmorgue'
 SRC='itmmorgue.c client.c config.c splash.c i18n.c menu.c'
 HDR='itmmorgue.h client.h config.h'
+LIB='trie/trie.c'
 SRCDIR='src'
+LIBDIR='lib'
 WORKDIR='bin'
 
 [ -n "$CC" ] && _CC="$CC"
@@ -106,12 +108,16 @@ rm -f bin/style.o bin/ncursesw.c bin/ncursesw
 cat > Makefile <<EOF
 # Makefile for $OS
 EXECUTABLE=$EXECUTABLE
-SRC=$SRC
-SOURCES=\$(addprefix $SRCDIR/, \$(SRC))
-HDR=$HDR
-HEADERS=\$(addprefix $SRCDIR/, \$(HDR))
-OBJ=\$(SRC:.c=.o)
+SRCDIR=$SRCDIR
+LIBDIR=$LIBDIR
 WORKDIR=$WORKDIR
+SRC=$SRC
+LIB=$LIB
+HDR=$HDR
+OBJ=\$(SRC:.c=.o)
+OLIB=\$(addprefix \$(LIBDIR)/, \$(LIB:.c=.o))
+SOURCES=\$(addprefix \$(SRCDIR)/, \$(SRC))
+HEADERS=\$(addprefix \$(SRCDIR)/, \$(HDR))
 OBJECTS=\$(addprefix \$(WORKDIR)/, \$(OBJ))
 
 CC=$CC
@@ -124,10 +130,13 @@ all: \$(WORKDIR)/\$(EXECUTABLE)
 \$(WORKDIR):
 	mkdir \$(WORKDIR)
 
-\$(WORKDIR)/\$(EXECUTABLE): \$(OBJECTS)
-	\$(CC) \$(LDFLAGS) \$(CFLAGS) \$(OBJECTS) -o \$@ \$(CFLAGS_END)
+\$(WORKDIR)/\$(EXECUTABLE): \$(OBJECTS) \$(OLIB)
+	\$(CC) \$(LDFLAGS) \$(CFLAGS) \$(OBJECTS) \$(OLIB) -o \$@ \$(CFLAGS_END)
 
-\$(WORKDIR)/%.o : src/%.c
+\$(OLIB): \$(LIBDIR)/\$(LIB)
+	\$(MAKE) -C \$(dir \$<)
+
+\$(WORKDIR)/%.o : \$(SRCDIR)/%.c
 	\$(CC) \$(CFLAGS) -c \$< -o \$@
 
 \$(SOURCES): \$(WORKDIR)

@@ -1,0 +1,3 @@
+[submodule "lib/trie"]
+	path = lib/trie
+	url = https://github.com/ValeriyKr/trie

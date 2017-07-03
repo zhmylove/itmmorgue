@@ -13,9 +13,10 @@ To get this library you can either:
 
 ## Build
 
-Get the latest version of the game:
+Get the latest version of the game and submodules:
 ```
 $ git clone https://github.com/zhmylove/itmmorgue.git && cd itmmorgue
+$ git submodule update --init --remote
 ```
 
 Prepare source tree for build:
