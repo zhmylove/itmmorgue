@@ -1,32 +1,44 @@
-#!/bin/sh
+#!/bin/sh -e
 # vim: sw=4 ts=4 et :
 
 exec >&2
 
-OS=`uname -s`
+########################## USER VARIABLES ##########################
 EXECUTABLE='itmmorgue'
-SRC='itmmorgue.c client.c config.c splash.c i18n.c menu.c'
-HDR='itmmorgue.h client.h config.h'
-LIB='trie/trie.c'
 SRCDIR='src'
 LIBDIR='lib'
 WORKDIR='bin'
+SRC='itmmorgue.c client.c config.c splash.c i18n.c menu.c'
+HDR='itmmorgue.h client.h config.h'
+LIB='trie/trie.o'
+####################################################################
+
+OS=`uname -s`
+EXECUTABLE="$WORKDIR/$EXECUTABLE"
+for C in $SRC ;do
+    C=`echo "$C " | sed 's/\\.c /.o/g'`
+    OBJECTS="$WORKDIR/$C $OBJECTS"
+done
+for H in $HDR ;do
+    HEADERS="$SRCDIR/$H $HEADERS"
+done
+for L in $LIB ;do
+    L=$LIBDIR/$L
+    LIBS="$L $LIBS"
+done
 
 [ -n "$CC" ] && _CC="$CC"
 [ -n "$CFLAGS" ] && _CFLAGS="$CFLAGS"
 CFLAGS="--std=gnu99 -pedantic -Wall -Wextra -Werror -ggdb3"
 LDFLAGS=''
-MAKE='make'
 
 case $OS in
     SunOS) 
         LDFLAGS="$LDFLAGS -L /opt/csw/lib/"
         CFLAGS="$CFLAGS -L /opt/csw/lib/ -I /opt/sfw/include/ -lncursesw"
-        MAKE=gmake
         VARS_CLIENT='TERM=screen'
         ;;
     FreeBSD)
-        MAKE=gmake
         LDFLAGS="$LDFLAGS -L /usr/local/lib/ -lncursesw -ltinfow"
         ;;
     Linux)
@@ -104,52 +116,48 @@ fi
 # Remove stale files
 rm -f bin/style.o bin/ncursesw.c bin/ncursesw
 
-# Prepare Makefile
-cat > Makefile <<EOF
-# Makefile for $OS
-EXECUTABLE=$EXECUTABLE
-SRCDIR=$SRCDIR
-LIBDIR=$LIBDIR
-WORKDIR=$WORKDIR
-SRC=$SRC
-LIB=$LIB
-HDR=$HDR
-OBJ=\$(SRC:.c=.o)
-OLIB=\$(addprefix \$(LIBDIR)/, \$(LIB:.c=.o))
-SOURCES=\$(addprefix \$(SRCDIR)/, \$(SRC))
-HEADERS=\$(addprefix \$(SRCDIR)/, \$(HDR))
-OBJECTS=\$(addprefix \$(WORKDIR)/, \$(OBJ))
-
+cat >Makefile <<EOF
+# Makefile for ITMMORGUE
 CC=$CC
-CFLAGS=$CFLAGS
-CFLAGS_END=$CFLAGS_END
-LDFLAGS=$LDFLAGS
+SOURCES=$SRC
 
-all: \$(WORKDIR)/\$(EXECUTABLE)
-
-\$(WORKDIR):
-	mkdir \$(WORKDIR)
-
-\$(WORKDIR)/\$(EXECUTABLE): \$(OBJECTS) \$(OLIB)
-	\$(CC) \$(LDFLAGS) \$(CFLAGS) \$(OBJECTS) \$(OLIB) -o \$@ \$(CFLAGS_END)
-
-\$(OLIB): \$(LIBDIR)/\$(LIB)
-	\$(MAKE) -C \$(dir \$<)
-
-\$(WORKDIR)/%.o : \$(SRCDIR)/%.c
-	\$(CC) \$(CFLAGS) -c \$< -o \$@
-
-\$(SOURCES): \$(WORKDIR)
+all: $EXECUTABLE
+	@echo "Run 'make run' now to start the game! "
 
 run: run_client
+	@echo "Running the game..."
 
-run_client: \$(WORKDIR)/\$(EXECUTABLE)
-	$VARS_CLIENT \$(WORKDIR)/\$(EXECUTABLE)
+run_client: $EXECUTABLE
+	$VARS_CLIENT $EXECUTABLE
 
 clean:
-	\$(RM) -rf \$(WORKDIR)
+	\$(RM) -rf $WORKDIR
 
-.SUFFIXES: .c .o
+$WORKDIR:
+	mkdir $WORKDIR
+
+$EXECUTABLE: bin $OBJECTS $LIBS
+	\$(CC) $LDFLAGS $CFLAGS $OBJECTS $LIBS -o $EXECUTABLE $CFLAGS_END
+
 EOF
 
-echo "Successfully configured for $OS. Please run $MAKE now."
+# objects
+for C in $SRC ;do
+O=`echo "$C " | sed 's/\\.c /.o/g'`
+O="$WORKDIR/$O"
+cat >>Makefile <<EOF
+$O : $SRCDIR/$C $HEADERS
+	\$(CC) $CFLAGS -c $SRCDIR/$C -o $O
+
+EOF
+done
+
+# libs
+for L in $LIBS ;do
+cat >>Makefile <<EOF
+$L:
+	( cd `dirname "$L"` && \$(MAKE) "CC=$CC" "CFLAGS=$CFLAGS" ) 
+EOF
+done
+
+echo "Successfully configured for $OS. Please run 'make' now."
