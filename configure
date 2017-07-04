@@ -113,6 +113,15 @@ else
     echo FAIL
 fi
 
+# Check for lib/trie/Makefile
+printf "Checking lib/trie/Makefile..."
+if ls lib/trie/Makefile >/dev/null 2>&1 ;then
+    echo OK
+else
+    echo FAIL
+    exit 1
+fi
+
 # Remove stale files
 rm -f bin/style.o bin/ncursesw.c bin/ncursesw
 

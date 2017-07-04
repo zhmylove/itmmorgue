@@ -44,6 +44,18 @@ size_t anystrlen(const char *str) {
     return anystrnlen(str, UINT_MAX);
 }
 
+#ifdef __sun
+size_t strnlen(const char *str, size_t maxlen) {
+    size_t rc = 0;
+    
+    while (maxlen-- && *str++) {
+        rc++;
+    }
+
+    return rc;
+}
+#endif /* __sun */
+
 int main(int argc, char *argv[]) {
     // TODO parse argv and run server / client
     // TODO parse config file

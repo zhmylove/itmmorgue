@@ -21,6 +21,7 @@
 #include <limits.h>
 
 #include "config.h"
+#include "../lib/trie/trie.h"
 
 int client(void);
 
@@ -40,5 +41,8 @@ int strtoi(const char *nptr, char **endptr, int base);
 // strlen() alternatives for UTF-8 strings
 size_t anystrlen(const char *str);
 size_t anystrnlen(const char *str, size_t maxlen);
+#ifdef __sun
+size_t strnlen(const char *str, size_t maxlen);
+#endif /* __sun */
 
 #endif /* ITMMORGUE_H */
