@@ -4,6 +4,12 @@
 
 #include <string.h>
 
+/*
+ * Maximum length of option, includes length both of *key* and *value* in
+ * "key=value" pair.
+ */
+#define MAX_OPT_LEN 4096
+
 enum config_parser_retval {
     CP_SUCCESS,  // Option was parsed successfully
     CP_NO_VALUE, // Given string doesn't contain "="
@@ -30,5 +36,6 @@ typedef struct conf {
 } conf_t;
 
 conf_t conf(char *key);
+void config_init(char *file);
 
 #endif /* CONFIG_H */

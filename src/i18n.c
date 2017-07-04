@@ -11,7 +11,7 @@ void i18n_init(char *file) {
     int fd, rc;
 
     if (file == NULL || ! *file) {
-        panic ("Invalid file specified for locale!");
+        panic("Invalid file specified for locale!");
     }
 
     if (stat(file, &sb) < 0) {

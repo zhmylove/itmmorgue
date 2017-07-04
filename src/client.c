@@ -107,6 +107,7 @@ int client() {
 
     // TODO put here path to file w/ locale
     i18n_init("lang/ru");
+    config_init("itmmorgue.conf");
 
     // Dynamic assertions to check compile-time error ;-)
     if (W_SIZE != sizeof(windows_names) / sizeof(char *) - 1) {

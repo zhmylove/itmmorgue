@@ -90,12 +90,6 @@ conf_t conf(char *key) {
 }
 
 /*
- * Maximum length of option, includes length both of *key* and *value* in
- * "key=value" pair.
- */
-#define MAX_OPT_LEN 256
-
-/*
  * Splits opt by "=", saves the first part to key and the second into rc
  *
  * opt : string, which looks like "key=value"
@@ -187,4 +181,110 @@ static enum config_parser_retval parse_option_int(const char *opt,
     return CP_SUCCESS;
 }
 
-#undef MAX_OPT_LEN
+char** config_divisor(const char *str) {
+    int i = 0, j = 0;
+    char **rc = malloc(sizeof(char*));
+
+    while (*str) {
+        while (str[i] && str[i] != '_') i++;
+
+        if (i == 0) {
+            str++;
+            continue;
+        }
+
+        // we have no need in memory deallocation ;-)
+        if ((rc = (char **)realloc(rc, sizeof(char *) * (j + 2))) == NULL) {
+            panic("Unable to realloc in config_divisor!");
+        }
+
+        if ((rc[j] = malloc(i + 1)) == NULL) {
+            panic("Unable to allocate memory in config_divisor!");
+        }
+
+        memcpy(rc[j], str, i);
+        rc[j++][++i] = '\0';
+
+        str += i;
+        i = 0;
+    }
+
+    rc[j] = NULL;
+
+    return rc;
+}
+
+trie_t *t_conf; 
+
+void config_init(char *file) {
+    int fd, rc;
+    char *buf;
+    struct stat sb;
+    char *key = malloc(MAX_OPT_LEN);
+
+    if (file == NULL || ! *file) {
+        panic("Invalid file specified for config!");
+    }
+
+    if (stat(file, &sb) < 0) {
+        panicf("Unable to get info : %s!", file);
+    }
+
+#define CONFIG_SIZE_MAX (16 * 1048576)
+    if (sb.st_size <= 0 || sb.st_size > CONFIG_SIZE_MAX) {
+        panicf("Specified config file has invalid size: %ld!", sb.st_size);
+    }
+
+    if ((buf = malloc(sb.st_size + 1)) == NULL) {
+        panic("Unable to allocate configuration buffer!");
+    }
+
+    if ((fd = open(file, O_RDONLY, 0)) < 0) {
+        panic("Unable to open config file!");
+    }
+
+    if ((t_conf = trie_init(config_divisor)) == NULL) {
+        panic("Unable to allocate config trie!");
+    }
+
+    int i = 0, end = 0;
+
+    if ((rc = read(fd, buf, sb.st_size)) < 0) {
+        panic("Error reading config file!");
+    }
+
+    buf[rc] = '\0';
+
+    do {
+        while (*buf && buf[i] != '\n') i++;
+
+        if (! *buf) {
+            end = 1;
+        }
+        if (i == 0) {
+            buf++;
+            continue;
+        }
+        buf[i] = '\0';
+
+        // TODO check option name and fill conf_type
+        enum conf_type ct = CONF_INT;
+
+        int parse_result;
+        conf_t value;
+
+        if ((parse_result = parse_option(buf, &value, ct, key)) !=
+                CP_SUCCESS) {
+            panicf("Error parsing config: %d", parse_result);
+        }
+
+        if (trie_put(t_conf, key, (void *)&value, sizeof(conf_t)) != 0) {
+            panic("Failed to fill t_conf!");
+        }
+
+        buf += i + 1;
+        i = 0;
+    } while (! end);
+
+    return;
+}
