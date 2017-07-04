@@ -136,7 +136,7 @@ static enum config_parser_retval parse_option(const char *opt, conf_t *rc,
     // Save key
     // TODO: test it all!
     if (NULL != key) {
-        strncpy(key, opt, eq_pos - key - 1);
+        strncpy(key, opt, eq_pos - opt - 1);
         *(key + (eq_pos - opt - 1)) = '\0';
     }
 

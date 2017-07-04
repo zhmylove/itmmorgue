@@ -140,7 +140,7 @@ run_client: $EXECUTABLE
 	$VARS_CLIENT $EXECUTABLE
 
 clean:
-	\$(RM) -rf $WORKDIR
+	rm -rf $WORKDIR
 
 $WORKDIR:
 	mkdir $WORKDIR
