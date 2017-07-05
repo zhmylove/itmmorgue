@@ -212,7 +212,9 @@ struct t_conf_default {
     C_INT("win_inventory_state", 2),
 
     C_INT("splash_time", 1000000),
-    C_INT("splash_delay", 30000)
+    C_INT("splash_delay", 30000),
+
+    C_STR("locale_file", "")
 };
 #undef C_STR
 #undef C_INT
@@ -276,7 +278,8 @@ void config_init(char *file) {
     int fd, rc;
     char *buf;
     struct stat sb;
-    char *key = malloc(MAX_OPT_LEN + 1);
+    char *keybuf = malloc(MAX_OPT_LEN + 1);
+    char *key = keybuf;
 
     if (file == NULL || ! *file) {
         panic("Invalid file specified for config!");
@@ -310,6 +313,8 @@ void config_init(char *file) {
     buf[rc] = '\0';
 
     do {
+        key = keybuf; // due to remove_spaces() may change it
+
         while (*buf && buf[i] != '\n') i++;
 
         if (! *buf) {

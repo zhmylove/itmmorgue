@@ -105,9 +105,9 @@ int client() {
         panic("Unable to set locale (ru,en)UTF-8!");
     }
 
-    // TODO put here path to file w/ locale
-    i18n_init("lang/ru");
     config_init("itmmorgue.conf");
+
+    i18n_init(conf("locale_file").sval);
 
     // Dynamic assertions to check compile-time error ;-)
     if (W_SIZE != sizeof(windows_names) / sizeof(char *) - 1) {
