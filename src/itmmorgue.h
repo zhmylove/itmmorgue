@@ -28,6 +28,12 @@ int client(void);
 // Panic related definitions
 void warn(char *msg);
 void panic(char *msg);
+#define warnf(fmt, ...)                          \
+    do {                                         \
+        char buf[BUFSIZ];                        \
+        snprintf(buf, BUFSIZ, fmt, __VA_ARGS__); \
+        warn(buf);                               \
+    } while(0)
 #define panicf(fmt, ...)                         \
     do {                                         \
         char buf[BUFSIZ];                        \

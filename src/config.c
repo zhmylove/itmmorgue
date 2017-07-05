@@ -2,10 +2,12 @@
 #include "config.h"
 #include "itmmorgue.h"
 
+trie_t *t_conf = NULL; 
+
 static enum config_parser_retval parse_option(const char *opt, conf_t *rc,
         enum conf_type ct, char *key);
 
-// Parsers for concrete value types, called by parse_option()
+// Parsers for specific value types, called by parse_option()
 static enum config_parser_retval parse_option_string(const char *opt,
         conf_t *rc);
 
@@ -16,77 +18,19 @@ static enum config_parser_retval (*parsers[])(const char *opt, conf_t *rc) = {
     parse_option_int
 };
 
-// TODO: deprecated, delete after config system will be implemented
-// Parser for win_ section
-static conf_t win_conf(char *key) {
-    conf_t rc;
-
-    // TODO implement dafault values
-    if (key == strstr(key, "stdscr_y")) rc.ival = 0;
-    if (key == strstr(key, "stdscr_x")) rc.ival = 0;
-    if (key == strstr(key, "stdscr_max_y")) rc.ival = 0;
-    if (key == strstr(key, "stdscr_max_x")) rc.ival = 0;
-    if (key == strstr(key, "stdscr_state")) rc.ival = 2;
-
-    // TODO implement real parser
-    if (key == strstr(key, "area_y")) rc.ival = 3;
-    if (key == strstr(key, "area_x")) rc.ival = 2;
-    if (key == strstr(key, "area_max_y")) rc.ival = 10;
-    if (key == strstr(key, "area_max_x")) rc.ival = 45;
-    if (key == strstr(key, "area_state")) rc.ival = 2;
-
-    if (key == strstr(key, "chat_y")) rc.ival = 4;
-    if (key == strstr(key, "chat_x")) rc.ival = 49;
-    if (key == strstr(key, "chat_max_y")) rc.ival = 7;
-    if (key == strstr(key, "chat_max_x")) rc.ival = 7;
-    if (key == strstr(key, "chat_state")) rc.ival = 2;
-
-    if (key == strstr(key, "inventory_y")) rc.ival = 6;
-    if (key == strstr(key, "inventory_x")) rc.ival = 42;
-    if (key == strstr(key, "inventory_max_y")) rc.ival = 12;
-    if (key == strstr(key, "inventory_max_x")) rc.ival = 10;
-    if (key == strstr(key, "inventory_state")) rc.ival = 2;
-
-    return rc;
-}
-
-// TODO: deprecated, delete after config system will be implemented
-static conf_t splash_conf(char *key) {
-    conf_t rc;
-
-    if (key == strstr(key, "delay")) rc.ival = 30000;
-    if (key == strstr(key, "time")) rc.ival = 1000000;
-
-    return rc;
-}
-
-// TODO: deprecated, delete after config system will be implemented
-// Prefixes for config sections/subsections with parser pointers
-struct conf_prefix {
-    char *prefix;
-    conf_t (*parser)(char *);
-} pr_global[] = {
-    { "win_", win_conf },
-    { "splash_", splash_conf }
-};
-
-// TODO: deprecated, delete after config system will be implemented
-// Entry point to get all config values
+/* 
+ * The only accessor to config values from other modules
+ */
 conf_t conf(char *key) {
-    conf_t rc;
-    parse_option(NULL, NULL, CONF_INT, NULL);
+    conf_t *rc;
 
-    rc.type = CONF_INT;
-    for (size_t i = 0;
-            i < sizeof(pr_global) / sizeof(struct conf_prefix);
-            i++) {
-        if (key == strstr(key, pr_global[i].prefix)) {
-            rc = pr_global[i].parser(key + strlen(pr_global[i].prefix));
-            break;
-        }
+    if ((rc = (conf_t *)trie_get(t_conf, key)) != NULL) {
+        return *rc;
+    } else {
+        panicf("Invalid conf(%s) requested!", key);
     }
 
-    return rc;
+    return *rc;
 }
 
 /*
@@ -181,6 +125,10 @@ static enum config_parser_retval parse_option_int(const char *opt,
     return CP_SUCCESS;
 }
 
+/* 
+ * Used by trie_* to split keys
+ * In config case perl equivalent is: split /_/, str
+ */
 char** config_divisor(const char *str) {
     int i = 0, j = 0;
     char **rc = malloc(sizeof(char*));
@@ -214,17 +162,112 @@ char** config_divisor(const char *str) {
     return rc;
 }
 
-trie_t *t_conf; 
+/* 
+ * Default values for ALL config options!
+ * Needs to be updated to implement any new options
+ */
+#define C_STR(key, val) { key, { { .__sval = val }, CONF_STRING } } 
+#define C_INT(key, val) { key, { { .__ival = val }, CONF_INT } } 
+struct t_conf_default {
+    char *key;
+    conf_t value;
+} t_conf_default[] = {
+    C_INT("win_stdscr_y", 0),
+    C_INT("win_stdscr_x", 0),
+    C_INT("win_stdscr_max_y", 0),
+    C_INT("win_stdscr_max_x", 0),
+    C_INT("win_stdscr_state", 2),
 
+    C_INT("win_area_y", 3),
+    C_INT("win_area_x", 2),
+    C_INT("win_area_max_y", 10),
+    C_INT("win_area_max_x", 45),
+    C_INT("win_area_state", 2),
+
+    C_INT("win_chat_y", 4),
+    C_INT("win_chat_x", 49),
+    C_INT("win_chat_max_y", 7),
+    C_INT("win_chat_max_x", 7),
+    C_INT("win_chat_state", 2),
+
+    C_INT("win_inventory_y", 6),
+    C_INT("win_inventory_x", 42),
+    C_INT("win_inventory_max_y", 12),
+    C_INT("win_inventory_max_x", 10),
+    C_INT("win_inventory_state", 2),
+
+    C_INT("splash_time", 1000000),
+    C_INT("splash_delay", 30000)
+};
+#undef C_STR
+#undef C_INT
+
+/* 
+ * Singletone initialization of t_conf with default values
+ */
+static void config_pre_init() {
+    if (t_conf != NULL) {
+        panic("config_pre_init() called twice!");
+    }
+
+    if ((t_conf = trie_init(config_divisor)) == NULL) {
+        panic("Unable to allocate config trie!");
+    }
+
+    for (size_t i = 0;
+            i < sizeof(t_conf_default) / sizeof(struct t_conf_default);
+            i++) {
+        if (trie_put(t_conf, t_conf_default[i].key,
+                    (void*)&(t_conf_default[i].value), sizeof(conf_t)) != 0) {
+            panicf("Failed to initialize t_conf[%s]!", t_conf_default[i].key);
+        }
+    }
+}
+
+/* 
+ * Dump config to STDERR for _DEBUG purposes.
+ */
+void config_dump() {
+    conf_t *curr;
+
+    fprintf(stderr, " === Config dump === \n");
+
+    for (size_t i = 0;
+            i < sizeof(t_conf_default) / sizeof(struct t_conf_default);
+            i++) {
+        char *key = t_conf_default[i].key;
+
+        if ((curr = (conf_t *)trie_get(t_conf, key)) != NULL) {
+            switch (curr->type) {
+                case CONF_STRING:
+                    fprintf(stderr, "conf[%s] = %s\n", key, curr->sval);
+                    break;
+                case CONF_INT:
+                    fprintf(stderr, "conf[%s] = %d\n", key, curr->ival);
+                    break;
+                default:
+                    panic("config_dump()::switch() needs fix!");
+            }
+        } else {
+            panic("Memory corruption!");
+        }
+    }
+}
+
+/* 
+ * Initialize configuration from file
+ */
 void config_init(char *file) {
     int fd, rc;
     char *buf;
     struct stat sb;
-    char *key = malloc(MAX_OPT_LEN);
+    char *key = malloc(MAX_OPT_LEN + 1);
 
     if (file == NULL || ! *file) {
         panic("Invalid file specified for config!");
     }
+
+    config_pre_init();
 
     if (stat(file, &sb) < 0) {
         panicf("Unable to get info : %s!", file);
@@ -241,10 +284,6 @@ void config_init(char *file) {
 
     if ((fd = open(file, O_RDONLY, 0)) < 0) {
         panic("Unable to open config file!");
-    }
-
-    if ((t_conf = trie_init(config_divisor)) == NULL) {
-        panic("Unable to allocate config trie!");
     }
 
     int i = 0, end = 0;
@@ -267,24 +306,41 @@ void config_init(char *file) {
         }
         buf[i] = '\0';
 
-        // TODO check option name and fill conf_type
-        enum conf_type ct = CONF_INT;
-
+        enum conf_type ct;
         int parse_result;
         conf_t value;
 
-        if ((parse_result = parse_option(buf, &value, ct, key)) !=
-                CP_SUCCESS) {
-            panicf("Error parsing config: %d", parse_result);
+        // This double-parsing code makes my eyes full of tears
+        char *eq = strstr(buf, "=");
+        if (eq == NULL) {
+            goto EILLOPT;
         }
+        memcpy(key, buf, eq - buf);
+        key[eq - buf] = '\0';
 
-        if (trie_put(t_conf, key, (void *)&value, sizeof(conf_t)) != 0) {
-            panic("Failed to fill t_conf!");
+        conf_t *curr;
+        if ((curr = (conf_t *)trie_get(t_conf, key)) != NULL) {
+            ct = curr->type;
+
+            if ((parse_result = parse_option(buf, &value, ct, key)) !=
+                    CP_SUCCESS) {
+                panicf("Error parsing config: %d", parse_result);
+            }
+
+            if (trie_put(t_conf, key, (void *)&value, sizeof(conf_t)) != 0) {
+                panic("Failed to fill t_conf!");
+            }
+        } else {
+EILLOPT:
+            warnf("Unknown option specified: %s", key);
         }
 
         buf += i + 1;
         i = 0;
     } while (! end);
 
+#ifdef _DEBUG
+    config_dump();
+#endif /* _DEBUG */
     return;
 }

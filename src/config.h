@@ -27,11 +27,11 @@ enum conf_type {
 // Value of any config parameter, see conf()
 typedef struct conf {
     union {
-        int ival;
-        char *sval;
+        int __ival;
+        char *__sval;
     } value;             // config value
-#define ival value.ival  // ugly definitions for quick access to values
-#define sval value.sval
+#define ival value.__ival  // ugly definitions for quick access to values
+#define sval value.__sval
     enum conf_type type; // type of value
 } conf_t;
 
