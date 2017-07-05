@@ -10,6 +10,7 @@
 #endif /* __FreeBSD__ || __linux__ */
 #include <stdlib.h>
 #include <string.h>
+#include <ctype.h>
 #include <stdio.h>
 #include <sys/types.h>
 #include <sys/stat.h>

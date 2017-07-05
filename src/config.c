@@ -126,6 +126,21 @@ static enum config_parser_retval parse_option_int(const char *opt,
 }
 
 /* 
+ * Remove spaces from the beginning and the end of the string
+ */
+void remove_spaces(char **str) {
+    size_t ptr = strlen(*str) - 1;
+
+    while (ptr > 0 && isspace((*str)[ptr])) {
+        (*str)[ptr--] = '\0';
+    }
+
+    while (**str && isspace(**str)) {
+        (*str)++;
+    }
+}
+
+/* 
  * Used by trie_* to split keys
  * In config case perl equivalent is: split /_/, str
  */
@@ -318,6 +333,8 @@ void config_init(char *file) {
         memcpy(key, buf, eq - buf);
         key[eq - buf] = '\0';
 
+        remove_spaces(&key);
+
         conf_t *curr;
         if ((curr = (conf_t *)trie_get(t_conf, key)) != NULL) {
             ct = curr->type;
@@ -326,6 +343,8 @@ void config_init(char *file) {
                     CP_SUCCESS) {
                 panicf("Error parsing config: %d", parse_result);
             }
+
+            remove_spaces(&key);
 
             if (trie_put(t_conf, key, (void *)&value, sizeof(conf_t)) != 0) {
                 panic("Failed to fill t_conf!");
