@@ -203,7 +203,7 @@ char** config_divisor(const char *str) {
         }
 
         memcpy(rc[j], str, i);
-        rc[j++][++i] = '\0';
+        rc[j++][i] = '\0';
 
         str += i;
         i = 0;
