@@ -1,5 +1,6 @@
 // vim: sw=4 ts=4 et :
 #include "config.h"
+#include "def_conf.h"
 #include "itmmorgue.h"
 
 trie_t *t_conf = NULL; 
@@ -181,48 +182,6 @@ char** config_divisor(const char *str) {
 }
 
 /* 
- * Default values for ALL config options!
- * Needs to be updated to implement any new options
- */
-#define C_STR(key, val) { key, { { .__sval = val }, CONF_STRING } } 
-#define C_INT(key, val) { key, { { .__ival = val }, CONF_INT } } 
-struct t_conf_default {
-    char *key;
-    conf_t value;
-} t_conf_default[] = {
-    C_INT("win_stdscr_y", 0),
-    C_INT("win_stdscr_x", 0),
-    C_INT("win_stdscr_max_y", 0),
-    C_INT("win_stdscr_max_x", 0),
-    C_INT("win_stdscr_state", 2),
-
-    C_INT("win_area_y", 3),
-    C_INT("win_area_x", 2),
-    C_INT("win_area_max_y", 10),
-    C_INT("win_area_max_x", 45),
-    C_INT("win_area_state", 2),
-
-    C_INT("win_chat_y", 4),
-    C_INT("win_chat_x", 49),
-    C_INT("win_chat_max_y", 7),
-    C_INT("win_chat_max_x", 7),
-    C_INT("win_chat_state", 2),
-
-    C_INT("win_inventory_y", 6),
-    C_INT("win_inventory_x", 42),
-    C_INT("win_inventory_max_y", 12),
-    C_INT("win_inventory_max_x", 10),
-    C_INT("win_inventory_state", 2),
-
-    C_INT("splash_time", 1000000),
-    C_INT("splash_delay", 30000),
-
-    C_STR("locale_file", "")
-};
-#undef C_STR
-#undef C_INT
-
-/* 
  * Singletone initialization of t_conf with default values
  */
 static void config_pre_init() {
@@ -234,9 +193,7 @@ static void config_pre_init() {
         panic("Unable to allocate config trie!");
     }
 
-    for (size_t i = 0;
-            i < sizeof(t_conf_default) / sizeof(struct t_conf_default);
-            i++) {
+    for (size_t i = 0; i < t_conf_default_size; i++) {
         if (trie_put(t_conf, t_conf_default[i].key,
                     (void*)&(t_conf_default[i].value), sizeof(conf_t)) != 0) {
             panicf("Failed to initialize t_conf[%s]!", t_conf_default[i].key);
@@ -252,9 +209,7 @@ void config_dump() {
 
     fprintf(stderr, " === Config dump === \n");
 
-    for (size_t i = 0;
-            i < sizeof(t_conf_default) / sizeof(struct t_conf_default);
-            i++) {
+    for (size_t i = 0; i < t_conf_default_size; i++) {
         char *key = t_conf_default[i].key;
 
         if ((curr = (conf_t *)trie_get(t_conf, key)) != NULL) {

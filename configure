@@ -8,8 +8,8 @@ EXECUTABLE='itmmorgue'
 SRCDIR='src'
 LIBDIR='lib'
 WORKDIR='bin'
-SRC='itmmorgue.c client.c config.c splash.c locale.c menu.c'
-HDR='itmmorgue.h client.h config.h'
+SRC='itmmorgue.c client.c config.c splash.c locale.c menu.c def_conf.c'
+HDR='itmmorgue.h client.h config.h def_conf.h'
 LIB='trie/trie.o'
 DEBUG=1
 ####################################################################

@@ -2,3 +2,4 @@ bin/*
 lib/*
 lib/trie/*
 Makefile
+tags
