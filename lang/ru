@@ -1,2 +1,7 @@
 {Key:}{Клавиша:}
-{Main menu}{Главное меню}
+{Main menu}{Главное\} меню}
+
+# comment
+{Hello,
+My name is KorG} = {Привет!
+Меня зовут КорЖ}

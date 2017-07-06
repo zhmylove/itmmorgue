@@ -8,7 +8,7 @@ EXECUTABLE='itmmorgue'
 SRCDIR='src'
 LIBDIR='lib'
 WORKDIR='bin'
-SRC='itmmorgue.c client.c config.c splash.c i18n.c menu.c'
+SRC='itmmorgue.c client.c config.c splash.c locale.c menu.c'
 HDR='itmmorgue.h client.h config.h'
 LIB='trie/trie.o'
 DEBUG=1
@@ -30,7 +30,7 @@ done
 
 [ -n "$CC" ] && _CC="$CC"
 [ -n "$CFLAGS" ] && _CFLAGS="$CFLAGS"
-CFLAGS="--std=gnu99 -pedantic -Wall -Wextra -Werror -ggdb3"
+CFLAGS="--std=gnu99 -pedantic -Wall -Wextra -Werror -ggdb3 -I$LIBDIR"
 [ x1 = "x$DEBUG" ] && CFLAGS="$CFLAGS -D_DEBUG"
 LDFLAGS=''
 

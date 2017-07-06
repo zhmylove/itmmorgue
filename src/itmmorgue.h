@@ -22,7 +22,7 @@
 #include <limits.h>
 
 #include "config.h"
-#include "../lib/trie/trie.h"
+#include "trie/trie.h"
 
 int client(void);
 

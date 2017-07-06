@@ -107,7 +107,7 @@ int client() {
 
     config_init("itmmorgue.conf");
 
-    i18n_init(conf("locale_file").sval);
+    locale_init(conf("locale_file").sval);
 
     // Dynamic assertions to check compile-time error ;-)
     if (W_SIZE != sizeof(windows_names) / sizeof(char *) - 1) {

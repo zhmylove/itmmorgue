@@ -57,7 +57,7 @@ int client();
 
 extern void menu(size_t menu_id);
 extern void splash_screen();
-extern void i18n_init(char *file);
+extern void locale_init(char *file);
 extern char *_(char*);
 
 win_info_t windows[W_SIZE];
