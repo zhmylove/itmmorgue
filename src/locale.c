@@ -200,7 +200,8 @@ void locale_init(char *file) {
             panic("Error parsing localefile!");
         }
 
-        if (trie_put(t_locale, key, (void *)value, strlen(value) + 1) != 0) {
+        if (trie_put(t_locale, key, (void *)value, strlen(value) + 1, NULL)
+                != 0) {
             panic("Failed to fill t_locale!");
         }
 

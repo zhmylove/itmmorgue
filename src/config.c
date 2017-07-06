@@ -144,6 +144,17 @@ void remove_spaces(char **str) {
     }
 }
 
+/*
+ * Used by trie_* to deallocate elements of conf_t type.
+ */
+void config_deallocator(void *rc) {
+    if (NULL == rc) return;
+    if (CONF_STRING == ((conf_t*)rc)->type) {
+        free(((conf_t*)rc)->sval);
+    }
+    free(rc);
+}
+
 /* 
  * Used by trie_* to split keys
  * In config case perl equivalent is: split /_/, str
@@ -195,7 +206,8 @@ static void config_pre_init() {
 
     for (size_t i = 0; i < t_conf_default_size; i++) {
         if (trie_put(t_conf, t_conf_default[i].key,
-                    (void*)&(t_conf_default[i].value), sizeof(conf_t)) != 0) {
+                    (void*)&(t_conf_default[i].value), sizeof(conf_t),
+                    config_deallocator) != 0) {
             panicf("Failed to initialize t_conf[%s]!", t_conf_default[i].key);
         }
     }
@@ -309,7 +321,8 @@ void config_init(char *file) {
 
             remove_spaces(&key);
 
-            if (trie_put(t_conf, key, (void *)&value, sizeof(conf_t)) != 0) {
+            if (trie_put(t_conf, key, (void *)&value, sizeof(conf_t),
+                        config_deallocator) != 0) {
                 panic("Failed to fill t_conf!");
             }
         } else {
