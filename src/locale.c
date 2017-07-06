@@ -146,7 +146,12 @@ void locale_init(char *file) {
     int fd, rc;
     char *buf;
 
-    char key[MAX_OPT_LEN], value[MAX_OPT_LEN];
+    char *key = (char*)malloc(MAX_OPT_LEN);
+    char *value = (char*)malloc(MAX_OPT_LEN);
+
+    if (NULL == key || NULL == value) {
+        panic("Cannot allocate memory for config key/value buffers");
+    }
 
     if (file == NULL || ! *file) {
         panic("Invalid file specified for locale!");
@@ -202,6 +207,9 @@ void locale_init(char *file) {
         bufptr += offset;
         buflen -= offset;
     }
+
+    free(value);
+    free(key);
 }
 
 /* 
