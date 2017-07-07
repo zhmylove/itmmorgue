@@ -207,7 +207,7 @@ static void config_pre_init() {
     for (size_t i = 0; i < t_conf_default_size; i++) {
         if (trie_put(t_conf, t_conf_default[i].key,
                     (void*)&(t_conf_default[i].value), sizeof(conf_t),
-                    config_deallocator) != 0) {
+                    NULL) != 0) {
             panicf("Failed to initialize t_conf[%s]!", t_conf_default[i].key);
         }
     }
