@@ -2,7 +2,9 @@
 #ifndef CLIENT_H
 #define CLIENT_H
 
-int max_x, max_y, last_key;
+#include "windows.h"
+
+int last_key;
 
 // Menus
 enum menus {
@@ -16,50 +18,16 @@ enum colors {
     L_WHITE, L_YELLOW, L_RED, L_GREEN, L_BLUE, L_BLACK, L_CYAN, L_MAGENTA
 };
 
-// All windows
-enum windows {
-    W_STDSCR,
-    W_AREA,
-    W_CHAT,
-    W_INVENTORY,
-    W_SIZE
-};
-// String representation of their names
-// Defined in client.c
-extern char *windows_names[];
-
-// WINDOW pointer by NAME
-#define W(NAME) (windows[NAME].w)
-
-typedef struct win_info {
-    WINDOW *w;  // pointer to ncurses
-    int y;      // left top corner
-    int x;      // 
-    int max_y;  // size
-    int max_x;  //
-    enum {      // state
-        HIDDEN,
-        SMALL,
-        LARGE
-    } state;
-} win_info_t;
-
 typedef struct menu {
     void (*f)(int id, WINDOW *);
     char *caption;
 } menu_t;
 
-void init_screen();
-void resize();
-void sigwinch(int signum);
-int wcolor(WINDOW *win, int color);
 int client();
 
 extern void menu(size_t menu_id);
 extern void splash_screen();
 extern void locale_init(char *file);
 extern char *_(char*);
-
-win_info_t windows[W_SIZE];
 
 #endif /* CLIENT_H */
