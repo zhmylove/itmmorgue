@@ -38,15 +38,19 @@ int client() {
 
     splash_screen();
 
-    wcolor(stdscr, L_GREEN);
-
     windows_init();
 
-    wcolor(W(W_AREA), L_RED);
+    wcolor(W(W_STDSCR),    D_WHITE);
+    wcolor(W(W_AREA),      L_WHITE);
+    wcolor(W(W_CHAT),      L_YELLOW);
+    wcolor(W(W_INVENTORY), L_RED);
+    wcolor(W(W_MAP),       L_BLUE);
+    wcolor(W(W_STATUS),    L_CYAN);
+    wcolor(W(W_SYSMSG),    L_MAGENTA);
 
     int end = 0;
     do {
-        redraw();
+        windows_redraw();
 
         wtimeout(stdscr, 100);
         switch (last_key = mvgetch(max_y - 1, max_x - 1)) {
@@ -62,16 +66,16 @@ int client() {
                 wrefresh(stdscr);
                 break;
             case 'l':
-                windows[2].x += 1;
+                windows[3].x += 1;
                 break;
             case 'h':
-                windows[2].x -= 1;
+                windows[3].x -= 1;
                 break;
             case 'j':
-                windows[2].y += 1;
+                windows[3].y += 1;
                 break;
             case 'k':
-                windows[2].y -= 1;
+                windows[3].y -= 1;
                 break;
         }
     } while (! end);

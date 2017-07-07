@@ -9,7 +9,21 @@ char *windows_names[] = {
     "area",
     "chat",
     "inventory",
+    "map",
+    "status",
+    "sysmsg",
     NULL
+};
+
+// Windows draw sequence
+int windows_order[W_SIZE] = {
+    W_STDSCR,
+    W_AREA,
+    W_STATUS,
+    W_INVENTORY,
+    W_MAP,
+    W_CHAT,
+    W_SYSMSG
 };
 
 void windows_check() {
@@ -55,10 +69,9 @@ void windows_init() {
     }
 }
 
-void resize() {
+static void resize() {
     endwin();
     init_screen();
-    redraw();
 }
 
 void sigwinch(int signum) {
@@ -85,20 +98,13 @@ void init_screen() {
     init_pair(7, COLOR_CYAN, COLOR_BLACK);
     init_pair(8, COLOR_MAGENTA, COLOR_BLACK);
 
-    erase();
+    clear();
     refresh();
     windows[0].w = stdscr;
     getmaxyx(stdscr, max_y, max_x);
 }
 
-void redraw() {
-    mvwprintw(stdscr, 1, 1,
-            "%d x %d %s %d       ",
-            max_y,
-            max_x,
-            _("Key:"),
-            last_key);
-
+static void draw_any_before() {
     // Draw all windows
     for (size_t i = 0; i < W_SIZE; i++) {
         // Restore window size and position
@@ -106,17 +112,97 @@ void redraw() {
         if (i != 0) {
             mvderwin(W(i), windows[i].y, windows[i].x);
         }
+    }
+}
 
-        // Draw borders
-        box(W(i), '|', '-');
+static void draw_stdscr() {
+    mvwprintw(stdscr, 1, 1,
+            "%d x %d %s %d       ",
+            max_y,
+            max_x,
+            _("Key:"),
+            last_key);
+}
+
+static void draw_sysmsg() {
+    return;
+}
+
+static void draw_map() {
+    return;
+}
+
+static void draw_status() {
+    return;
+}
+
+static void draw_area() {
+    return;
+}
+
+static void draw_chat() {
+    struct timeval time;
+    gettimeofday(&time, NULL);
+
+    MVW(W_CHAT, 0, 0, "1234567890abcdefghijklmnopqrstuvwxyz");
+    wprintw(W(W_CHAT), " %d ", time.tv_sec);
+    wprintw(W(W_CHAT), "ABCDEFJHIJKLMNOPQRSTUVWXYZ0123456789");
+}
+
+static void draw_inventory() {
+    MVW(W_INVENTORY, 0, 0, "1234567890абвгдеёжзиклмнопрстуфхцчшщъыьэюя");
+    wprintw(W(W_INVENTORY), "ABCDEFJHIJKLMNOPQRSTUVWXYZ0123456789");
+}
+
+static void draw_by_name(int win) {
+    switch(win) {
+        case W_STDSCR:    draw_stdscr();    break;
+        case W_AREA:      draw_area();      break;
+        case W_CHAT:      draw_chat();      break;
+        case W_INVENTORY: draw_inventory(); break;
+        case W_MAP:       draw_map();       break;
+        case W_STATUS:    draw_status();    break;
+        case W_SYSMSG:    draw_sysmsg();    break;
+        default: panic("Invalid window specified for draw()!");
+    }
+}
+
+static void draw_any(int win) {
+    // Draw borders
+    wborder(W(win), '|', '|', '-', '-', '+', '+', '+', '+');
+}
+
+void windows_redraw() {
+    if (max_x < 80 || max_y < 24) {
+        redrawwin(stdscr);
+        mvwprintw(stdscr, 
+                (int)(max_y / 2) - 2,
+                (int)(max_x / 2) - 4,
+                "ITMMORGUE"
+                );
+        mvwprintw(stdscr, 
+                (int)(max_y / 2) - 1,
+                (int)(max_x / 2) - 15,
+                "Windows is smaller than 80x24!"
+                );
+        wrefresh(stdscr);
+        return;
     }
 
-    wcolor(W(2), D_BLUE);
-    wcolor(W(3), D_YELLOW);
-    mvwprintw(W(2), 0, 0, "1234567890abcdefghijklmnopqrstuvwxyz");
-    wprintw(W(2), "ABCDEFJHIJKLMNOPQRSTUVWXYZ0123456789");
-    mvwprintw(W(3), 0, 0, "1234567890абвгдеёжзиклмнопрстуфхцчшщъыьэюя");
-    wprintw(W(3), "ABCDEFJHIJKLMNOPQRSTUVWXYZ0123456789");
+    draw_any_before();
+
+    for (int i = 0; i < W_SIZE; i++) {
+        if (windows[i].state == HIDDEN) {
+            continue;
+        }
+
+        // TODO check if we really need this heavy stuff.
+        // Also we can call wclear() only for each visibility change
+        //wclear(W(i));
+
+        draw_any(windows_order[i]);
+        draw_by_name(windows_order[i]);
+    }
 
     refresh();
 }
