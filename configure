@@ -145,6 +145,9 @@ run_client: $EXECUTABLE
 clean:
 	rm -rf $WORKDIR
 
+debug: $EXECUTABLE
+	gdb $EXECUTABLE
+
 $WORKDIR:
 	mkdir $WORKDIR
 
