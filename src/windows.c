@@ -33,8 +33,20 @@ void windows_check() {
     }
 }
 
+void windows_colors() {
+    wcolor(W(W_STDSCR),    D_WHITE);
+    wcolor(W(W_AREA),      L_WHITE);
+    wcolor(W(W_CHAT),      L_YELLOW);
+    wcolor(W(W_INVENTORY), L_RED);
+    wcolor(W(W_MAP),       L_BLUE);
+    wcolor(W(W_STATUS),    L_CYAN);
+    wcolor(W(W_SYSMSG),    L_MAGENTA);
+}
+
 void windows_init() {
     char buf[BUFSIZ]; // for config parameter prefix
+    focus = W_AREA;
+
     for (int i = 0; i < W_SIZE; i++) {
         strncpy(buf, "win_", 5);                    // buf  = "win_"
         strncat(buf, windows_names[i], BUFSIZ - 5); // buf  = "win_area"
@@ -99,11 +111,14 @@ void windows_init() {
             panic("Window creation failure!");
         }
     }
+
+    windows_colors();
 }
 
 static void resize() {
     endwin();
     init_screen();
+    windows_init();
 }
 
 void sigwinch(int signum) {
@@ -206,7 +221,7 @@ static void draw_any(int win) {
 }
 
 void windows_redraw() {
-    if (max_x < 80 || max_y < 24) {
+    if (max_x < 80 || max_y < 25) {
         redrawwin(stdscr);
         mvwprintw(stdscr, 
                 (int)(max_y / 2) - 2,
@@ -216,7 +231,7 @@ void windows_redraw() {
         mvwprintw(stdscr, 
                 (int)(max_y / 2) - 1,
                 (int)(max_x / 2) - 15,
-                "Windows is smaller than 80x24!"
+                "Windows is smaller than 80x25!"
                 );
         wrefresh(stdscr);
         return;
@@ -225,17 +240,21 @@ void windows_redraw() {
     draw_any_before();
 
     for (int i = 0; i < W_SIZE; i++) {
-        if (windows[windows_order[i]].state == HIDDEN) {
+        if (i == focus || windows[windows_order[i]].state == HIDDEN) {
             continue;
         }
 
         // TODO check if we really need this heavy stuff.
         // Also we can call wclear() only for each visibility change
-        //wclear(W(i));
+        //wclear(W(windows_order[i]));
 
         draw_any(windows_order[i]);
         draw_by_name(windows_order[i]);
     }
+
+    wclear(W(focus));
+    draw_any(focus);
+    draw_by_name(focus);
 
     refresh();
 }
@@ -251,3 +270,30 @@ int wcolor(WINDOW *win, int color) {
     return wattrset(win, color);
 }
 
+#define K_EXIT 0
+int K[] = {
+    'q'
+};
+
+void inventory_open() {
+    windows[W_INVENTORY].state = LARGE;
+    int focus_old = focus;
+    focus = W_INVENTORY;
+
+    windows_redraw();
+
+    wtimeout(W(W_INVENTORY), -1);
+    do {
+        switch (last_key = mvwgetch(W(W_INVENTORY), 0, 0)) {
+            case '1':
+                warn("1");
+            case '2':
+                warn("2");
+                break;
+        }
+    } while (last_key != K[K_EXIT]);
+
+    windows[W_INVENTORY].state = HIDDEN;
+    focus = focus_old;
+    wclear(stdscr);
+}

@@ -40,14 +40,6 @@ int client() {
 
     windows_init();
 
-    wcolor(W(W_STDSCR),    D_WHITE);
-    wcolor(W(W_AREA),      L_WHITE);
-    wcolor(W(W_CHAT),      L_YELLOW);
-    wcolor(W(W_INVENTORY), L_RED);
-    wcolor(W(W_MAP),       L_BLUE);
-    wcolor(W(W_STATUS),    L_CYAN);
-    wcolor(W(W_SYSMSG),    L_MAGENTA);
-
     int end = 0;
     do {
         windows_redraw();
@@ -56,6 +48,9 @@ int client() {
         switch (last_key = mvgetch(max_y - 1, max_x - 1)) {
             case 'm':
                 menu(M_MAIN);
+                break;
+            case 'i':
+                inventory_open();
                 break;
             case 'q':
             case 'Q':

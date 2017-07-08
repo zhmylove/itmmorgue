@@ -36,13 +36,14 @@ typedef struct win_info {
 } win_info_t;
 
 win_info_t windows[W_SIZE];
-int max_x, max_y, x, y;
+int max_x, max_y, x, y, focus;
 
 void init_screen();
 void sigwinch(int signum);
 void windows_check();
 void windows_init();
 void windows_redraw();
+void inventory_open();
 int wcolor(WINDOW *win, int color);
 
 #endif /* WINDOWS_H */
