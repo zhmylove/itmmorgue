@@ -26,10 +26,12 @@ enum config_parser_retval locale_parse(char *buf, size_t len, size_t *offset,
         char *key, char *value) {
     enum LOCALE_STATE {
         L_WAITKEY,
+        L_TRIMKEY,
         L_WAITKEYCOMMENT,
         L_INKEY,
         L_ESCKEY,
         L_WAITVAL,
+        L_TRIMVAL,
         L_WAITVALCOMMENT,
         L_INVAL,
         L_ESCVAL,
@@ -50,7 +52,7 @@ enum config_parser_retval locale_parse(char *buf, size_t len, size_t *offset,
                     off++;
                     continue;
                 } else if (buf[off] == '{') {
-                    state = L_INKEY;
+                    state = L_TRIMKEY;
                     off++;
                     continue;
                 } else if (isspace(buf[off])) {
@@ -60,6 +62,15 @@ enum config_parser_retval locale_parse(char *buf, size_t len, size_t *offset,
                     return CP_SUCCESS;
                 } else {
                     return CP_NO_KEY;
+                }
+                break;
+            case L_TRIMKEY:
+                if (!isspace(buf[off])) {
+                    state = L_INKEY;
+                    continue;
+                } else {
+                    off++;
+                    continue;
                 }
                 break;
             case L_WAITKEYCOMMENT:
@@ -74,7 +85,10 @@ enum config_parser_retval locale_parse(char *buf, size_t len, size_t *offset,
                     continue;
                 } else if (buf[off] == '}') {
                     state = L_WAITVAL;
-                    key[pos] = '\0';
+                    key[pos--] = '\0';
+                    while (pos > 0 && isspace(key[pos])) {
+                        key[pos--] = '\0';
+                    }
                     pos = 0;
                     off++;
                     continue;
@@ -90,7 +104,7 @@ enum config_parser_retval locale_parse(char *buf, size_t len, size_t *offset,
                 break;
             case L_WAITVAL:
                 if (buf[off] == '{') {
-                    state = L_INVAL;
+                    state = L_TRIMVAL;
                     off++;
                     continue;
                 } else if (buf[off] == '#') {
@@ -102,6 +116,15 @@ enum config_parser_retval locale_parse(char *buf, size_t len, size_t *offset,
                     continue;
                 } else {
                     return CP_NO_VALUE;
+                }
+                break;
+            case L_TRIMVAL:
+                if (!isspace(buf[off])) {
+                    state = L_INVAL;
+                    continue;
+                } else {
+                    off++;
+                    continue;
                 }
                 break;
             case L_WAITVALCOMMENT:
@@ -116,7 +139,10 @@ enum config_parser_retval locale_parse(char *buf, size_t len, size_t *offset,
                     continue;
                 } else if (buf[off] == '}') {
                     off++;
-                    value[pos] = '\0';
+                    value[pos--] = '\0';
+                    while (pos > 0 && isspace(value[pos])) {
+                        value[pos--] = '\0';
+                    }
                     *offset = off;
                     return CP_SUCCESS;
                 } else {
