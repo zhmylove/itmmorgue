@@ -39,11 +39,36 @@ void windows_init() {
         strncpy(buf, "win_", 5);                    // buf  = "win_"
         strncat(buf, windows_names[i], BUFSIZ - 5); // buf  = "win_area"
 
-#define FILL_WIN_PARAMETER(prefix, parameter)                      \
-        do { char buf2[BUFSIZ]; /* for full config parameter */    \
-            strcpy(buf2, prefix);                                  \
-            strncat(buf2, "_"#parameter, BUFSIZ - anystrlen(buf)); \
-            windows[i].parameter = conf(buf2).ival;                \
+#define FILL_WIN_PARAMETER(prefix, parameter)                                 \
+        /* Such small macro definitions inspired by FreeBSD brilliant code */ \
+        do { char buf2[BUFSIZ]; /* for full config parameter */               \
+            strcpy(buf2, prefix);                                             \
+            strncat(buf2, "_"#parameter, BUFSIZ - strlen(buf));               \
+            char buf3[BUFSIZ];                                                \
+            strcpy(buf3, buf2);                                               \
+            strncat(buf3, "_ispercent", BUFSIZ - strlen(buf2));               \
+            int val = conf(buf2).ival;                                        \
+            if ((char*)#parameter == (char*)"max_y") {                        \
+                int ispercent = conf(buf3).ival;                              \
+                if (ispercent) val = (int)(max_y * val / 100);                \
+                windows[i].parameter =                                        \
+                    val < 0 ? max_y + val - windows[i].y : val;               \
+            } else if ((char*)#parameter == (char*)"max_x") {                 \
+                int ispercent = conf(buf3).ival;                              \
+                if (ispercent) val = (int)(max_x * val / 100);                \
+                windows[i].parameter =                                        \
+                    val < 0 ? max_x + val - windows[i].x : val;               \
+            } else if ((char*)#parameter == (char*)"y") {                     \
+                int ispercent = conf(buf3).ival;                              \
+                if (ispercent) val = (int)(max_y * val / 100);                \
+                windows[i].parameter = val < 0 ? max_y + val : val;           \
+            } else if ((char*)#parameter == (char*)"x") {                     \
+                int ispercent = conf(buf3).ival;                              \
+                if (ispercent) val = (int)(max_x * val / 100);                \
+                windows[i].parameter = val < 0 ? max_x + val : val;           \
+            } else {                                                          \
+                windows[i].parameter = val;                                   \
+            }                                                                 \
         } while(0);
 
         FILL_WIN_PARAMETER(buf, state);
@@ -177,6 +202,7 @@ static void draw_by_name(int win) {
 static void draw_any(int win) {
     // Draw borders
     wborder(W(win), '|', '|', '-', '-', '+', '+', '+', '+');
+    mvwprintw(windows[win].w, 0, 1, "%s", windows_names[win]);
 }
 
 void windows_redraw() {
@@ -199,7 +225,7 @@ void windows_redraw() {
     draw_any_before();
 
     for (int i = 0; i < W_SIZE; i++) {
-        if (windows[i].state == HIDDEN) {
+        if (windows[windows_order[i]].state == HIDDEN) {
             continue;
         }
 

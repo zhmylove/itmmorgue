@@ -36,7 +36,7 @@ typedef struct win_info {
 } win_info_t;
 
 win_info_t windows[W_SIZE];
-int max_x, max_y;
+int max_x, max_y, x, y;
 
 void init_screen();
 void sigwinch(int signum);
