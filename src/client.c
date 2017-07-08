@@ -49,6 +49,9 @@ int client() {
             case 'm':
                 menu(M_MAIN);
                 break;
+            case 'c':
+                chat_open();
+                break;
             case 'i':
                 inventory_open();
                 break;

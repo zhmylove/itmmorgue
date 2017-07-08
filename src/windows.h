@@ -44,6 +44,7 @@ void windows_check();
 void windows_init();
 void windows_redraw();
 void inventory_open();
+void chat_open();
 int wcolor(WINDOW *win, int color);
 
 #endif /* WINDOWS_H */

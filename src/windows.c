@@ -43,59 +43,71 @@ void windows_colors() {
     wcolor(W(W_SYSMSG),    L_MAGENTA);
 }
 
-void windows_init() {
+static void windows_clearall() {
+    for (int i = 0; i < W_SIZE; i++) {
+        wclear(W(i));
+    }
+}
+
+static void windows_fill(int win, int keep_state) {
     char buf[BUFSIZ]; // for config parameter prefix
+    strncpy(buf, "win_", 5);                      // buf  = "win_"
+    strncat(buf, windows_names[win], BUFSIZ - 5); // buf  = "win_area"
+
+#define FILL_WIN_PARAMETER(prefix, parameter)                                \
+    /* Such small macro definitions inspired by FreeBSD brilliant code */    \
+    do { char buf2[BUFSIZ]; /* for full config parameter */                  \
+        strcpy(buf2, prefix);                                                \
+        strncat(buf2, "_"#parameter, BUFSIZ - strlen(buf));                  \
+        char buf3[BUFSIZ];                                                   \
+        strcpy(buf3, buf2);                                                  \
+        strncat(buf3, "_ispercent", BUFSIZ - strlen(buf2));                  \
+        int val = conf(buf2).ival;                                           \
+        if ((char*)#parameter == (char*)"max_y") {                           \
+            int ispercent = conf(buf3).ival;                                 \
+            if (ispercent) val = (int)(max_y * val / 100);                   \
+            windows[win].parameter =                                         \
+            val < 0 ? max_y + val - windows[win].y : val;                    \
+        } else if ((char*)#parameter == (char*)"max_x") {                    \
+            int ispercent = conf(buf3).ival;                                 \
+            if (ispercent) val = (int)(max_x * val / 100);                   \
+            windows[win].parameter =                                         \
+            val < 0 ? max_x + val - windows[win].x : val;                    \
+        } else if ((char*)#parameter == (char*)"y") {                        \
+            int ispercent = conf(buf3).ival;                                 \
+            if (ispercent) val = (int)(max_y * val / 100);                   \
+            windows[win].parameter = val < 0 ? max_y + val : val;            \
+        } else if ((char*)#parameter == (char*)"x") {                        \
+            int ispercent = conf(buf3).ival;                                 \
+            if (ispercent) val = (int)(max_x * val / 100);                   \
+            windows[win].parameter = val < 0 ? max_x + val : val;            \
+        } else {                                                             \
+            windows[win].parameter = val;                                    \
+        }                                                                    \
+    } while(0)
+
+    if (keep_state == 0) {
+        FILL_WIN_PARAMETER(buf, state);
+    }
+
+    if (windows[win].state == LARGE) {
+        strncat(buf, "_large", BUFSIZ - 12);
+    } else {
+        strncat(buf, "_small", BUFSIZ - 12);
+    }
+
+    FILL_WIN_PARAMETER(buf, y);
+    FILL_WIN_PARAMETER(buf, x);
+    FILL_WIN_PARAMETER(buf, max_y);
+    FILL_WIN_PARAMETER(buf, max_x);
+#undef FILL_WIN_PARAMETER
+}
+
+void windows_init() {
     focus = W_AREA;
 
     for (int i = 0; i < W_SIZE; i++) {
-        strncpy(buf, "win_", 5);                    // buf  = "win_"
-        strncat(buf, windows_names[i], BUFSIZ - 5); // buf  = "win_area"
-
-#define FILL_WIN_PARAMETER(prefix, parameter)                                 \
-        /* Such small macro definitions inspired by FreeBSD brilliant code */ \
-        do { char buf2[BUFSIZ]; /* for full config parameter */               \
-            strcpy(buf2, prefix);                                             \
-            strncat(buf2, "_"#parameter, BUFSIZ - strlen(buf));               \
-            char buf3[BUFSIZ];                                                \
-            strcpy(buf3, buf2);                                               \
-            strncat(buf3, "_ispercent", BUFSIZ - strlen(buf2));               \
-            int val = conf(buf2).ival;                                        \
-            if ((char*)#parameter == (char*)"max_y") {                        \
-                int ispercent = conf(buf3).ival;                              \
-                if (ispercent) val = (int)(max_y * val / 100);                \
-                windows[i].parameter =                                        \
-                    val < 0 ? max_y + val - windows[i].y : val;               \
-            } else if ((char*)#parameter == (char*)"max_x") {                 \
-                int ispercent = conf(buf3).ival;                              \
-                if (ispercent) val = (int)(max_x * val / 100);                \
-                windows[i].parameter =                                        \
-                    val < 0 ? max_x + val - windows[i].x : val;               \
-            } else if ((char*)#parameter == (char*)"y") {                     \
-                int ispercent = conf(buf3).ival;                              \
-                if (ispercent) val = (int)(max_y * val / 100);                \
-                windows[i].parameter = val < 0 ? max_y + val : val;           \
-            } else if ((char*)#parameter == (char*)"x") {                     \
-                int ispercent = conf(buf3).ival;                              \
-                if (ispercent) val = (int)(max_x * val / 100);                \
-                windows[i].parameter = val < 0 ? max_x + val : val;           \
-            } else {                                                          \
-                windows[i].parameter = val;                                   \
-            }                                                                 \
-        } while(0);
-
-        FILL_WIN_PARAMETER(buf, state);
-
-        if (windows[i].state == LARGE) {
-            strncat(buf, "_large", BUFSIZ - 12);
-        } else {
-            strncat(buf, "_small", BUFSIZ - 12);
-        }
-
-        FILL_WIN_PARAMETER(buf, y);
-        FILL_WIN_PARAMETER(buf, x);
-        FILL_WIN_PARAMETER(buf, max_y);
-        FILL_WIN_PARAMETER(buf, max_x);
-#undef FILL_WIN_PARAMETER
+        windows_fill(i, 0);
 
         if (i == 0) {
             windows[0].w = stdscr;
@@ -112,6 +124,7 @@ void windows_init() {
         }
     }
 
+    windows_clearall();
     windows_colors();
 }
 
@@ -155,6 +168,9 @@ static void draw_any_before() {
     // Draw all windows
     for (size_t i = 0; i < W_SIZE; i++) {
         // Restore window size and position
+        if (windows[i].max_y == 0) windows[i].max_y = max_y;
+        if (windows[i].max_x == 0) windows[i].max_x = max_x;
+
         wresize(W(i), windows[i].max_y, windows[i].max_x);
         if (i != 0) {
             mvderwin(W(i), windows[i].y, windows[i].x);
@@ -193,7 +209,9 @@ static void draw_chat() {
 
     MVW(W_CHAT, 0, 0, "1234567890abcdefghijklmnopqrstuvwxyz");
     wprintw(W(W_CHAT), " %d ", time.tv_sec);
-    wprintw(W(W_CHAT), "ABCDEFJHIJKLMNOPQRSTUVWXYZ0123456789");
+    wprintw(W(W_CHAT), "1ABCDEFJHIJKLMNOPQRSTUVWXYZ0123456789");
+    wprintw(W(W_CHAT), "2ABCDEFJHIJKLMNOPQRSTUVWXYZ0123456789");
+    wprintw(W(W_CHAT), "3ABCDEFJHIJKLMNOPQRSTUVWXYZ0123456789");
 }
 
 static void draw_inventory() {
@@ -240,7 +258,8 @@ void windows_redraw() {
     draw_any_before();
 
     for (int i = 0; i < W_SIZE; i++) {
-        if (i == focus || windows[windows_order[i]].state == HIDDEN) {
+        if (windows_order[i] == focus ||
+                windows[windows_order[i]].state == HIDDEN) {
             continue;
         }
 
@@ -276,9 +295,11 @@ int K[] = {
 };
 
 void inventory_open() {
-    windows[W_INVENTORY].state = LARGE;
     int focus_old = focus;
+
+    windows[W_INVENTORY].state = LARGE;
     focus = W_INVENTORY;
+    windows_fill(W_INVENTORY, 1);
 
     windows_redraw();
 
@@ -295,5 +316,31 @@ void inventory_open() {
 
     windows[W_INVENTORY].state = HIDDEN;
     focus = focus_old;
-    wclear(stdscr);
+    windows_fill(W_INVENTORY, 1);
+}
+
+void chat_open() {
+    int state_old = windows[W_CHAT].state;
+    int focus_old = focus;
+
+    windows[W_CHAT].state = LARGE;
+    focus = W_CHAT;
+    windows_fill(W_CHAT, 1);
+
+    do {
+        windows_redraw();
+
+        wtimeout(W(W_CHAT), 100);
+        switch (last_key = mvwgetch(W(W_CHAT), 0, 0)) {
+            case '1':
+                warn("1");
+            case '2':
+                warn("2");
+                break;
+        }
+    } while (last_key != K[K_EXIT]);
+
+    windows[W_CHAT].state = state_old;
+    focus = focus_old;
+    windows_fill(W_CHAT, 1);
 }
