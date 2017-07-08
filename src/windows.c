@@ -46,11 +46,18 @@ void windows_init() {
             windows[i].parameter = conf(buf2).ival;                \
         } while(0);
 
+        FILL_WIN_PARAMETER(buf, state);
+
+        if (windows[i].state == LARGE) {
+            strncat(buf, "_large", BUFSIZ - 12);
+        } else {
+            strncat(buf, "_small", BUFSIZ - 12);
+        }
+
         FILL_WIN_PARAMETER(buf, y);
         FILL_WIN_PARAMETER(buf, x);
         FILL_WIN_PARAMETER(buf, max_y);
         FILL_WIN_PARAMETER(buf, max_x);
-        FILL_WIN_PARAMETER(buf, state);
 #undef FILL_WIN_PARAMETER
 
         if (i == 0) {
