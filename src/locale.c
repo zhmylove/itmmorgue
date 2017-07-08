@@ -166,7 +166,7 @@ void locale_init(char *file) {
     }
 
     if (stat(file, &sb) < 0) {
-        panicf("Unable to get info : %s!", file);
+        panicf("Unable to stat file: %s!", file);
     }
 
     if (sb.st_size <= 0 || sb.st_size > LOCALE_SIZE_MAX) {
@@ -183,7 +183,7 @@ void locale_init(char *file) {
 
     while (sb.st_size > 0) {
         if ((rc = read(fd, buf + size, sb.st_size)) < 0) {
-            panic("Error during reading l10n file!");
+            panic("Error reading l10n file!");
         }
         size += rc;
         sb.st_size -= rc;

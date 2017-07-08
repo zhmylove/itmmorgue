@@ -4,9 +4,12 @@
 #include "itmmorgue.h"
 
 trie_t *t_conf = NULL; 
+int recursion_depth = 6;
 
-static enum config_parser_retval parse_option(const char *opt, conf_t *rc,
-        enum conf_type ct, char *key);
+enum config_parser_retval parse_option(char *buf, size_t len, size_t *offset,
+        char *key, char *value, enum conf_type *type);
+
+void parse_file(char *file);
 
 // Parsers for specific value types, called by parse_option()
 static enum config_parser_retval parse_option_string(const char *opt,
@@ -35,64 +38,8 @@ conf_t conf(char *key) {
 }
 
 /*
- * Splits opt by "=", saves the first part to key and the second into rc
- *
- * opt : string, which looks like "key=value"
- * rc  : place to save result
- * ct  : type of value, defines, how it will be parsed
- * key : place to save 'key' or NULL if key isn't needed
- *
- * ret : one of config_parser_retval enumeration values
- */
-static enum config_parser_retval parse_option(const char *opt, conf_t *rc,
-        enum conf_type ct, char *key) {
-    if (NULL == opt) return CP_SUCCESS;
-    if (NULL == opt) {
-        panic("NULL passed as a config option");
-    }
-
-    // if opt is '=value'
-    if ('=' == opt[0]) {
-        return CP_NO_KEY;
-    }
-
-    size_t opt_len = strnlen(opt, MAX_OPT_LEN);
-    if (opt_len == MAX_OPT_LEN) {
-        // Option is too long
-        return CP_TOO_LONG;
-    }
-
-    // Let's find value of option
-    const char *eq_pos = opt;
-    while (*eq_pos++ != '=' && *eq_pos);
-
-    // if opt is 'key'
-    if ('=' != *(eq_pos-1)) {
-        return CP_NO_VALUE;
-    }
-
-    // if opt is 'key='
-    if (*(eq_pos) == '\0') {
-        /* TODO: what are we gonna do with smth like 'key='? */
-        // TODO: save key
-        return CP_UNDEF;
-    }
-
-    // Save key
-    // TODO: test it all!
-    if (NULL != key) {
-        strncpy(key, opt, eq_pos - opt - 1);
-        *(key + (eq_pos - opt - 1)) = '\0';
-    }
-
-    rc->type = ct;
-    // Call suitable parser
-    return parsers[ct](eq_pos, rc);
-}
-
-/*
  * opt : value of option to parse
- * rc  : place to save result. .type won't be filled
+ * rc  : place to save result.
  *
  * ret : one of config_parser_retval enumeration values
  */
@@ -106,6 +53,8 @@ static enum config_parser_retval parse_option_string(const char *opt,
     }
 
     strncpy(rc->sval, opt, len);
+
+    rc->type = CONF_STRING;
 
     return CP_SUCCESS;
 }
@@ -125,6 +74,8 @@ static enum config_parser_retval parse_option_int(const char *opt,
         return CP_TOO_LONG;
     }
     rc->ival = value;
+
+    rc->type = CONF_INT;
 
     return CP_SUCCESS;
 }
@@ -245,97 +196,271 @@ void config_dump() {
  * Initialize configuration from file
  */
 void config_init(char *file) {
+    config_pre_init();
+
+    parse_file(file);
+
+#ifdef _DEBUG
+    config_dump();
+#endif
+}
+
+void parse_file(char *file) {
+    if (--recursion_depth <= 0) {
+        panic("Too big recursion depth");
+    }
+
+    struct stat sb;
     int fd, rc;
     char *buf;
-    struct stat sb;
-    char *keybuf = malloc(MAX_OPT_LEN + 1);
-    char *key = keybuf;
+    size_t size = 0;
+
+    char *key = (char*)malloc(MAX_OPT_LEN);
+    char *value = (char*)malloc(MAX_OPT_LEN);
+
+    if (NULL == key || NULL == value) {
+        panic("Cannot allocate memory for config key/value buffers");
+    }
 
     if (file == NULL || ! *file) {
         panic("Invalid file specified for config!");
     }
 
-    config_pre_init();
-
     if (stat(file, &sb) < 0) {
-        panicf("Unable to get info : %s!", file);
+        panicf("Unable to stat file : %s!", file);
     }
 
-#define CONFIG_SIZE_MAX (16 * 1048576)
     if (sb.st_size <= 0 || sb.st_size > CONFIG_SIZE_MAX) {
         panicf("Specified config file has invalid size: %ld!", sb.st_size);
     }
 
     if ((buf = malloc(sb.st_size + 1)) == NULL) {
-        panic("Unable to allocate configuration buffer!");
+        panic("Unable to allocate memory for config file!");
     }
 
     if ((fd = open(file, O_RDONLY, 0)) < 0) {
         panic("Unable to open config file!");
     }
 
-    int i = 0, end = 0;
-
-    if ((rc = read(fd, buf, sb.st_size)) < 0) {
-        panic("Error reading config file!");
+    while (sb.st_size > 0) {
+        if ((rc = read(fd, buf + size, sb.st_size)) < 0) {
+            panic("Error reading config file!");
+        }
+        size += rc;
+        sb.st_size -= rc;
     }
 
-    buf[rc] = '\0';
+    buf[size] = '\0';
 
-    do {
-        key = keybuf; // due to remove_spaces() may change it
+    size_t buflen = size + 1;
+    char *bufptr = buf;
+    size_t offset;
+    enum conf_type ct;
 
-        while (*buf && buf[i] != '\n') i++;
-
-        if (! *buf) {
-            end = 1;
+    while (buflen > 0 && buflen < CONFIG_SIZE_MAX) {
+        if (parse_option(bufptr, buflen, &offset, key, value, &ct) !=
+                CP_SUCCESS) {
+            panic("Error parsing config file!");
         }
-        if (i == 0) {
-            buf++;
-            continue;
-        }
-        buf[i] = '\0';
 
-        enum conf_type ct;
-        int parse_result;
-        conf_t value;
-
-        // This double-parsing code makes my eyes full of tears
-        char *eq = strstr(buf, "=");
-        if (eq == NULL) {
-            goto EILLOPT;
-        }
-        memcpy(key, buf, eq - buf);
-        key[eq - buf] = '\0';
-
-        remove_spaces(&key);
-
-        conf_t *curr;
-        if ((curr = (conf_t *)trie_get(t_conf, key)) != NULL) {
-            ct = curr->type;
-
-            if ((parse_result = parse_option(buf, &value, ct, key)) !=
-                    CP_SUCCESS) {
-                panicf("Error parsing config: %d", parse_result);
+        if (*key) {
+            conf_t config_value;
+            if (CP_SUCCESS != parsers[ct](value, &config_value)) {
+                panicf("Error parsing value for %s", key);
             }
 
-            remove_spaces(&key);
-
-            if (trie_put(t_conf, key, (void *)&value, sizeof(conf_t),
-                        config_deallocator) != 0) {
+            if (trie_put(t_conf, key, (void *)&config_value, sizeof(conf_t),
+                       config_deallocator) != 0) {
                 panic("Failed to fill t_conf!");
             }
-        } else {
-EILLOPT:
-            warnf("Unknown option specified: %s", key);
         }
 
-        buf += i + 1;
-        i = 0;
-    } while (! end);
+        bufptr += offset;
+        buflen -= offset;
+    }
 
-#ifdef _DEBUG
-    config_dump();
-#endif /* _DEBUG */
-    return;
+    free(value);
+    free(key);
+    recursion_depth++;
+}
+
+/*
+ * TODO
+ */
+enum config_parser_retval parse_option(char *buf, size_t len, size_t *offset,
+        char *key, char *value, enum conf_type *type) {
+    enum CONFIG_STATE {
+        C_WAITKEY,
+        C_READ_INC,
+        C_WAITKEYCOMMENT,
+        C_INKEY,
+        C_ESCKEY,
+        C_WAITEQ,
+        C_WAITVAL,
+        C_VALCOMMENT,
+        C_INVAL,
+        C_ESCVAL,
+        C_NULL
+    } state = C_WAITKEY;
+
+    size_t off = 0;
+    size_t pos = 0;
+    conf_t *curr;
+    char *include;
+
+    while (off < len) {
+        if (pos >= MAX_OPT_LEN - 1) {
+            return CP_UNDEF;
+        }
+        switch (state) {
+            case C_WAITKEY:
+                if (buf[off] == '.' && buf[off+1] == ' ') {
+                    state = C_READ_INC;
+                    pos = 0;
+                    if ((include = (char*)malloc(MAX_OPT_LEN)) == NULL) {
+                        panic("Unable to allocate filename buffer!");
+                    }
+                    off += 2;
+                } else if (buf[off] == '#') {
+                    state = C_WAITKEYCOMMENT;
+                    off++;
+                    continue;
+                } else if (isspace(buf[off])) {
+                    off++;
+                    continue;
+                } else if (buf[off] == '\0') {
+                    return CP_SUCCESS;
+                } else if (buf[off] == '=') {
+                    return CP_NO_KEY;
+                } else {
+                    state = C_INKEY;
+                    continue;
+                }
+                break;
+            case C_READ_INC:
+                if (buf[off] == '\0') {
+                    return CP_UNDEF;
+                } else if (buf[off] == '\n') {
+                    parse_file(include);
+                    key[0] = '\0';
+                    *offset = off;
+                    return CP_SUCCESS;
+                } else {
+                    include[pos++] = buf[off++];
+                    continue;
+                }
+                break;
+            case C_WAITKEYCOMMENT:
+                if (buf[off++] == '\n') {
+                    *offset = off;
+                    key[0] = '\0';
+                    return CP_SUCCESS;
+                }
+                break;
+            case C_INKEY:
+                if (buf[off] == '\\') {
+                    state = C_ESCKEY;
+                    off++;
+                    continue;
+                } else if (buf[off] == '\n') {
+                    return CP_NO_VALUE;
+                } else if (buf[off] == '=' || isspace(buf[off])) {
+                    state = C_WAITEQ;
+                    key[pos] = '\0';
+                    pos = 0;
+                    if ((curr = (conf_t *)trie_get(t_conf, key)) == NULL) {
+                        panicf("Illegal option: %s!", key);
+                    }
+                    *type = curr->type;
+                    continue;
+                } else {
+                    key[pos++] = buf[off++];
+                    continue;
+                }
+                break;
+            case C_ESCKEY:
+                key[pos++] = buf[off++];
+                state = C_INKEY;
+                continue;
+                break;
+            case C_WAITEQ:
+                if (buf[off] == '=') {
+                    state = C_WAITVAL;
+                    off++;
+                    continue;
+                } else if (buf[off] == '\n') {
+                    return CP_NO_VALUE;
+                } else if (isspace(buf[off])) {
+                    off++;
+                    continue;
+                } else {
+                    return CP_NO_VALUE;
+                }
+                break;
+            case C_WAITVAL:
+                if (buf[off] == '\n') {
+                    return CP_NO_VALUE;
+                } else if (isspace(buf[off])) {
+                    off++;
+                    continue;
+                } else if (buf[off] == '\0') {
+                    return CP_NO_VALUE;
+                } else {
+                    state = C_INVAL;
+                    continue;
+                }
+                break;
+            case C_INVAL:
+                if (buf[off] == '#') {
+                    state = C_VALCOMMENT;
+                    if (value[0] == '\0') {
+                        return CP_UNDEF;
+                    }
+                    value[pos--] = '\0';
+                    while (pos > 0 && isspace(value[pos])) {
+                        value[pos--] = '\0';
+                    }
+                    off++;
+                    continue;
+                } else if (buf[off] == '\\') {
+                    state = C_ESCVAL;
+                    off++;
+                    continue;
+                } else if (buf[off] == '\n') {
+                    off++;
+                    if (value[0] == '\0') {
+                        return CP_UNDEF;
+                    }
+                    value[pos--] = '\0';
+                    while (pos > 0 && isspace(value[pos])) {
+                        value[pos--] = '\0';
+                    }
+                    *offset = off;
+                    return CP_SUCCESS;
+                } else {
+                    value[pos++] = buf[off++];
+                    continue;
+                }
+                break;
+            case C_ESCVAL:
+                value[pos++] = buf[off++];
+                state = C_INVAL;
+                continue;
+                break;
+            case C_VALCOMMENT:
+                if (buf[off] == '\n') {
+                    *offset = off;
+                    return CP_SUCCESS;
+                } else {
+                    off++;
+                    continue;
+                }
+                break;
+            case C_NULL:
+            default:
+                return CP_UNDEF;
+        }
+    }
+
+    return CP_UNDEF;
 }

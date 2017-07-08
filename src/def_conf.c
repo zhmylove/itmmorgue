@@ -13,10 +13,10 @@ struct t_conf_default t_conf_default[] = {
     C_INT("win_stdscr_max_x", 0),
     C_INT("win_stdscr_state", 2),
 
-    C_INT("win_area_y", 2),
+    C_INT("win_area_y", 0),
     C_INT("win_area_x", 0),
-    C_INT("win_area_max_y", 21),
-    C_INT("win_area_max_x", 80),
+    C_INT("win_area_max_y", 0),
+    C_INT("win_area_max_x", 0),
     C_INT("win_area_state", 2),
 
     C_INT("win_chat_y", 0),
@@ -40,7 +40,7 @@ struct t_conf_default t_conf_default[] = {
     C_INT("win_status_y", 23),
     C_INT("win_status_x", 0),
     C_INT("win_status_max_y", 2),
-    C_INT("win_status_max_x", 80),
+    C_INT("win_status_max_x", 0),
     C_INT("win_status_state", 2),
 
     C_INT("win_sysmsg_y", 0),

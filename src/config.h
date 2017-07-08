@@ -9,6 +9,7 @@
  * "key=value" pair.
  */
 #define MAX_OPT_LEN 4096
+#define CONFIG_SIZE_MAX (16 * 1048576)
 
 enum config_parser_retval {
     CP_SUCCESS,  // Option was parsed successfully
