@@ -4,6 +4,7 @@
 
 #include "itmmorgue.h"
 #include "config.h"
+#include "protocol.h"
 
 #define SERVER_PORT 2607
 #define SERVER_BACKLOG 8

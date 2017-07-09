@@ -14,6 +14,7 @@ typedef struct msg_t {
         MSG_NEW_CHAT,       // c2s chat new message
         MSG_PUT_CHAT,       // s2c chat history update
     } type;
+    int verison;
     size_t size;
     char payload[1];
 } msg_t;

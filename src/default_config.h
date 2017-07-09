@@ -144,7 +144,8 @@ struct t_conf_default {
     C_INT("splash_time", 1000000),
     C_INT("splash_delay", 3000),
 
-    C_STR("locale_file", "")
+    C_STR("locale_file", ""),
+    C_STR("server_log_file", "itmmorgue.log")
 };
 #undef C_STR
 #undef C_INT

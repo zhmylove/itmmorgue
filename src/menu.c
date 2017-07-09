@@ -71,9 +71,11 @@ void m_newgame(int id, WINDOW *win) {
 
     server_start();
 
+    usleep(100000);
+
     do {
         server_connected = connect_to_server("127.0.0.1");
-    } while (server_connected == 0);
+    } while (server_connected == 0 && usleep(100000));
 
     return;
 }

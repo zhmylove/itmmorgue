@@ -3,3 +3,4 @@ lib/*
 lib/trie/*
 Makefile
 tags
+itmmorgue.log

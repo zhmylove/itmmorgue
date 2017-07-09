@@ -25,7 +25,7 @@
 #include <arpa/inet.h>
 #include <netinet/in.h>
 #include <sys/socket.h>
-
+#include <errno.h>
 
 #include "config.h"
 #include "protocol.h"

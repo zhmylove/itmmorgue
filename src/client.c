@@ -18,6 +18,55 @@ void at_exit(void) {
     }
 }
 
+void speak_with_server() {
+    int rc = -1;
+    fd_set fds;
+    struct timeval timeout;
+
+    if (server_connected <= 0 || sock < 0) {
+        return;
+    }
+
+    timeout.tv_sec  = 0;
+    timeout.tv_usec = 50000;
+    FD_ZERO(&fds);
+    FD_SET(sock, &fds);
+
+    do {
+        rc = select(sock + 1, &fds, NULL, NULL, &timeout);
+    } while (rc == -1 && errno == EINTR);
+
+    if (rc == 0) {
+        return;
+    }
+
+    // TODO dynamically allocate
+    msg_t msg;
+
+    if (FD_ISSET(sock, &fds)) {
+        do {
+            rc = read(sock, &msg, sizeof(msg_t));
+        } while (rc < 0);
+
+        if (rc == 0) {
+            // TODO check
+            panic("Got 0 bytes from the server!");
+        }
+
+        switch (msg.type) {
+            case MSG_ECHO_REQUEST:
+                msg.type = MSG_ECHO_REPLY;
+                if (write(sock, &msg, sizeof(msg_t)) < 0) {
+                    panic("Unable to send datagram to the server!");
+                }
+                break;
+            default:
+                panic("Received datagram has unknown type!");
+                break;
+        }
+    }
+}
+
 int connect_to_server(char *address) {
     if ((sock = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP)) < 0) {
         panic("Unable to create client socket!");
@@ -79,6 +128,8 @@ int client() {
     do {
         windows_redraw();
 
+        speak_with_server();
+
         wtimeout(stdscr, 100);
         last_key = mvgetch(max_y - 1, max_x - 1);
         if (K[K_MENU_LARGE] == last_key) {
@@ -89,6 +140,8 @@ int client() {
             inventory_open();
         } else if (K[K_EXIT] == last_key) {
             end = 1;
+        } else if (last_key == 's') {
+            speak_with_server();
         } else if (K[K_CLR_SCR] == last_key) {
             wclear(stdscr);
             wrefresh(stdscr);

@@ -34,6 +34,7 @@ typedef struct menu {
 
 int client();
 int connect_to_server(char *address);
+void speak_with_server();
 int color2attr(enum colors color);
 
 extern void menu(size_t menu_id);
