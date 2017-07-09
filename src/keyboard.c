@@ -3,7 +3,8 @@
 
 void keyboard_init() {
     K[K_EXIT]             = 'q';
-    K[K_CLR_SCR]          = 0xc;
+    K[K_CLR_SCR]          = 0x0C;
+    K[K_BACKSPACE]        = 0x7F;
 
     // Movement
     K[K_MOVE_LEFT]        = '4';
@@ -31,6 +32,4 @@ void keyboard_init() {
     K[K_SEVEN]            = '7';
     K[K_EIGHT]            = '8';
     K[K_NINE]             = '9';
-
-    K[K_SIZE]             = '\0';
 }

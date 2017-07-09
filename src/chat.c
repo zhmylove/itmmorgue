@@ -87,7 +87,7 @@ void chat_open() {
         last_key = mvwgetch(W(W_CHAT), 0, 0);
         if (last_key == K[K_EXIT]) {
             break;
-        } else if (last_key == 0x7F) { // Backspace
+        } else if (last_key == K[K_BACKSPACE]) { // Backspace
             inputpos--;
             while ((*(input + inputpos) & 0xC0) == 0x80) inputpos--;
             input[inputpos] = '\0';

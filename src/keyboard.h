@@ -5,6 +5,7 @@
 enum keyboard {
     K_EXIT = 0x0,
     K_CLR_SCR,
+    K_BACKSPACE,
 
     // Movement
     K_MOVE_LEFT,
