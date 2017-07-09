@@ -341,6 +341,7 @@ enum config_parser_retval parse_option(char *buf, size_t len, size_t *offset,
                 if (buf[off] == '\0') {
                     return CP_UNDEF;
                 } else if (buf[off] == '\n') {
+                    include[pos] = '\0';
                     parse_file(include);
                     key[0] = '\0';
                     *offset = off;
