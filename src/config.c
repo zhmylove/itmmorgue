@@ -1,6 +1,6 @@
 // vim: sw=4 ts=4 et :
 #include "config.h"
-#include "def_conf.h"
+#include "default_config.h"
 #include "itmmorgue.h"
 
 trie_t *t_conf = NULL; 

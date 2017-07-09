@@ -8,9 +8,9 @@ EXECUTABLE='itmmorgue'
 SRCDIR='src'
 LIBDIR='lib'
 WORKDIR='bin'
-SRC='itmmorgue.c client.c config.c splash.c locale.c menu.c def_conf.c'
+SRC='itmmorgue.c client.c config.c splash.c locale.c menu.c'
 SRC="$SRC windows.c"
-HDR='itmmorgue.h client.h config.h def_conf.h windows.h'
+HDR='itmmorgue.h client.h config.h default_config.h windows.h'
 LIB='trie/trie.o'
 DEBUG=1
 ####################################################################

@@ -1,4 +1,9 @@
-#include "def_conf.h"
+#ifdef DEFAULT_CONFIG_H
+#error Private DEFAULT_CONFIG_H multiple inclusion!
+#endif /* DEFAULT_CONFIG_H */
+#define DEFAULT_CONFIG_H
+
+#include "config.h"
 
 /* 
  * Default values for ALL config options!
@@ -6,7 +11,10 @@
  */
 #define C_STR(key, val) { key, { { .__sval = val }, CONF_STRING } } 
 #define C_INT(key, val) { key, { { .__ival = val }, CONF_INT } } 
-struct t_conf_default t_conf_default[] = {
+struct t_conf_default {
+    char *key;
+    conf_t value;
+} t_conf_default[] = {
     C_INT("win_stdscr_small_y", 0),
     C_INT("win_stdscr_small_y_ispercent", 0),
     C_INT("win_stdscr_small_x", 0),
