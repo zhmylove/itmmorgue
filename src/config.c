@@ -198,6 +198,11 @@ void config_dump() {
 void config_init(char *file) {
     config_pre_init();
 
+    if (access(file, R_OK) < 0) {
+        warnf("Unable to initialize main config: %s", file);
+        return;
+    }
+
     parse_file(file);
 
 #ifdef _DEBUG

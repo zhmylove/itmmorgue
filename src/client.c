@@ -63,18 +63,6 @@ int client() {
                 wclear(stdscr);
                 wrefresh(stdscr);
                 break;
-            case 'l':
-                windows[3].x += 1;
-                break;
-            case 'h':
-                windows[3].x -= 1;
-                break;
-            case 'j':
-                windows[3].y += 1;
-                break;
-            case 'k':
-                windows[3].y -= 1;
-                break;
         }
     } while (! end);
 

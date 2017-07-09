@@ -175,20 +175,20 @@ void locale_init(char *file) {
     char *key = (char*)malloc(MAX_OPT_LEN);
     char *value = (char*)malloc(MAX_OPT_LEN);
 
-    if (NULL == key || NULL == value) {
-        panic("Cannot allocate memory for config key/value buffers");
-    }
-
-    if (file == NULL || ! *file) {
-        panic("Invalid file specified for locale!");
-    }
-
     if (t_locale != NULL) {
         trie_destroy(t_locale);
     }
 
     if ((t_locale = trie_init(config_divisor)) == NULL) {
         panic("Unable to create trie for locale!");
+    }
+
+    if (file == NULL || ! *file) {
+        return; // No such file or directory! 
+    }
+
+    if (NULL == key || NULL == value) {
+        panic("Cannot allocate memory for config key/value buffers");
     }
 
     if (stat(file, &sb) < 0) {
