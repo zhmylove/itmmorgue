@@ -4,6 +4,7 @@
 #include "windows.h"
 #include "area.h"
 #include "chat.h"
+#include "keyboard.h"
 
 // String representation of windows names
 char *windows_names[] = {
@@ -51,7 +52,7 @@ static void windows_clearall() {
     }
 }
 
-static void windows_fill(int win, int keep_state) {
+void windows_fill(int win, int keep_state) {
     char buf[BUFSIZ]; // for config parameter prefix
     strncpy(buf, "win_", 5);                      // buf  = "win_"
     strncat(buf, windows_names[win], BUFSIZ - 5); // buf  = "win_area"
@@ -190,6 +191,10 @@ static void draw_stdscr() {
 }
 
 static void draw_sysmsg() {
+    struct timeval time;
+    gettimeofday(&time, NULL);
+
+    MVW(W_SYSMSG, 1, 1, "%d ", time.tv_sec);
     return;
 }
 
@@ -271,11 +276,6 @@ int wcolor(WINDOW *win, int color) {
     return wattrset(win, color_curses);
 }
 
-#define K_EXIT 0
-int K[] = {
-    'q'
-};
-
 void inventory_open() {
     int focus_old = focus;
 
@@ -301,28 +301,3 @@ void inventory_open() {
     windows_fill(W_INVENTORY, 1);
 }
 
-void chat_open() {
-    int state_old = windows[W_CHAT].state;
-    int focus_old = focus;
-
-    windows[W_CHAT].state = LARGE;
-    focus = W_CHAT;
-    windows_fill(W_CHAT, 1);
-
-    do {
-        windows_redraw();
-
-        wtimeout(W(W_CHAT), 100);
-        switch (last_key = mvwgetch(W(W_CHAT), 0, 0)) {
-            case '1':
-                warn("1");
-            case '2':
-                warn("2");
-                break;
-        }
-    } while (last_key != K[K_EXIT]);
-
-    windows[W_CHAT].state = state_old;
-    focus = focus_old;
-    windows_fill(W_CHAT, 1);
-}

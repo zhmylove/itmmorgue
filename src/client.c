@@ -4,6 +4,7 @@
 #include "client.h"
 #include "config.h"
 #include "stuff.h"
+#include "keyboard.h"
 
 #include "area.h"
 #include "chat.h"
@@ -29,6 +30,8 @@ int client() {
     locale_init(conf("locale_file").sval);
 
     stuff_init();
+
+    keyboard_init();
 
     windows_check();
 
