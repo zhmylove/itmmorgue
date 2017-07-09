@@ -1,5 +1,6 @@
 // vim: sw=4 ts=4 et :
 #include "itmmorgue.h"
+#include "client.h"
 #include "windows.h"
 #include "stuff.h"
 
@@ -50,6 +51,8 @@ void draw_area() {
     while (area[ptr] != '\0') {
         mvwaddch(W(W_AREA), 2, ptr + 1, area[ptr++]);
     }
+
+    mvwprintw(W(W_AREA), 4, 1, "%s %d", _("Key:"), last_key);
     return;
 }
 

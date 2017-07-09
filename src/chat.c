@@ -81,14 +81,31 @@ void chat_open() {
     do {
         windows_redraw();
 
-        wtimeout(W(W_CHAT), 100);
-        if ((last_key = mvwgetch(W(W_CHAT), 0, 0)) == K[K_EXIT]) {
+        // TODO receive chat from server
+
+        wtimeout(W(W_CHAT), 10);
+        last_key = mvwgetch(W(W_CHAT), 0, 0);
+        if (last_key == K[K_EXIT]) {
             break;
+        } else if (last_key == 0x7F) { // Backspace
+            inputpos--;
+            while ((*(input + inputpos) & 0xC0) == 0x80) inputpos--;
+            input[inputpos] = '\0';
+        } else if (last_key == '\n') {
+            // TODO implement send to server
+            inputpos = 0;
+            input[0] = '\0';
         } else {
             ungetch(last_key);
         }
-        mvwgetnstr(W(W_CHAT), windows[W_CHAT].max_y - 1, 0, input + inputpos,
-                sizeof(input) - inputpos);
+
+        char buf[sizeof(input) - inputpos];
+        buf[0] = '\0';
+        mvwgetnstr(W(W_CHAT), 0, 0, buf, sizeof(input) - inputpos);
+        if (strnlen(buf, sizeof(buf) > 0)) {
+            strncat(input + inputpos, buf, sizeof(input) - inputpos);
+            inputpos = strlen(input);
+        }
     } while (last_key != K[K_EXIT]);
 
     windows[W_CHAT].state = state_old;
