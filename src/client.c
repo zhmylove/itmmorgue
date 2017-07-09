@@ -6,6 +6,7 @@
 #include "stuff.h"
 
 #include "area.h"
+#include "chat.h"
 
 void at_exit(void) {
     if (! isendwin()) {
@@ -47,6 +48,7 @@ int client() {
 
     // TODO rewrite this to get everything from server
     area_init();
+    chat_init();
 
     int end = 0;
     do {

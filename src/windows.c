@@ -3,6 +3,7 @@
 #include "client.h"
 #include "windows.h"
 #include "area.h"
+#include "chat.h"
 
 // String representation of windows names
 char *windows_names[] = {
@@ -200,17 +201,6 @@ static void draw_status() {
     return;
 }
 
-static void draw_chat() {
-    struct timeval time;
-    gettimeofday(&time, NULL);
-
-    MVW(W_CHAT, 0, 0, "1234567890abcdefghijklmnopqrstuvwxyz");
-    wprintw(W(W_CHAT), " %d ", time.tv_sec);
-    wprintw(W(W_CHAT), "1ABCDEFJHIJKLMNOPQRSTUVWXYZ0123456789");
-    wprintw(W(W_CHAT), "2ABCDEFJHIJKLMNOPQRSTUVWXYZ0123456789");
-    wprintw(W(W_CHAT), "3ABCDEFJHIJKLMNOPQRSTUVWXYZ0123456789");
-}
-
 static void draw_inventory() {
     MVW(W_INVENTORY, 0, 0, "1234567890абвгдеёжзиклмнопрстуфхцчшщъыьэюя");
     wprintw(W(W_INVENTORY), "ABCDEFJHIJKLMNOPQRSTUVWXYZ0123456789");
@@ -268,7 +258,7 @@ void windows_redraw() {
         draw_by_name(windows_order[i]);
     }
 
-    wclear(W(focus));
+    werase(W(focus));
     draw_any(focus);
     draw_by_name(focus);
 
