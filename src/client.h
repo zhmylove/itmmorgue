@@ -9,6 +9,11 @@ int last_key;
 // Menus
 enum menus {
     M_MAIN,
+    M_NEW_GAME,
+    M_CONNECT_GAME,
+    M_OPTIONS,
+    M_HELP,
+    M_EXIT_GAME,
     M_SIZE
 };
 
