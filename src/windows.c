@@ -287,12 +287,11 @@ void inventory_open() {
 
     wtimeout(W(W_INVENTORY), -1);
     do {
-        switch (last_key = mvwgetch(W(W_INVENTORY), 0, 0)) {
-            case '1':
-                warn("1");
-            case '2':
-                warn("2");
-                break;
+        last_key = mvwgetch(W(W_INVENTORY), 0, 0);
+        if (K[K_ONE] == last_key) {
+            warn("1");
+        } else if (K[K_TWO] == last_key) {
+            warn("2");
         }
     } while (last_key != K[K_EXIT]);
 

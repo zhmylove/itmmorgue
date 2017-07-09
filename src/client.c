@@ -58,24 +58,18 @@ int client() {
         windows_redraw();
 
         wtimeout(stdscr, 100);
-        switch (last_key = mvgetch(max_y - 1, max_x - 1)) {
-            case 'm':
-                menu(M_MAIN);
-                break;
-            case 'c':
-                chat_open();
-                break;
-            case 'i':
-                inventory_open();
-                break;
-            case 'q':
-            case 'Q':
-                end = 1;
-                break;
-            case 0xC: // Control-L
-                wclear(stdscr);
-                wrefresh(stdscr);
-                break;
+        last_key = mvgetch(max_y - 1, max_x - 1);
+        if (K[K_MENU_LARGE] == last_key) {
+            menu(M_MAIN);
+        } else if (K[K_CHAT_LARGE] == last_key) {
+            chat_open();
+        } else if (K[K_INVENTORY_LARGE] == last_key) {
+            inventory_open();
+        } else if (K[K_EXIT] == last_key) {
+            end = 1;
+        } else if (K[K_CLR_SCR] == last_key) {
+            wclear(stdscr);
+            wrefresh(stdscr);
         }
     } while (! end);
 
