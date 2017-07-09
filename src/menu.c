@@ -69,7 +69,7 @@ void m_newgame(int id, WINDOW *win) {
                 item);
     }
 
-    server_start();
+    server_fork_start();
 
     usleep(100000);
 

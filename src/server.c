@@ -29,7 +29,6 @@ void server() {
 
     server_started = 1;
 
-    addr.sin_len         = sizeof(struct sockaddr_in);
     addr.sin_family      = AF_INET;
     addr.sin_port        = htons(SERVER_PORT);
     addr.sin_addr.s_addr = INADDR_ANY;
@@ -108,16 +107,14 @@ void server() {
 }
 
 void sigchld(int signum) {
-    panic("Received SIGCHLD!");
+    if (end == 0) {
+        panic("Received SIGCHLD!");
+    }
 
     (void)signum;
 }
 
-void server_start() {
-    struct sigaction sa_chld;
-    sa_chld.sa_handler = &sigchld;
-    sigaction(SIGCHLD, &sa_chld, NULL);
-
+void server_fork_start() {
     if (server_started != 0) {
         panic("Server process is already running!");
     }
@@ -130,4 +127,9 @@ void server_start() {
         server();
         exit(0);
     }
+
+    // client code
+    struct sigaction sa_chld;
+    sa_chld.sa_handler = &sigchld;
+    sigaction(SIGCHLD, &sa_chld, NULL);
 }

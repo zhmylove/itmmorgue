@@ -4,7 +4,7 @@
 
 #include "windows.h"
 
-int last_key;
+int last_key, end;
 
 int server_connected;
 int sock;

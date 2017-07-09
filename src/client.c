@@ -72,7 +72,6 @@ int connect_to_server(char *address) {
         panic("Unable to create client socket!");
     }
 
-    srv.sin_len         = sizeof(srv);
     srv.sin_family      = AF_INET;
     srv.sin_port        = htons(SERVER_PORT);
     srv.sin_addr.s_addr = inet_addr(address);
@@ -124,7 +123,7 @@ int client() {
         menu(M_MAIN);
     }
 
-    int end = 0;
+    end = 0;
     do {
         windows_redraw();
 

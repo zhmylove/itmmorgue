@@ -12,6 +12,6 @@
 int server_started;
 
 void server();
-void server_start();
+void server_fork_start();
 
 #endif /* SERVER_H */
