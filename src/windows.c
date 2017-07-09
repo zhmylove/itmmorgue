@@ -2,6 +2,7 @@
 #include "itmmorgue.h"
 #include "client.h"
 #include "windows.h"
+#include "area.h"
 
 // String representation of windows names
 char *windows_names[] = {
@@ -35,12 +36,12 @@ void windows_check() {
 
 void windows_colors() {
     wcolor(W(W_STDSCR),    D_WHITE);
-    wcolor(W(W_AREA),      L_WHITE);
-    wcolor(W(W_CHAT),      L_YELLOW);
-    wcolor(W(W_INVENTORY), L_RED);
-    wcolor(W(W_MAP),       L_BLUE);
-    wcolor(W(W_STATUS),    L_CYAN);
-    wcolor(W(W_SYSMSG),    L_MAGENTA);
+    wcolor(W(W_AREA),      D_WHITE);
+    wcolor(W(W_CHAT),      D_YELLOW);
+    wcolor(W(W_INVENTORY), D_RED);
+    wcolor(W(W_MAP),       D_BLUE);
+    wcolor(W(W_STATUS),    D_CYAN);
+    wcolor(W(W_SYSMSG),    D_MAGENTA);
 }
 
 static void windows_clearall() {
@@ -199,10 +200,6 @@ static void draw_status() {
     return;
 }
 
-static void draw_area() {
-    return;
-}
-
 static void draw_chat() {
     struct timeval time;
     gettimeofday(&time, NULL);
@@ -279,14 +276,9 @@ void windows_redraw() {
 }
 
 int wcolor(WINDOW *win, int color) {
-    if (++color > 8) {
-        color = COLOR_PAIR(color - 8);
-        color |= A_BOLD;
-    } else {
-        color = COLOR_PAIR(color);
-    }
+    int color_curses = color2attr(color);
 
-    return wattrset(win, color);
+    return wattrset(win, color_curses);
 }
 
 #define K_EXIT 0

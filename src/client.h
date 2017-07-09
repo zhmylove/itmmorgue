@@ -25,6 +25,8 @@ typedef struct menu {
 
 int client();
 
+int color2attr(enum colors color);
+
 extern void menu(size_t menu_id);
 extern void splash_screen();
 extern void locale_init(char *file);

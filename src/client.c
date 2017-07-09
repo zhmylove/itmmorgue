@@ -3,6 +3,9 @@
 #include "windows.h"
 #include "client.h"
 #include "config.h"
+#include "stuff.h"
+
+#include "area.h"
 
 void at_exit(void) {
     if (! isendwin()) {
@@ -24,6 +27,8 @@ int client() {
 
     locale_init(conf("locale_file").sval);
 
+    stuff_init();
+
     windows_check();
 
     struct sigaction sa_ignore;
@@ -39,6 +44,9 @@ int client() {
     splash_screen();
 
     windows_init();
+
+    // TODO rewrite this to get everything from server
+    area_init();
 
     int end = 0;
     do {
@@ -67,4 +75,15 @@ int client() {
     } while (! end);
 
     return 0;
+}
+
+int color2attr(enum colors color) {
+    if (++color > 8) {
+        color = COLOR_PAIR(color - 8);
+        color |= A_BOLD;
+    } else {
+        color = COLOR_PAIR(color);
+    }
+
+    return color;
 }
