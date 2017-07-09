@@ -1,5 +1,7 @@
 // vim: sw=4 ts=4 et :
 #include "itmmorgue.h"
+#include "server.h"
+#include "client.h"
 
 void warn(char *msg) {
     if (msg) {
@@ -58,9 +60,17 @@ size_t strnlen(const char *str, size_t maxlen) {
 
 int main(int argc, char *argv[]) {
     // TODO parse argv and run server / client
-    // TODO parse config file
 
-    client();
+    int server_only = 0;
+
+    server_started = 0;
+    server_connected = 0;
+
+    config_init("itmmorgue.conf");
+
+    if (server_only == 0) {
+        client();
+    }
 
     (void)argc, (void)argv;
     return EXIT_SUCCESS;

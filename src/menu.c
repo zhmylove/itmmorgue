@@ -3,6 +3,7 @@
 #include "client.h"
 #include "config.h"
 #include "keyboard.h"
+#include "server.h"
 
 /* 
  * To add a menu you have to:
@@ -15,6 +16,7 @@
 
 void m_main(int id, WINDOW *win);
 void m_options(int id, WINDOW *win);
+void m_newgame(int id, WINDOW *win);
 
 void m_null() {
     return;
@@ -27,12 +29,54 @@ void m_exit_game() {
 
 menu_t menus[M_SIZE] = {
     { m_main, "Main menu" },
-    { m_null, "New game" },
+    { m_newgame, "New game" },
     { m_null, "Connect to existing game" },
     { m_options, "Options" },
     { m_null, "Help" },
     { m_exit_game, "Exit to Windows" },
 };
+
+void m_newgame(int id, WINDOW *win) {
+    int items[] = { M_EXIT_GAME };
+
+    size_t items_len = sizeof(items) / sizeof(int);
+
+    char *caption = _(menus[id].caption);
+    size_t caption_len = anystrlen(caption);
+
+    wclear(win);
+
+    // Start of menu render code
+
+    mvwprintw(win,
+            max_y / 2 - items_len - 3,
+            max_x / 2 - caption_len / 2,
+            caption);
+    for (size_t i = 0; i < caption_len; i++) {
+        mvwprintw(win,
+                max_y / 2 - items_len - 2,
+                max_x / 2 - caption_len / 2 + i,
+                "=");
+    }
+
+    for (size_t i = 0; i < items_len; i++) {
+        char *item = _(menus[items[i]].caption);
+        mvwprintw(win,
+                max_y / 2 - items_len + i,
+                max_x / 2 - anystrlen(item) / 2 - 2,
+                "%d. %s",
+                i + 1,
+                item);
+    }
+
+    server_start();
+
+    do {
+        server_connected = connect_to_server("127.0.0.1");
+    } while (server_connected == 0);
+
+    return;
+}
 
 void m_options(int id, WINDOW *win) {
     // TODO implement functions for stuff

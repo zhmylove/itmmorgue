@@ -6,6 +6,10 @@
 
 int last_key;
 
+int server_connected;
+int sock;
+struct sockaddr_in srv;
+
 // Menus
 enum menus {
     M_MAIN,
@@ -29,7 +33,7 @@ typedef struct menu {
 } menu_t;
 
 int client();
-
+int connect_to_server(char *address);
 int color2attr(enum colors color);
 
 extern void menu(size_t menu_id);

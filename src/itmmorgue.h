@@ -22,8 +22,15 @@
 #include <locale.h>
 #include <errno.h>
 #include <limits.h>
+#include <arpa/inet.h>
+#include <netinet/in.h>
+#include <sys/socket.h>
+
 
 #include "config.h"
+#include "protocol.h"
+#include "client.h"
+#include "server.h"
 #include "trie/trie.h"
 
 int client(void);

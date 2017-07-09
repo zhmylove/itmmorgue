@@ -1,7 +1,6 @@
 // vim: sw=4 ts=4 et :
 #include "itmmorgue.h"
 #include "windows.h"
-#include "client.h"
 #include "config.h"
 #include "stuff.h"
 #include "keyboard.h"
@@ -13,6 +12,27 @@ void at_exit(void) {
     if (! isendwin()) {
         endwin();
     }
+
+    if (server_started) {
+        kill(server_started, SIGTERM);
+    }
+}
+
+int connect_to_server(char *address) {
+    if ((sock = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP)) < 0) {
+        panic("Unable to create client socket!");
+    }
+
+    srv.sin_len         = sizeof(srv);
+    srv.sin_family      = AF_INET;
+    srv.sin_port        = htons(SERVER_PORT);
+    srv.sin_addr.s_addr = inet_addr(address);
+
+    if (connect(sock, (struct sockaddr *)&srv, sizeof(srv)) >= 0) {
+        return 1; // success
+    }
+
+    return 0; // failure
 }
 
 int client() {  
@@ -24,8 +44,6 @@ int client() {
             setlocale(LC_ALL, "en_US.UTF-8") == NULL) {
         panic("Unable to set locale (ru,en)UTF-8!");
     }
-
-    config_init("itmmorgue.conf");
 
     locale_init(conf("locale_file").sval);
 
@@ -52,6 +70,10 @@ int client() {
     // TODO rewrite this to get everything from server
     area_init();
     chat_init();
+
+    if (server_connected == 0) {
+        menu(M_MAIN);
+    }
 
     int end = 0;
     do {
