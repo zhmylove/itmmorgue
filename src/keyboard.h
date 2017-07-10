@@ -2,6 +2,14 @@
 #ifndef KEYBOARD_H
 #define KEYBOARD_H
 
+/*
+ * Client's key bindings.
+ *
+ * Items of this enum are indexes of K[], which represents key map. To add a
+ * key, put its name into this enum, add configuration parameter into
+ * default_config.h and assign it to corresponding element of K[] in keyboard.c
+ * by calling conf("key_name").
+ */
 enum keyboard {
     K_EXIT = 0,
     K_CLR_SCR,

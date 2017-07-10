@@ -2,6 +2,9 @@
 #include "keyboard.h"
 #include "config.h"
 
+/*
+ * Initializes keyboard by configuration values
+ */
 void keyboard_init() {
     K[K_EXIT]             = conf("key_exit").cval;
     K[K_CLR_SCR]          = conf("key_clear_screen").cval;
