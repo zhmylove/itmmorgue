@@ -73,6 +73,10 @@ static enum config_parser_retval parse_option_int(const char *opt,
     char *endptr = NULL;
     int value = strtoi(opt, &endptr, 0 /* Not only decimal */);
 
+    if (NULL != endptr && *endptr) {
+        return CP_UNDEF;
+    }
+
     if (ERANGE == errno) {
         return CP_TOO_LONG;
     }
