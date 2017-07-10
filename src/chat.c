@@ -85,13 +85,13 @@ void chat_open() {
 
         wtimeout(W(W_CHAT), 10);
         last_key = mvwgetch(W(W_CHAT), 0, 0);
-        if (last_key == K[K_EXIT]) {
+        if (last_key == K[K_CHAT_EXIT]) {
             break;
         } else if (last_key == K[K_BACKSPACE]) { // Backspace
             inputpos--;
             while ((*(input + inputpos) & 0xC0) == 0x80) inputpos--;
             input[inputpos] = '\0';
-        } else if (last_key == '\n') {
+        } else if (last_key == K[K_CHAT_SEND]) {
             // TODO implement send to server
             inputpos = 0;
             input[0] = '\0';
@@ -106,7 +106,7 @@ void chat_open() {
             strncat(input + inputpos, buf, sizeof(input) - inputpos);
             inputpos = strlen(input);
         }
-    } while (last_key != K[K_EXIT]);
+    } while (last_key != K[K_CHAT_EXIT]);
 
     windows[W_CHAT].state = state_old;
     focus = focus_old;

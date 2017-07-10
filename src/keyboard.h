@@ -22,6 +22,10 @@ enum keyboard {
     K_INVENTORY_LARGE,
     K_CHAT_LARGE,
 
+    // Chat controls
+    K_CHAT_EXIT,
+    K_CHAT_SEND,
+
     // Others
     K_ZERO,
     K_ONE,

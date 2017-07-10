@@ -144,6 +144,37 @@ struct t_conf_default {
     C_INT("splash_time", 1000000),
     C_INT("splash_delay", 3000),
 
+    C_INT("key_exit", 'q'),
+    C_INT("key_clear_screen", 0xc),
+    C_INT("key_backspace", 0x7f),
+
+    C_INT("key_move_left", '4'),
+    C_INT("key_move_right", '6'),
+    C_INT("key_move_up", '8'),
+    C_INT("key_move_down", '2'),
+    C_INT("key_move_left_up", '4'),
+    C_INT("key_move_right_up", '6'),
+    C_INT("key_move_left_down", '8'),
+    C_INT("key_move_right_down", '2'),
+
+    C_INT("key_menu_large", 'm'),
+    C_INT("key_inventory_large", 'i'),
+    C_INT("key_chat_large", 'c'),
+
+    C_INT("key_chat_exit", 0x1b),
+    C_INT("key_chat_send", '\n'),
+
+    C_INT("key_zero", '0'),
+    C_INT("key_one", '1'),
+    C_INT("key_two", '2'),
+    C_INT("key_three", '3'),
+    C_INT("key_four", '4'),
+    C_INT("key_five", '5'),
+    C_INT("key_six", '6'),
+    C_INT("key_seven", '7'),
+    C_INT("key_eight", '8'),
+    C_INT("key_nine", '9'),
+
     C_STR("locale_file", ""),
     C_STR("server_log_file", "itmmorgue.log")
 };

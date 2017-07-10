@@ -3,8 +3,8 @@
 
 void keyboard_init() {
     K[K_EXIT]             = 'q';
-    K[K_CLR_SCR]          = 0x0C;
-    K[K_BACKSPACE]        = 0x7F;
+    K[K_CLR_SCR]          = 0xc;
+    K[K_BACKSPACE]        = 0x7f;
 
     // Movement
     K[K_MOVE_LEFT]        = '4';
@@ -20,6 +20,10 @@ void keyboard_init() {
     K[K_MENU_LARGE]       = 'm';
     K[K_INVENTORY_LARGE]  = 'i';
     K[K_CHAT_LARGE]       = 'c';
+
+    // Chat controls
+    K[K_CHAT_EXIT]        = 0x1b;
+    K[K_CHAT_SEND]        = '\n';
 
     // Others
     K[K_ZERO]             = '0';
