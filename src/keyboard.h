@@ -3,7 +3,7 @@
 #define KEYBOARD_H
 
 enum keyboard {
-    K_EXIT = 0x0,
+    K_EXIT = 0,
     K_CLR_SCR,
     K_BACKSPACE,
 

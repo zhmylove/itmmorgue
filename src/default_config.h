@@ -152,16 +152,16 @@ struct t_conf_default {
     C_INT("key_move_right", '6'),
     C_INT("key_move_up", '8'),
     C_INT("key_move_down", '2'),
-    C_INT("key_move_left_up", '4'),
-    C_INT("key_move_right_up", '6'),
-    C_INT("key_move_left_down", '8'),
-    C_INT("key_move_right_down", '2'),
+    C_INT("key_move_left_up", '7'),
+    C_INT("key_move_right_up", '9'),
+    C_INT("key_move_left_down", '1'),
+    C_INT("key_move_right_down", '3'),
 
     C_INT("key_menu_large", 'm'),
     C_INT("key_inventory_large", 'i'),
     C_INT("key_chat_large", 'c'),
 
-    C_INT("key_chat_exit", 0x1b),
+    C_INT("key_chat_exit", 0x1B),
     C_INT("key_chat_send", '\n'),
 
     C_INT("key_zero", '0'),
