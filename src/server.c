@@ -8,12 +8,15 @@ void logger(char *str) {
         return;
     }
 
-    if (write(log_fd, str, strlen(str)) < 0) {
-        panic("Unable to dump str to log!");
+    char buf[8192];
+    struct timeval tv;
+    if (gettimeofday(&tv, NULL) < 0) {
+        panic("Unable to get system time!");
     }
 
-    if (write(log_fd, "\n", 1) < 0) {
-        panic("Unable to dump str to log!");
+    int len = snprintf(buf, sizeof(buf), "%lu: %s\n", tv.tv_sec, str);
+    if (write(log_fd, buf, len) < 0) {
+        panic("Unable to write log output!");
     }
 }
 
@@ -106,6 +109,9 @@ void server() {
     panic("Server exited abnormaly");
 }
 
+/*
+ * Client side SGICHLD handler only for server subprocess
+ */
 void sigchld(int signum) {
     if (end == 0) {
         panic("Received SIGCHLD!");
@@ -114,6 +120,9 @@ void sigchld(int signum) {
     (void)signum;
 }
 
+/*
+ * Client side function to create server subprocess
+ */
 void server_fork_start() {
     if (server_started != 0) {
         panic("Server process is already running!");
