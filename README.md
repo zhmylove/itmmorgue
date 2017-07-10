@@ -1,6 +1,6 @@
 # ITMMORGUE
 
-Cooperative multiplayer rogue-like game.
+Cooperative multiplayer roguelike game.
 
 ## Dependencies
 

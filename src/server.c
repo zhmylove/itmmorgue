@@ -36,7 +36,7 @@ void server() {
     addr.sin_port        = htons(SERVER_PORT);
     addr.sin_addr.s_addr = INADDR_ANY;
 
-    char * log_file = conf("server_log_file").sval;
+    char *log_file = conf("server_log_file").sval;
     if (! *log_file) {
         return;
     }
@@ -106,7 +106,7 @@ void server() {
         } while (usleep(3000000) >= 0);
     }
 
-    panic("Server exited abnormaly");
+    panic("Server exited abnormally");
 }
 
 /*

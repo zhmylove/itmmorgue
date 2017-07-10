@@ -145,8 +145,8 @@ struct t_conf_default {
     C_INT("splash_delay", 3000),
 
     C_INT("key_exit", 'q'),
-    C_INT("key_clear_screen", 0xc),
-    C_INT("key_backspace", 0x7f),
+    C_INT("key_clear_screen", 0x0C),
+    C_INT("key_backspace", 0x7F),
 
     C_INT("key_move_left", '4'),
     C_INT("key_move_right", '6'),
