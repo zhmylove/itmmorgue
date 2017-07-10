@@ -11,6 +11,7 @@
  */
 #define C_STR(key, val) { key, { { .__sval = val }, CONF_STRING } } 
 #define C_INT(key, val) { key, { { .__ival = val }, CONF_INT } } 
+#define C_CHR(key, val) { key, { { .__cval = val }, CONF_CHAR } } 
 struct t_conf_default {
     char *key;
     conf_t value;
@@ -144,36 +145,37 @@ struct t_conf_default {
     C_INT("splash_time", 1000000),
     C_INT("splash_delay", 3000),
 
-    C_INT("key_exit", 'q'),
-    C_INT("key_clear_screen", 0x0C),
-    C_INT("key_backspace", 0x7F),
+    // TODO: multi-byte keycodes
+    C_CHR("key_exit", 'q'),
+    C_CHR("key_clear_screen", 0x0C),
+    C_CHR("key_backspace", 0x7F),
 
-    C_INT("key_move_left", '4'),
-    C_INT("key_move_right", '6'),
-    C_INT("key_move_up", '8'),
-    C_INT("key_move_down", '2'),
-    C_INT("key_move_left_up", '7'),
-    C_INT("key_move_right_up", '9'),
-    C_INT("key_move_left_down", '1'),
-    C_INT("key_move_right_down", '3'),
+    C_CHR("key_move_left", '4'),
+    C_CHR("key_move_right", '6'),
+    C_CHR("key_move_up", '8'),
+    C_CHR("key_move_down", '2'),
+    C_CHR("key_move_left_up", '7'),
+    C_CHR("key_move_right_up", '9'),
+    C_CHR("key_move_left_down", '1'),
+    C_CHR("key_move_right_down", '3'),
 
-    C_INT("key_menu_large", 'm'),
-    C_INT("key_inventory_large", 'i'),
-    C_INT("key_chat_large", 'c'),
+    C_CHR("key_menu_large", 'm'),
+    C_CHR("key_inventory_large", 'i'),
+    C_CHR("key_chat_large", 'c'),
 
-    C_INT("key_chat_exit", 0x1B),
-    C_INT("key_chat_send", '\n'),
+    C_CHR("key_chat_exit", 0x1B),
+    C_CHR("key_chat_send", '\n'),
 
-    C_INT("key_zero", '0'),
-    C_INT("key_one", '1'),
-    C_INT("key_two", '2'),
-    C_INT("key_three", '3'),
-    C_INT("key_four", '4'),
-    C_INT("key_five", '5'),
-    C_INT("key_six", '6'),
-    C_INT("key_seven", '7'),
-    C_INT("key_eight", '8'),
-    C_INT("key_nine", '9'),
+    C_CHR("key_zero", '0'),
+    C_CHR("key_one", '1'),
+    C_CHR("key_two", '2'),
+    C_CHR("key_three", '3'),
+    C_CHR("key_four", '4'),
+    C_CHR("key_five", '5'),
+    C_CHR("key_six", '6'),
+    C_CHR("key_seven", '7'),
+    C_CHR("key_eight", '8'),
+    C_CHR("key_nine", '9'),
 
     C_STR("locale_file", ""),
     C_STR("server_log_file", "itmmorgue.log")

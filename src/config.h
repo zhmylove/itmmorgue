@@ -22,7 +22,8 @@ enum config_parser_retval {
 // Type of configuration entity
 enum conf_type {
     CONF_STRING = 0,
-    CONF_INT    = 1
+    CONF_INT    = 1,
+    CONF_CHAR   = 2  // TODO: should it be a multi-byte char?
 };
 
 // Value of any config parameter, see conf()
@@ -30,10 +31,12 @@ typedef struct conf {
     union {
         int __ival;
         char *__sval;
-    } value;             // config value
+        char __cval;
+    } value;               // config value
 #define ival value.__ival  // ugly definitions for quick access to values
 #define sval value.__sval
-    enum conf_type type; // type of value
+#define cval value.__cval
+    enum conf_type type;   // type of value
 } conf_t;
 
 conf_t conf(char *key);

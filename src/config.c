@@ -17,9 +17,12 @@ static enum config_parser_retval parse_option_string(const char *opt,
 
 static enum config_parser_retval parse_option_int(const char *opt, conf_t *rc);
 
+static enum config_parser_retval parse_option_char(const char *opt, conf_t *rc);
+
 static enum config_parser_retval (*parsers[])(const char *opt, conf_t *rc) = {
     parse_option_string,
-    parse_option_int
+    parse_option_int,
+    parse_option_char
 };
 
 /* 
@@ -79,6 +82,26 @@ static enum config_parser_retval parse_option_int(const char *opt,
 
     return CP_SUCCESS;
 }
+
+
+/*
+ * Retrieves first character from opt. Non multi-byte. If opt is longer than one
+ * character, returns CP_TOO_LONG, if opt[0] is '\0' returns CP_NO_VALUE.
+ *
+ * opt : value of option to parse
+ * rc  : place to save result
+ *
+ * ret : one of config_parser_retval enumeration values
+ */
+static enum config_parser_retval parse_option_char(const char *opt,
+        conf_t *rc) {
+    if (opt[0] == '\0') return CP_NO_VALUE;
+    if (opt[1] != '\0') return CP_TOO_LONG;
+    rc->cval = opt[0];
+    rc->type = CONF_CHAR;
+    return CP_SUCCESS;
+}
+
 
 /* 
  * Remove spaces from the beginning and the end of the string
@@ -182,6 +205,10 @@ void config_dump() {
                     break;
                 case CONF_INT:
                     fprintf(stderr, "conf[%s] = %d\n", key, curr->ival);
+                    break;
+                case CONF_CHAR:
+                    fprintf(stderr, "conf[%s] = '%c' (%d)\n", key, curr->cval,
+                            curr->cval);
                     break;
                 default:
                     panic("config_dump()::switch() needs fix!");
