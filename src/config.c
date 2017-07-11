@@ -171,7 +171,7 @@ char** config_divisor(const char *str) {
 }
 
 /* 
- * Singletone initialization of t_conf with default values
+ * Singleton initialization of t_conf with default values
  */
 static void config_pre_init() {
     if (t_conf != NULL) {
