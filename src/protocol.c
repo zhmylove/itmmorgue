@@ -19,7 +19,7 @@ void mqueue_put(mqueue_t *queue, mbuf_t mbuf) {
     size_t size = queue->size;
 
     if (pos >= MQUEUE_SIZE) {
-        panicf("Invalid position %lu int mqueue_put", pos);
+        panicf("Invalid position %zu int mqueue_put", pos);
     }
 
     if (size == MQUEUE_SIZE - 1) {

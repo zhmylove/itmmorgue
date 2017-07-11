@@ -88,7 +88,7 @@ void* worker() {
             continue;
         }
 
-        panicf("Received msg type=%d size=%lu!", msg.type, msg.size);
+        panicf("Received msg type=%d size=%zu!", msg.type, msg.size);
         // TODO Read one message w/ optional payload
     } while (! end);
 
