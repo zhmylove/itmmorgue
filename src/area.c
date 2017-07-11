@@ -53,6 +53,7 @@ void draw_area() {
     }
 
     mvwprintw(W(W_AREA), 4, 1, "%s %d", _("Key:"), last_key);
+    mvwprintw(W(W_AREA), 5, 1, "%s %d", _("Connection:"), server_connected);
     return;
 }
 

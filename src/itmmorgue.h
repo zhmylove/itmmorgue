@@ -26,29 +26,31 @@
 #include <netinet/in.h>
 #include <sys/socket.h>
 #include <errno.h>
+#include <pthread.h>
 
 #include "config.h"
 #include "protocol.h"
 #include "client.h"
 #include "server.h"
 #include "trie/trie.h"
+#include "stuff.h"
 
 int client(void);
 
 // Panic related definitions
 void warn(char *msg);
 void panic(char *msg);
-#define warnf(fmt, ...)                          \
-    do {                                         \
-        char buf[BUFSIZ];                        \
-        snprintf(buf, BUFSIZ, fmt, __VA_ARGS__); \
-        warn(buf);                               \
+#define warnf(fmt, ...)                             \
+    do {                                            \
+        char ___buf[BUFSIZ];                        \
+        snprintf(___buf, BUFSIZ, fmt, __VA_ARGS__); \
+        warn(___buf);                               \
     } while(0)
-#define panicf(fmt, ...)                         \
-    do {                                         \
-        char buf[BUFSIZ];                        \
-        snprintf(buf, BUFSIZ, fmt, __VA_ARGS__); \
-        panic(buf);                              \
+#define panicf(fmt, ...)                            \
+    do {                                            \
+        char ___buf[BUFSIZ];                        \
+        snprintf(___buf, BUFSIZ, fmt, __VA_ARGS__); \
+        panic(___buf);                              \
     } while(0)
 
 // Wrapper for strtol(3) for int numbers

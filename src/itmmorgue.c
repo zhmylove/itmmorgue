@@ -68,10 +68,21 @@ int main(int argc, char *argv[]) {
 
     config_init("itmmorgue.conf");
 
-    if (server_only == 0) {
-        client();
+    while (*++argv) {
+        if (strcmp(*argv, "--server-only") == 0) {
+            server_only = 1;
+        } else if (strcmp(*argv, "-s") == 0) {
+            server_only = 1;
+        }
     }
 
-    (void)argc, (void)argv;
+    if (server_only == 0) {
+        client();
+    } else {
+        fprintf(stderr, "Starting server in headless mode...\n");
+        server();
+    }
+
+    (void) argc;
     return EXIT_SUCCESS;
 }

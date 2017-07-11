@@ -49,12 +49,12 @@ void m_newgame(int id, WINDOW *win) {
     // Start of menu render code
 
     mvwprintw(win,
-            max_y / 2 - items_len - 3,
+            max_y / 2 - items_len / 2 - 3,
             max_x / 2 - caption_len / 2,
             caption);
     for (size_t i = 0; i < caption_len; i++) {
         mvwprintw(win,
-                max_y / 2 - items_len - 2,
+                max_y / 2 - items_len / 2 - 2,
                 max_x / 2 - caption_len / 2 + i,
                 "=");
     }
@@ -71,7 +71,7 @@ void m_newgame(int id, WINDOW *win) {
 
     server_fork_start();
 
-    usleep(100000);
+    usleep(10000);
 
     do {
         server_connected = connect_to_server("127.0.0.1");
@@ -82,7 +82,7 @@ void m_newgame(int id, WINDOW *win) {
 
 void m_options(int id, WINDOW *win) {
     // TODO implement functions for stuff
-    int items[] = { M_EXIT_GAME };
+    int items[] = { M_MAIN, M_EXIT_GAME };
 
     size_t items_len = sizeof(items) / sizeof(int);
 
@@ -94,12 +94,12 @@ void m_options(int id, WINDOW *win) {
     // Start of menu render code
 
     mvwprintw(win,
-            max_y / 2 - items_len - 3,
+            max_y / 2 - items_len / 2 - 3,
             max_x / 2 - caption_len / 2,
             caption);
     for (size_t i = 0; i < caption_len; i++) {
         mvwprintw(win,
-                max_y / 2 - items_len - 2,
+                max_y / 2 - items_len / 2 - 2,
                 max_x / 2 - caption_len / 2 + i,
                 "=");
     }
@@ -107,7 +107,7 @@ void m_options(int id, WINDOW *win) {
     for (size_t i = 0; i < items_len; i++) {
         char *item = _(menus[items[i]].caption);
         mvwprintw(win,
-                max_y / 2 - items_len + i,
+                max_y / 2 - items_len / 2 + i,
                 max_x / 2 - anystrlen(item) / 2 - 2,
                 "%d. %s",
                 i + 1,
@@ -144,12 +144,12 @@ void m_main(int id, WINDOW *win) {
     // Start of menu render code
 
     mvwprintw(win,
-            max_y / 2 - items_len - 3,
+            max_y / 2 - items_len / 2 - 3,
             max_x / 2 - caption_len / 2,
             caption);
     for (size_t i = 0; i < caption_len; i++) {
         mvwprintw(win,
-                max_y / 2 - items_len - 2,
+                max_y / 2 - items_len / 2 - 2,
                 max_x / 2 - caption_len / 2 + i,
                 "=");
     }
@@ -157,7 +157,7 @@ void m_main(int id, WINDOW *win) {
     for (size_t i = 0; i < items_len; i++) {
         char *item = _(menus[items[i]].caption);
         mvwprintw(win,
-                max_y / 2 - items_len + i,
+                max_y / 2 - items_len / 2 + i,
                 max_x / 2 - anystrlen(item) / 2 - 2,
                 "%d. %s",
                 i + 1,

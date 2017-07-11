@@ -163,6 +163,7 @@ struct t_conf_default {
     C_CHR("key_inventory_large", 'i'),
     C_CHR("key_chat_large", 'c'),
 
+    // C_CHR("key_chat_exit", 0x1B), // we should avoid using Esc
     C_CHR("key_chat_exit", 0x1B),
     C_CHR("key_chat_send", '\n'),
 

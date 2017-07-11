@@ -2,9 +2,9 @@
 #ifndef PROTOCOL_H
 #define PROTOCOL_H
 
-#include "itmmorgue.h"
+#define MQUEUE_SIZE 128
 
-typedef struct msg_t {
+typedef struct msg {
     enum msg_type {
         MSG_ECHO_REQUEST,   // s2c echo request
         MSG_ECHO_REPLY,     // c2s echo reply
@@ -14,9 +14,23 @@ typedef struct msg_t {
         MSG_NEW_CHAT,       // c2s chat new message
         MSG_PUT_CHAT,       // s2c chat history update
     } type;
-    int verison;
+    int version;
     size_t size;
-    char payload[1];
 } msg_t;
+
+typedef struct mbuf {
+    msg_t msg;
+    void *payload;
+} mbuf_t;
+
+typedef struct mqueue {
+    mbuf_t buf[MQUEUE_SIZE];
+    size_t start_position;
+    size_t size;
+} mqueue_t;
+
+int mqueue_get(mqueue_t *queue, mbuf_t *mbuf);
+void mqueue_put(mqueue_t *queue, mbuf_t mbuf);
+void mqueue_init(mqueue_t *queue);
 
 #endif /* PROTOCOL_H */

@@ -3,12 +3,19 @@
 #define CLIENT_H
 
 #include "windows.h"
+#include "config.h"
+#include "keyboard.h"
+
+#include "area.h"
+#include "chat.h"
 
 int last_key, end;
 
 int server_connected;
 int sock;
+mqueue_t c2s_queue;
 struct sockaddr_in srv;
+pthread_t thr_worker;
 
 // Menus
 enum menus {

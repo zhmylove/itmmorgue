@@ -40,13 +40,15 @@ case $OS in
     SunOS) 
         LDFLAGS="$LDFLAGS -L /opt/csw/lib/"
         CFLAGS="$CFLAGS -L /opt/csw/lib/ -I /opt/sfw/include/ -lncursesw"
+        CFLAGS="$CFLAGS -mt -lpthread"
         VARS_CLIENT='TERM=screen'
         ;;
     FreeBSD)
         LDFLAGS="$LDFLAGS -L /usr/local/lib/ -lncursesw -ltinfow"
+        CFLAGS="$CFLAGS -pthread"
         ;;
     Linux)
-        CFLAGS="$CFLAGS -lncursesw"
+        CFLAGS="$CFLAGS -lncursesw -pthread"
         CFLAGS_END="-lncursesw"
         ;;
     *)

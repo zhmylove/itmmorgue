@@ -21,7 +21,7 @@ void logger(char *str) {
 }
 
 void server() {
-    int s, rc, one = 1;
+    int s, rc, cs, one = 1;
     struct sockaddr_in addr;
     struct sockaddr_in client;
     socklen_t client_len;
@@ -62,48 +62,42 @@ void server() {
         panic("Unable to set server socket backlog!");
     }
 
-    // TODO revise multithreaded approach
-    while ((rc = accept(s, (struct sockaddr *)&client, &client_len)) >= 0) {
-        msg_t msg;
+    // TODO implement workers
+    while ((cs = accept(s, (struct sockaddr *)&client, &client_len)) >= 0) {
+        mbuf_t mbuf;
 
-        do {
-            msg.type = MSG_ECHO_REQUEST;
-            msg.size = 0;
-            msg.payload[0] = 0;
-
-            // TODO rewrite everything from the beginning
-            if (write(rc, &msg, sizeof(msg_t)) < 0) {
-                panic("Unable to send datagram to the client!");
-                close(rc);
-                break;
-            }
-
-            fd_set fds;
-            FD_ZERO(&fds);
-            FD_SET(rc, &fds);
-            struct timeval timeout;
-            timeout.tv_sec = 0;
-            timeout.tv_usec = 100000;
-
-            if (select(rc + 1, &fds, NULL, NULL, &timeout) <= 0) {
-                logger(".");
-                continue;
-            }
-
-            if (read(rc, &msg, sizeof(msg_t)) < 0) {
-                panic("Unable to get datagram from the client!");
-                close(rc);
-                break;
-            }
-
-            switch (msg.type) {
-                case MSG_ECHO_REPLY:
-                    logger("Got ECHO_REPLY from the client!");
+        while ((rc = read(cs, &mbuf, sizeof(mbuf))) > 0) {
+            switch (mbuf.msg.type) {
+                case MSG_NEW_CHAT:
+                    warn("Got MSG_NEW_CHAT!");
                     break;
                 default:
-                    break;
+                    warnf("Unknown type: %d", mbuf.msg.type);
+                    continue;
             }
-        } while (usleep(3000000) >= 0);
+
+            if (mbuf.msg.size > 0) {
+                char *buf = malloc(mbuf.msg.size);
+                if (buf == NULL) {
+                    panic("Unable to allocate buffer for payload!");
+                }
+
+                if (read(cs, buf, mbuf.msg.size) != (ssize_t)mbuf.msg.size) {
+                    warn("Error reading payload");
+                }
+
+                warnf("Received: [%s} \n", buf);
+                logger(buf);
+            }
+        }
+
+        if (rc == 0) {
+            warn("Client closed connection!");
+        } else {
+            warn("Error reading from socket");
+        }
+
+        close(cs);
     }
 
     panic("Server exited abnormally");
@@ -125,7 +119,8 @@ void sigchld(int signum) {
  */
 void server_fork_start() {
     if (server_started != 0) {
-        panic("Server process is already running!");
+        warn("Server process is already running!");
+        return;
     }
 
     if ((server_started = fork()) < 0) {
@@ -133,6 +128,8 @@ void server_fork_start() {
     }
 
     if (server_started == 0) {
+        close(STDIN_FILENO);
+        close(STDOUT_FILENO);
         server();
         exit(0);
     }
