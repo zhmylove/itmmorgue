@@ -1,6 +1,11 @@
 // vim: sw=4 ts=4 et :
 #include "server.h"
 
+char *schat;
+size_t threads_pos;
+pthread_t threads[128];
+mqueue_t s2c_queues[128];
+
 void server() {
     int s, rc, cs, one = 1;
     struct sockaddr_in addr;
@@ -38,151 +43,180 @@ void server() {
      * Here we define some stuff for common client-size submodules like chat.
      */
 
-    char *schat;
     if ((schat = malloc(2)) == NULL) {
         panic("Unable to allocate server chat buffer!");
     }
     strcpy(schat, "\n");
 
+    // TODO fix this hardcode
+    // Implement list of structures for all connected threads
+    // to simplify iterate over them and access to their properties.
+    threads_pos = 0;
+
     // TODO implement workers
     while ((cs = accept(s, (struct sockaddr *)&client, &client_len)) >= 0) {
-        mqueue_t s2c_queue;
-        mqueue_init(&s2c_queue);
+        // TODO use dynamic allocation
+        processor_args_t pargs;
+        pargs.curr_client = client;
+        pargs.curr_client_len = client_len;
+        pargs.socket = cs;
+        pargs.id = threads_pos;
+        pargs.mqueueptr = s2c_queues + threads_pos;
 
-        struct sockaddr_in curr_client = client;
-        socklen_t curr_client_len = client_len;
         client_len = sizeof(client); // for Solaris
 
-        (void) curr_client; (void) curr_client_len;
-
-        struct timeval timeout;
-        timeout.tv_sec  = 0;
-        timeout.tv_usec = 50000;
-
-        int client_connected = 1;
-
-        do {
-            fd_set fds;
-            FD_ZERO(&fds);
-            FD_SET(cs, &fds);
-            mbuf_t mbuf;
-
-            // send messages to the client if any
-            while (mqueue_get(&s2c_queue, &mbuf) > 0) {
-                if ((rc = write(cs, &mbuf.msg, sizeof(msg_t))) < 0) {
-                    panic("Error sending message in server thread!");
-                }
-
-                if (mbuf.msg.size == 0) {
-                    continue;
-                }
-
-                if ((rc = write(cs, mbuf.payload, mbuf.msg.size)) < 0) {
-                    panic("Error sending message in worker!");
-                }
-
-                free(mbuf.payload);
-            }
-
-            do {
-                rc = select(cs + 1, &fds, NULL, NULL, &timeout);
-            } while (rc < 0 && errno == EINTR);
-
-            if (rc < 0) {
-                client_connected = 0;
-                panic("client disconnected!");
-                break;
-            } else if (rc == 0) {
-                continue;
-            }
-
-            if ((rc = read(cs, &mbuf.msg, sizeof(mbuf.msg))) == 0) {
-                logger("Client closed connection!");
-                continue;
-            } else if (rc < 0) {
-                logger("Error reading from socket!");
-                client_connected = 0;
-                break;
-            }
-
-            // rc > 0
-            switch (mbuf.msg.type) {
-                case MSG_NEW_CHAT:
-                    logger("[S] [NEW_CHAT]");
-                    break;
-                case MSG_GET_CHAT:
-                    logger("[S] [GET_CHAT]");
-                    break;
-                default:
-                    warnf("Unknown type: %d", mbuf.msg.type);
-                    logger("[S] [UNKNOWN]");
-                    continue;
-            }
-
-            char *payload;
-            mbuf_t s2c_mbuf;
-            size_t size;
-
-            if (mbuf.msg.size > 0) {
-                payload = malloc(mbuf.msg.size);
-
-                if (payload == NULL) {
-                    panic("Unable to allocate buffer for payload!");
-                }
-
-                if (readall(cs, payload, mbuf.msg.size) !=
-                        (ssize_t)mbuf.msg.size) {
-                    logger("Error reading payload");
-                }
-
-                loggerf("[S] Received buf: [%s]", payload);
-            }
-
-            // TODO do smth with message
-            switch (mbuf.msg.type) {
-                case MSG_GET_CHAT:
-                    size = strlen(schat) + 1;
-
-                    if ((s2c_mbuf.payload = malloc(size)) == NULL) {
-                        panic("Error allocating payload buffer!");
-                    }
-                    s2c_mbuf.msg.type = MSG_PUT_CHAT;
-                    s2c_mbuf.msg.size = size;
-                    s2c_mbuf.msg.version = 0x1;
-                    memcpy(s2c_mbuf.payload, schat, size);
-
-                    loggerf("[S] Sending PUT: [%s] size=%lu", schat, size);
-                    mqueue_put(&s2c_queue, s2c_mbuf);
-
-                    break;
-                case MSG_NEW_CHAT:
-                    s_chat_add(schat, payload);
-                    size = strlen(payload) + 1;
-
-                    if ((s2c_mbuf.payload = malloc(size)) == NULL) {
-                        panic("Error allocating payload buffer!");
-                    }
-                    s2c_mbuf.msg.type = MSG_PUT_CHAT;
-                    s2c_mbuf.msg.size = size;
-                    s2c_mbuf.msg.version = 0x1;
-                    memcpy(s2c_mbuf.payload, payload, size);
-
-                    free(payload);
-
-                    mqueue_put(&s2c_queue, s2c_mbuf);
-
-                    break;
-                default:
-                    warnf("Unknown type: %d", mbuf.msg.type);
-                    logger("[S] [UNKNOWN]");
-                    continue;
-            }
-        } while (client_connected == 1);
-
-        close(cs);
+        if (pthread_create(threads + threads_pos++, NULL,
+                    (void*(*)(void*))&process_client,
+                    &pargs) != 0) {
+            panic("Error creating processor thread!");
+        }
     }
 
     panic("Server exited abnormally");
+}
+
+void* process_client(processor_args_t *pargs) {
+    int cs = pargs->socket;
+    int rc;
+
+    if (pthread_detach(pthread_self()) != 0) {
+        panic("Error detaching processor pthread!");
+    }
+
+    mqueue_t *s2c_queue = pargs->mqueueptr;
+    mqueue_init(s2c_queue);
+
+    struct timeval timeout;
+    timeout.tv_sec  = 0;
+    timeout.tv_usec = 50000;
+
+    int client_connected = 1;
+
+    do {
+        fd_set fds;
+        FD_ZERO(&fds);
+        FD_SET(cs, &fds);
+        mbuf_t mbuf;
+
+        // send messages to the client if any
+        while (mqueue_get(s2c_queue, &mbuf) > 0) {
+            if ((rc = write(cs, &mbuf.msg, sizeof(msg_t))) < 0) {
+                panic("Error sending message in server thread!");
+            }
+
+            if (mbuf.msg.size == 0) {
+                continue;
+            }
+
+            if ((rc = write(cs, mbuf.payload, mbuf.msg.size)) < 0) {
+                panic("Error sending message in worker!");
+            }
+
+            free(mbuf.payload);
+        }
+
+        do {
+            rc = select(cs + 1, &fds, NULL, NULL, &timeout);
+        } while (rc < 0 && errno == EINTR);
+
+        if (rc < 0) {
+            client_connected = 0;
+            panic("client disconnected!");
+            break;
+        } else if (rc == 0) {
+            continue;
+        }
+
+        if ((rc = read(cs, &mbuf.msg, sizeof(mbuf.msg))) == 0) {
+            logger("Client closed connection!");
+            continue;
+        } else if (rc < 0) {
+            logger("Error reading from socket!");
+            client_connected = 0;
+            break;
+        }
+
+        // rc > 0
+        switch (mbuf.msg.type) {
+            case MSG_NEW_CHAT:
+                logger("[S] [NEW_CHAT]");
+                break;
+            case MSG_GET_CHAT:
+                logger("[S] [GET_CHAT]");
+                break;
+            default:
+                warnf("Unknown type: %d", mbuf.msg.type);
+                logger("[S] [UNKNOWN]");
+                continue;
+        }
+
+        char *payload;
+        mbuf_t s2c_mbuf;
+        size_t size;
+
+        if (mbuf.msg.size > 0) {
+            payload = malloc(mbuf.msg.size);
+
+            if (payload == NULL) {
+                panic("Unable to allocate buffer for payload!");
+            }
+
+            if (readall(cs, payload, mbuf.msg.size) !=
+                    (ssize_t)mbuf.msg.size) {
+                logger("Error reading payload");
+            }
+
+            loggerf("[S] Received buf: [%s]", payload);
+        }
+
+        // TODO do smth with message
+        switch (mbuf.msg.type) {
+            case MSG_GET_CHAT:
+                size = strlen(schat) + 1;
+
+                if ((s2c_mbuf.payload = malloc(size)) == NULL) {
+                    panic("Error allocating payload buffer!");
+                }
+                s2c_mbuf.msg.type = MSG_PUT_CHAT;
+                s2c_mbuf.msg.size = size;
+                s2c_mbuf.msg.version = 0x1;
+                memcpy(s2c_mbuf.payload, schat, size);
+
+                loggerf("[S] Sending PUT: [%s] size=%zu", schat, size);
+                mqueue_put(s2c_queue, s2c_mbuf);
+
+                break;
+            case MSG_NEW_CHAT:
+                s_chat_add(schat, payload);
+                size = strlen(payload) + 1;
+
+                s2c_mbuf.msg.type = MSG_PUT_CHAT;
+                s2c_mbuf.msg.size = size;
+                s2c_mbuf.msg.version = 0x1;
+
+                for (size_t curr = 0; curr < threads_pos; curr++) {
+                    // will be freed during mqueue_get()
+                    if ((s2c_mbuf.payload = malloc(size)) == NULL) {
+                        panic("Error allocating payload buffer!");
+                    }
+                    memcpy(s2c_mbuf.payload, payload, size);
+
+                    mqueue_put(s2c_queues + curr, s2c_mbuf);
+                }
+
+                free(payload);
+
+                break;
+            default:
+                warnf("Unknown type: %d", mbuf.msg.type);
+                logger("[S] [UNKNOWN]");
+                continue;
+        }
+    } while (client_connected == 1);
+
+    close(cs);
+    // TODO is it reachable point?
+    return NULL;
 }
 
 /*
