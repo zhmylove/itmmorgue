@@ -77,20 +77,59 @@ void* worker() {
             continue;
         }
 
-        msg_t msg;
-        if ((rc = read(sock, &msg, sizeof(msg))) < 0) {
-            panic("Error getting message in worker!");
-        }
 
-        if (rc == 0) {
+        if ((rc = read(sock, &mbuf.msg, sizeof(mbuf.msg))) == 0) {
             server_connected = 0;
-            panic("server closed connection!");
+            // TODO implement dialog with this message:
+            logger("Error getting message in worker!");
             continue;
+        } else if (rc < 0) {
+            logger("Error reading from socket!");
+            server_connected = 0;
+            break;
         }
 
-        panicf("Received msg type=%d size=%zu!", msg.type, msg.size);
-        // TODO Read one message w/ optional payload
-    } while (! end);
+        // rc > 0
+        switch (mbuf.msg.type) {
+            case MSG_PUT_CHAT:
+                logger("[C] [PUT_CHAT]");
+                break;
+            default:
+                warnf("Unknown type: %d", mbuf.msg.type);
+                logger("[C] [UNKNOWN]");
+                continue;
+        }
+
+        char *payload;
+
+        if (mbuf.msg.size > 0) {
+            payload = malloc(mbuf.msg.size);
+
+            if (payload == NULL) {
+                panic("Unable to allocate buffer for payload!");
+            }
+
+            if (readall(sock, payload, mbuf.msg.size) !=
+                    (ssize_t)mbuf.msg.size) {
+                logger("Error reading payload");
+            }
+
+            loggerf("[S] Received buf: [%s]", payload);
+        }
+
+        switch (mbuf.msg.type) {
+            case MSG_PUT_CHAT:
+                c_chat_add(payload);
+
+                free(payload);
+
+                break;
+            default:
+                warnf("Unknown type: %d", mbuf.msg.type);
+                logger("[S] [UNKNOWN]");
+                continue;
+        }
+    } while (server_connected == 1 && ! end);
 
     return NULL;
 }
@@ -140,6 +179,8 @@ int client() {
     c_chat_init();
 
     sock = -1;
+
+    menu_msg[0] = '\0';
 
     while (server_connected == 0) {
         menu(M_MAIN);

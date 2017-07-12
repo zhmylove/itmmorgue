@@ -58,6 +58,58 @@ size_t strnlen(const char *str, size_t maxlen) {
 }
 #endif /* __sun */
 
+int readall(int fd, void *buf, size_t size) {
+    int rc = -1;
+    size_t got = 0;
+
+    if (size == 0) {
+        return 0;
+    }
+    while (got < size) {
+        if ((rc = read(fd, (char *)buf + got, size - got)) > 0) {
+            got += rc;
+        } else {
+            break;
+        }
+    }
+
+    if (got == size) {
+        return size;
+    }
+
+    return -1;
+}
+
+void log_init() {
+    char *log_file = conf("server_log_file").sval;
+    if (! *log_file) {
+        return;
+    }
+
+    if ((log_fd = open(log_file, O_WRONLY | O_APPEND | O_CREAT, 0666)) < 0) {
+        panicf("Unable to open %s!", log_file);
+    }
+
+    logger(" ======= GAME STARTED ======= ");
+}
+
+void logger(char *str) {
+    if (log_fd < 0) {
+        return;
+    }
+
+    char buf[8192];
+    struct timeval tv;
+    if (gettimeofday(&tv, NULL) < 0) {
+        panic("Unable to get system time!");
+    }
+
+    int len = snprintf(buf, sizeof(buf), "%lu: %s\n", tv.tv_sec, str);
+    if (write(log_fd, buf, len) < 0) {
+        panic("Unable to write log output!");
+    }
+}
+
 int main(int argc, char *argv[]) {
     // TODO parse argv and run server / client
 
@@ -75,6 +127,9 @@ int main(int argc, char *argv[]) {
             server_only = 1;
         }
     }
+
+    log_fd = -1;
+    log_init();
 
     if (server_only == 0) {
         client();

@@ -17,6 +17,7 @@
 void m_main(int id, WINDOW *win);
 void m_options(int id, WINDOW *win);
 void m_newgame(int id, WINDOW *win);
+void m_connect(int id, WINDOW *win);
 
 void m_null() {
     return;
@@ -30,14 +31,14 @@ void m_exit_game() {
 menu_t menus[M_SIZE] = {
     { m_main, "Main menu" },
     { m_newgame, "New game" },
-    { m_null, "Connect to existing game" },
+    { m_connect, "Connect to existing game" },
     { m_options, "Options" },
     { m_null, "Help" },
     { m_exit_game, "Exit to Windows" },
 };
 
 void m_newgame(int id, WINDOW *win) {
-    int items[] = { M_EXIT_GAME };
+    int items[] = { M_MAIN, M_EXIT_GAME };
 
     size_t items_len = sizeof(items) / sizeof(int);
 
@@ -69,13 +70,90 @@ void m_newgame(int id, WINDOW *win) {
                 item);
     }
 
+    if (server_connected == 1) {
+        // TODO implement dialog with kinda: "server already connected"
+        return;
+    }
+
+    connecting = 1;
+
     server_fork_start();
 
     usleep(10000);
 
+    strcpy(server_address, "127.0.0.1");
+
+    int retries = CONNECTION_RETRIES_MAX;
+
     do {
-        server_connected = connect_to_server("127.0.0.1");
-    } while (server_connected == 0 && usleep(100000));
+        server_connected = connect_to_server(server_address);
+    } while (retries-- > 0 && server_connected == 0 && usleep(100000) == 0);
+
+    connecting = 0;
+
+    if (server_connected == 0) {
+        strncpy(menu_msg, "Failed to create game!", sizeof(menu_msg));
+        menus[M_MAIN].f(M_MAIN, win);
+        return;
+    }
+
+    return;
+}
+
+void m_connect(int id, WINDOW *win) {
+    int items[] = { M_MAIN, M_EXIT_GAME };
+
+    size_t items_len = sizeof(items) / sizeof(int);
+
+    char *caption = _(menus[id].caption);
+    size_t caption_len = anystrlen(caption);
+
+    wclear(win);
+
+    // Start of menu render code
+
+    mvwprintw(win,
+            max_y / 2 - items_len / 2 - 3,
+            max_x / 2 - caption_len / 2,
+            caption);
+    for (size_t i = 0; i < caption_len; i++) {
+        mvwprintw(win,
+                max_y / 2 - items_len / 2 - 2,
+                max_x / 2 - caption_len / 2 + i,
+                "=");
+    }
+
+    for (size_t i = 0; i < items_len; i++) {
+        char *item = _(menus[items[i]].caption);
+        mvwprintw(win,
+                max_y / 2 - items_len + i,
+                max_x / 2 - anystrlen(item) / 2 - 2,
+                "%d. %s",
+                i + 1,
+                item);
+    }
+
+    if (server_connected == 1) {
+        // TODO implement dialog with kinda: "server already connected"
+        return;
+    }
+
+    int retries = CONNECTION_RETRIES_MAX;
+
+    // TODO implement dialog for reading server address
+
+    strcpy(server_address, "127.0.0.1");
+
+    do {
+        server_connected = connect_to_server(server_address);
+    } while (retries-- > 0 && server_connected == 0 && usleep(100000) == 0);
+
+    if (server_connected == 0) {
+        // TODO say smth to user
+        strncpy(menu_msg, "Failed to connect!", sizeof(menu_msg));
+        menus[M_MAIN].f(M_MAIN, win);
+        return;
+    }
 
     return;
 }
@@ -144,6 +222,10 @@ void m_main(int id, WINDOW *win) {
     // Start of menu render code
 
     mvwprintw(win,
+            max_y / 2 - items_len / 2 - 5,
+            max_x / 2 - anystrnlen(_(menu_msg), sizeof(menu_msg)) / 2,
+            _(menu_msg));
+    mvwprintw(win,
             max_y / 2 - items_len / 2 - 3,
             max_x / 2 - caption_len / 2,
             caption);
@@ -169,6 +251,12 @@ void m_main(int id, WINDOW *win) {
         last_key = wgetch(win);
         if (last_key > '0' && last_key <= (int)('0' + items_len)) {
             int item_id = last_key - '0' - 1;
+
+            mvwprintw(win,
+                    max_y / 2 - items_len / 2 - 5,
+                    0,
+                    "\n");
+            wrefresh(win);
 
             menus[items[item_id]].f(items[item_id], win);
             return;

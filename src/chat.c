@@ -96,7 +96,7 @@ void c_chat_open() {
     do {
         windows_redraw();
 
-        // TODO receive chat from server
+        // TODO receive chat history from server
 
         wtimeout(W(W_CHAT), 10);
         last_key = mvwgetch(W(W_CHAT), 0, 0);
@@ -110,11 +110,9 @@ void c_chat_open() {
             while ((*(input + inputpos) & 0xC0) == 0x80) inputpos--;
             input[inputpos] = '\0';
         } else if (last_key == K[K_CHAT_SEND]) {
-            // TODO implement send to server
             input[inputpos++] = '\n';
             input[inputpos++] = '\0';
 
-            c_chat_add(input);
             mbuf_t mbuf;
             size_t size = strlen(input) + 1;
             mbuf.payload = malloc(size);
@@ -122,6 +120,8 @@ void c_chat_open() {
             mbuf.msg.size = size;
             mbuf.msg.version = 0x1;
             memcpy(mbuf.payload, input, size);
+
+            loggerf("[C] sending NEW_CHAT: [%s]", (char *)mbuf.payload);
 
             mqueue_put(&c2s_queue, mbuf);
 

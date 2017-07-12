@@ -38,9 +38,8 @@ LDFLAGS=''
 
 case $OS in
     SunOS) 
-        LDFLAGS="$LDFLAGS -L /opt/csw/lib/"
-        CFLAGS="$CFLAGS -L /opt/csw/lib/ -I /opt/sfw/include/ -lncursesw"
-        CFLAGS="$CFLAGS -lpthread -lnsl -lsocket"
+        LDFLAGS="$LDFLAGS -L /opt/csw/lib/ -lncursesw -lpthread -lnsl -lsocket"
+        CFLAGS="$CFLAGS -L /opt/csw/lib/ -I /opt/sfw/include/"
         VARS_CLIENT='TERM=screen'
         ;;
     FreeBSD)
