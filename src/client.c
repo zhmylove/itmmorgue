@@ -114,7 +114,7 @@ void* worker() {
                 logger("Error reading payload");
             }
 
-            loggerf("[S] Received buf: [%s]", payload);
+            loggerf("[C] Received buf: [%s]", payload);
         }
 
         switch (mbuf.msg.type) {
@@ -126,7 +126,7 @@ void* worker() {
                 break;
             default:
                 warnf("Unknown type: %d", mbuf.msg.type);
-                logger("[S] [UNKNOWN]");
+                logger("[C] [UNKNOWN]");
                 continue;
         }
     } while (server_connected == 1 && ! end);

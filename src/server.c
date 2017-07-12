@@ -34,6 +34,16 @@ void server() {
         panic("Unable to set server socket backlog!");
     }
 
+    /*
+     * Here we define some stuff for common client-size submodules like chat.
+     */
+
+    char *schat;
+    if ((schat = malloc(2)) == NULL) {
+        panic("Unable to allocate server chat buffer!");
+    }
+    strcpy(schat, "\n");
+
     // TODO implement workers
     while ((cs = accept(s, (struct sockaddr *)&client, &client_len)) >= 0) {
         mqueue_t s2c_queue;
@@ -100,6 +110,9 @@ void server() {
                 case MSG_NEW_CHAT:
                     logger("[S] [NEW_CHAT]");
                     break;
+                case MSG_GET_CHAT:
+                    logger("[S] [GET_CHAT]");
+                    break;
                 default:
                     warnf("Unknown type: %d", mbuf.msg.type);
                     logger("[S] [UNKNOWN]");
@@ -127,10 +140,28 @@ void server() {
 
             // TODO do smth with message
             switch (mbuf.msg.type) {
+                case MSG_GET_CHAT:
+                    size = strlen(schat) + 1;
+
+                    if ((s2c_mbuf.payload = malloc(size)) == NULL) {
+                        panic("Error allocating payload buffer!");
+                    }
+                    s2c_mbuf.msg.type = MSG_PUT_CHAT;
+                    s2c_mbuf.msg.size = size;
+                    s2c_mbuf.msg.version = 0x1;
+                    memcpy(s2c_mbuf.payload, schat, size);
+
+                    loggerf("[S] Sending PUT: [%s] size=%lu", schat, size);
+                    mqueue_put(&s2c_queue, s2c_mbuf);
+
+                    break;
                 case MSG_NEW_CHAT:
+                    s_chat_add(schat, payload);
                     size = strlen(payload) + 1;
 
-                    s2c_mbuf.payload = malloc(size);
+                    if ((s2c_mbuf.payload = malloc(size)) == NULL) {
+                        panic("Error allocating payload buffer!");
+                    }
                     s2c_mbuf.msg.type = MSG_PUT_CHAT;
                     s2c_mbuf.msg.size = size;
                     s2c_mbuf.msg.version = 0x1;

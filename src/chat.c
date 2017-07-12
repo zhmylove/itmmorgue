@@ -11,29 +11,35 @@ char input[CHAT_MSG_MAXLEN + 2];
 size_t inputpos;
 
 void c_chat_init() {
-    if ((chat = malloc(CHAT_MSG_BACKLOG * CHAT_MSG_MAXLEN + 1)) == NULL) {
+    if ((chat = malloc(CHAT_MSG_MAXLEN + 1)) == NULL) {
         panic("Unable to allocate chat memory!");
     }
     
     chat[0] = '\0';
     input[0] = '\0';
 
-    c_chat_add("qwe  1\n");
-    c_chat_add("qwe  2\n");
-    c_chat_add("qwe  3\n");
-    c_chat_add("qwe  4\n");
-    c_chat_add("qwe  5\n");
-    c_chat_add("qwe  6\n");
-    c_chat_add("qwe  7\n");
-    c_chat_add("qwe  8\n");
-    c_chat_add("qwe  9\n");
-    c_chat_add("qwe 10\n");
-    c_chat_add("qwe 11\n");
-    c_chat_add("qwe 12\n");
-    c_chat_add("qwe 13\n");
-    c_chat_add("qwe 14\n");
-    c_chat_add("qwe 15\n");
-    c_chat_add("qwe 16\n");
+    mbuf_t mbuf;
+    mbuf.msg.type = MSG_GET_CHAT;
+    mbuf.msg.size = 0;
+    mbuf.msg.version = 0x1;
+    mqueue_put(&c2s_queue, mbuf);
+    
+    // c_chat_add("qwe  1\n");
+    // c_chat_add("qwe  2\n");
+    // c_chat_add("qwe  3\n");
+    // c_chat_add("qwe  4\n");
+    // c_chat_add("qwe  5\n");
+    // c_chat_add("qwe  6\n");
+    // c_chat_add("qwe  7\n");
+    // c_chat_add("qwe  8\n");
+    // c_chat_add("qwe  9\n");
+    // c_chat_add("qwe 10\n");
+    // c_chat_add("qwe 11\n");
+    // c_chat_add("qwe 12\n");
+    // c_chat_add("qwe 13\n");
+    // c_chat_add("qwe 14\n");
+    // c_chat_add("qwe 15\n");
+    // c_chat_add("qwe 16\n");
 }
 
 void draw_chat() {
@@ -44,6 +50,10 @@ void draw_chat() {
     int square = windows[W_CHAT].max_x * windows[W_CHAT].max_y;
     size_t len = strlen(chat);
     char *chatptr = chat + len - 2;
+
+    if (len < 2) {
+        return;
+    }
 
     if (windows[W_CHAT].state == LARGE && square > windows[W_CHAT].max_x) {
         square -= windows[W_CHAT].max_x;
@@ -74,9 +84,26 @@ void draw_chat() {
     }
 }
 
+void s_chat_add(char *chat, char *str) {
+    int oldsize = strlen(chat) + 1;
+    int newsize = oldsize + strlen(str) + 1;
+
+    // TODO take care of CHAT_MSG_BACKLOG
+    // TODO do not forget that this routine is used by both client and server
+
+    if ((chat = realloc(chat, newsize)) == NULL) {
+        panic("Error reallocating chat buffer!");
+    }
+
+    strcat(chat, str);
+}
+
 void c_chat_add(char *str) {
     int oldsize = strlen(chat) + 1;
     int newsize = oldsize + strlen(str) + 1;
+
+    // TODO take care of CHAT_MSG_BACKLOG
+    // TODO do not forget that this routine is used by both client and server
 
     if ((chat = realloc(chat, newsize)) == NULL) {
         panic("Error reallocating chat buffer!");
