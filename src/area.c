@@ -55,6 +55,7 @@ void draw_area() {
     mvwprintw(W(W_AREA), 4, 1, "%s %d", _("Key:"), last_key);
     mvwprintw(W(W_AREA), 5, 1, "%s %d", _("Connection:"), server_connected);
     mvwprintw(W(W_AREA), 6, 1, "%s %s", _("Server address:"), server_address);
+    mvwprintw(W(W_AREA), 7, 1, "%s %s", _("Server address:"), nickname);
     return;
 }
 

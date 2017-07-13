@@ -81,7 +81,7 @@ int readall(int fd, void *buf, size_t size) {
 }
 
 void log_init() {
-    char *log_file = conf("server_log_file").sval;
+    char *log_file = conf("file_server_log").sval;
     if (! *log_file) {
         return;
     }

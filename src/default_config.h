@@ -178,8 +178,9 @@ struct t_conf_default {
     C_CHR("key_eight", '8'),
     C_CHR("key_nine", '9'),
 
-    C_STR("locale_file", ""),
-    C_STR("server_log_file", "itmmorgue.log")
+    C_STR("player_nickname", ""),
+    C_STR("file_locale", ""),
+    C_STR("file_server_log", "itmmorgue.log")
 };
 #undef C_STR
 #undef C_INT

@@ -150,7 +150,7 @@ int client() {
         panic("Unable to set locale (ru,en)UTF-8!");
     }
 
-    locale_init(conf("locale_file").sval);
+    locale_init(conf("file_locale").sval);
 
     mqueue_init(&c2s_queue);
 

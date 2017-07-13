@@ -4,6 +4,10 @@
 
 // #define CHAT_MSG_BACKLOG 16
 #define CHAT_MSG_MAXLEN 256
+#define CHAT_NICK_MAXLEN 32
+
+char *chat;
+char nickname[CHAT_NICK_MAXLEN + 1];
 
 void c_chat_init();
 void c_chat_open();

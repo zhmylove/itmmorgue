@@ -48,14 +48,16 @@ conf_t conf(char *key) {
  */
 static enum config_parser_retval parse_option_string(const char *opt,
         conf_t *rc) {
-    size_t len = strnlen(opt, MAX_OPT_LEN);
-    rc->sval = (char*) malloc(len);
+    size_t len = strnlen(opt, MAX_OPT_LEN - 1);
+    rc->sval = (char*) malloc(len + 1);
 
     if (NULL == rc->sval) {
         panicf("Allocation failed in file %s, line %d", __FILE__, __LINE__);
     }
 
     strncpy(rc->sval, opt, len);
+
+    rc->sval[len] = '\0';
 
     rc->type = CONF_STRING;
 

@@ -1,3 +1,11 @@
+# KorG's nickname
+player_nickname = KorG
+
+# Keybindings
+key_exit = q
+
+# Layout settings
+
 win_stdscr_large_y = 0
 win_stdscr_large_x = 0
 win_stdscr_large_max_y = 0

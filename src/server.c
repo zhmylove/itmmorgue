@@ -49,7 +49,7 @@ void server() {
     if ((schat = malloc(2)) == NULL) {
         panic("Unable to allocate server chat buffer!");
     }
-    strcpy(schat, "");
+    schat[0] = '\0';
 
     // TODO fix this hardcode
     // Implement list of structures for all connected threads

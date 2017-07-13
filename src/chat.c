@@ -6,7 +6,6 @@
 #include "keyboard.h"
 #include "windows.h"
 
-char *chat;
 char input[CHAT_MSG_MAXLEN + 2];
 size_t inputpos;
 
@@ -17,6 +16,7 @@ void c_chat_init() {
     
     chat[0] = '\0';
     input[0] = '\0';
+    strncpy(nickname, conf("player_nickname").sval, sizeof(nickname));
 
     mbuf_t mbuf;
     mbuf.msg.type = MSG_GET_CHAT;
@@ -128,16 +128,21 @@ void c_chat_open() {
             input[inputpos++] = '\0';
 
             mbuf_t mbuf;
-            size_t size = strlen(input) + 1;
+            size_t bufsize = strlen(input) + strlen(nickname) + 4;
+            char *buf = malloc(bufsize);
+            snprintf(buf, bufsize, "<%s> %s", nickname, input);
+            size_t size = strlen(buf) + 1;
             mbuf.payload = malloc(size);
             mbuf.msg.type = MSG_NEW_CHAT;
             mbuf.msg.size = size;
             mbuf.msg.version = 0x1;
-            memcpy(mbuf.payload, input, size);
+            memcpy(mbuf.payload, buf, size);
 
             loggerf("[C] sending NEW_CHAT: [%s]", (char *)mbuf.payload);
 
             mqueue_put(&c2s_queue, mbuf);
+
+            free(buf);
 
             inputpos = 0;
             memset(input, '\0', CHAT_MSG_MAXLEN + 2);
@@ -147,7 +152,8 @@ void c_chat_open() {
 
         char buf[sizeof(input) - inputpos - 2];
         buf[0] = '\0';
-        mvwgetnstr(W(W_CHAT), 0, 0, buf, sizeof(input) - inputpos);
+        mvwgetnstr(W(W_CHAT), 0, 0, buf,
+                sizeof(input) - inputpos - strlen(nickname));
         if (strnlen(buf, sizeof(buf) > 0)) {
             strncat(input + inputpos, buf, sizeof(input) - inputpos);
             inputpos = strlen(input);
