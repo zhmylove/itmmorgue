@@ -12,5 +12,6 @@ void c_sysmsg_open();
 void draw_sysmsg();
 void c_sysmsg_add(char *str);
 void s_sysmsg_add(char **sysmsg, char *str);
+void send_sysmsg(mqueue_t *queue, const char *msg);
 
 #endif /* SYSMSG_H */

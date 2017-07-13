@@ -7,6 +7,7 @@
 #define CHAT_NICK_MAXLEN 32
 
 char *chat;
+char *schat;
 char nickname[CHAT_NICK_MAXLEN + 1];
 
 void c_chat_init();

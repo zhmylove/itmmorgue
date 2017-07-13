@@ -1,11 +1,6 @@
 // vim: sw=4 ts=4 et :
 #include "server.h"
 
-void send_sysmsg(mqueue_t *queue, const char *msg);
-
-// TODO move this to chat.c/chat.h ?
-char *schat;
-
 // TODO implement dynamic resources allocation
 size_t threads_pos;
 pthread_t threads[128];
@@ -207,11 +202,12 @@ void* process_client(processor_args_t *pargs) {
                     memcpy(s2c_mbuf.payload, payload, size);
 
                     mqueue_put(s2c_queues + curr, s2c_mbuf);
+
+                    send_sysmsg(s2c_queues + curr,
+                            "New message in your chat!\n");
                 }
 
                 free(payload);
-
-                send_sysmsg(s2c_queue, "New message in your chat!\n");
 
                 break;
             default:
