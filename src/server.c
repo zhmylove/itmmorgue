@@ -262,7 +262,7 @@ void server_fork_start() {
 }
 
 /*
- * Creates MSG_PUT_SYS message from msg, puts it into queue.
+ * Creates MSG_PUT_SYSMSG message from msg, puts it into queue.
  * 
  * queue : queue to put created message
  * msg   : message payload
@@ -273,10 +273,10 @@ void send_sysmsg(mqueue_t *queue, const char *msg) {
     if ((s2c_mbuf.payload = malloc(msg_len)) == NULL) {
         panic("Error allocating payload buffer!");
     }
-    s2c_mbuf.msg.type = MSG_PUT_SYS;
+    s2c_mbuf.msg.type = MSG_PUT_SYSMSG;
     s2c_mbuf.msg.size = msg_len;
     memcpy(s2c_mbuf.payload, msg, msg_len);
 
-    loggerf("[S] Sending SYS: [%s] size=%zu", msg, msg_len);
+    loggerf("[S] Sending SYSMSG: [%s] size=%zu", msg, msg_len);
     mqueue_put(queue, s2c_mbuf);
 }

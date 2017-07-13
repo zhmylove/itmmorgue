@@ -94,8 +94,8 @@ void* worker() {
             case MSG_PUT_CHAT:
                 logger("[C] [PUT_CHAT]");
                 break;
-            case MSG_PUT_SYS:
-                logger("[C] [PUT_SYS]");
+            case MSG_PUT_SYSMSG:
+                logger("[C] [PUT_SYSMSG]");
                 break;
             default:
                 warnf("Unknown type: %d", mbuf.msg.type);
@@ -127,7 +127,7 @@ void* worker() {
                 free(payload);
 
                 break;
-            case MSG_PUT_SYS:
+            case MSG_PUT_SYSMSG:
                 c_sysmsg_add(payload);
 
                 free(payload);
