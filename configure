@@ -36,6 +36,10 @@ CFLAGS="--std=gnu99 -pedantic -Wall -Wextra -Werror -ggdb3 -I$LIBDIR"
 [ x1 = "x$DEBUG" ] && CFLAGS="$CFLAGS -D_DEBUG"
 LDFLAGS=''
 
+# Calculate protocol version
+PROTO="-DPROTOCOL_VERSION="'`perl -lne '"'\
+"'$$a+=$$_+$$. for split//;END{print$$a}'"'"' src/*`'
+
 case $OS in
     SunOS) 
         LDFLAGS="$LDFLAGS -L /opt/csw/lib/ -lncursesw -lpthread -lnsl -lsocket"
@@ -165,7 +169,7 @@ O=`echo "$C " | sed 's/\\.c /.o/g'`
 O="$WORKDIR/$O"
 cat >>Makefile <<EOF
 $O : $SRCDIR/$C $HEADERS
-	\$(CC) $CFLAGS -c $SRCDIR/$C -o $O
+	\$(CC) $CFLAGS $PROTO -c $SRCDIR/$C -o $O
 
 EOF
 done
