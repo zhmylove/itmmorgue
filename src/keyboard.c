@@ -24,6 +24,7 @@ void keyboard_init() {
     K[K_MENU_LARGE]       = conf("key_menu_large").cval;
     K[K_INVENTORY_LARGE]  = conf("key_inventory_large").cval;
     K[K_CHAT_LARGE]       = conf("key_chat_large").cval;
+    K[K_SYSMSG_LARGE]     = conf("key_sysmsg_large").cval;
 
     // Chat controls
     K[K_CHAT_EXIT]        = conf("key_chat_exit").cval;

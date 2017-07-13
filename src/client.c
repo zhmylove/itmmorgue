@@ -94,6 +94,9 @@ void* worker() {
             case MSG_PUT_CHAT:
                 logger("[C] [PUT_CHAT]");
                 break;
+            case MSG_PUT_SYS:
+                logger("[C] [PUT_SYS]");
+                break;
             default:
                 warnf("Unknown type: %d", mbuf.msg.type);
                 logger("[C] [UNKNOWN]");
@@ -120,6 +123,12 @@ void* worker() {
         switch (mbuf.msg.type) {
             case MSG_PUT_CHAT:
                 c_chat_add(payload);
+
+                free(payload);
+
+                break;
+            case MSG_PUT_SYS:
+                c_sysmsg_add(payload);
 
                 free(payload);
 
@@ -177,6 +186,7 @@ int client() {
     // TODO rewrite this to get everything from server
     area_init();
     c_chat_init();
+    c_sysmsg_init();
 
     sock = -1;
 
@@ -198,6 +208,8 @@ int client() {
             menu(M_MAIN);
         } else if (K[K_CHAT_LARGE] == last_key) {
             c_chat_open();
+        } else if (K[K_SYSMSG_LARGE] == last_key) {
+            c_sysmsg_open();
         } else if (K[K_INVENTORY_LARGE] == last_key) {
             inventory_open();
         } else if (K[K_EXIT] == last_key) {

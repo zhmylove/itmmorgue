@@ -13,6 +13,7 @@ typedef struct msg {
         MSG_GET_CHAT,       // c2s chat history request
         MSG_NEW_CHAT,       // c2s chat new message
         MSG_PUT_CHAT,       // s2c chat history update
+        MSG_PUT_SYS,        // s2c sysmsg history update
     } type;
     int version;
     size_t size;

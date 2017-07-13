@@ -29,6 +29,7 @@ enum keyboard {
     K_MENU_LARGE,
     K_INVENTORY_LARGE,
     K_CHAT_LARGE,
+    K_SYSMSG_LARGE,
 
     // Chat controls
     K_CHAT_EXIT,

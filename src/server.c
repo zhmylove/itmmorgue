@@ -1,6 +1,8 @@
 // vim: sw=4 ts=4 et :
 #include "server.h"
 
+void send_sysmsg(mqueue_t *queue, const char *msg);
+
 // TODO move this to chat.c/chat.h ?
 char *schat;
 
@@ -132,7 +134,9 @@ void* process_client(processor_args_t *pargs) {
 
         if ((rc = read(cs, &mbuf.msg, sizeof(mbuf.msg))) == 0) {
             logger("Client closed connection!");
-            continue;
+            close(cs);
+            pthread_exit(NULL);
+            //continue;
         } else if (rc < 0) {
             logger("Error reading from socket!");
             client_connected = 0;
@@ -209,6 +213,8 @@ void* process_client(processor_args_t *pargs) {
 
                 free(payload);
 
+                send_sysmsg(s2c_queue, "New message in your chat!\n");
+
                 break;
             default:
                 warnf("Unknown type: %d", mbuf.msg.type);
@@ -259,4 +265,25 @@ void server_fork_start() {
     struct sigaction sa_chld;
     sa_chld.sa_handler = &sigchld;
     sigaction(SIGCHLD, &sa_chld, NULL);
+}
+
+/*
+ * Creates MSG_PUT_SYS message from msg, puts it into queue.
+ * 
+ * queue : queue to put created message
+ * msg   : message payload
+ */
+void send_sysmsg(mqueue_t *queue, const char *msg) {
+    mbuf_t s2c_mbuf;
+    size_t msg_len = strlen(msg) + 1;
+    if ((s2c_mbuf.payload = malloc(msg_len)) == NULL) {
+        panic("Error allocating payload buffer!");
+    }
+    s2c_mbuf.msg.type = MSG_PUT_SYS;
+    s2c_mbuf.msg.size = msg_len;
+    s2c_mbuf.msg.version = 0x1;
+    memcpy(s2c_mbuf.payload, msg, msg_len);
+
+    loggerf("[S] Sending SYS: [%s] size=%zu", msg, msg_len);
+    mqueue_put(queue, s2c_mbuf);
 }

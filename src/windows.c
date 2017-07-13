@@ -190,14 +190,6 @@ static void draw_stdscr() {
             last_key);
 }
 
-static void draw_sysmsg() {
-    struct timeval time;
-    gettimeofday(&time, NULL);
-
-    MVW(W_SYSMSG, 1, 1, "%d ", time.tv_sec);
-    return;
-}
-
 static void draw_map() {
     return;
 }

@@ -42,6 +42,9 @@ int mqueue_get(mqueue_t *queue, mbuf_t *mbuf) {
     }
 
     *mbuf = queue->buf[queue->size--, queue->start_position++];
+    if (queue->start_position >= MQUEUE_SIZE) {
+        queue->start_position = 0;
+    }
 
     return 1;
 }
