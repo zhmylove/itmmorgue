@@ -9,6 +9,6 @@ void c_chat_init();
 void c_chat_open();
 void draw_chat();
 void c_chat_add(char *str);
-void s_chat_add(char *chat, char *str);
+void s_chat_add(char **chat, char *str);
 
 #endif /* CHAT_H */

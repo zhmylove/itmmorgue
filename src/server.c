@@ -1,7 +1,10 @@
 // vim: sw=4 ts=4 et :
 #include "server.h"
 
+// TODO move this to chat.c/chat.h ?
 char *schat;
+
+// TODO implement dynamic resources allocation
 size_t threads_pos;
 pthread_t threads[128];
 mqueue_t s2c_queues[128];
@@ -46,7 +49,7 @@ void server() {
     if ((schat = malloc(2)) == NULL) {
         panic("Unable to allocate server chat buffer!");
     }
-    strcpy(schat, "\n");
+    strcpy(schat, "");
 
     // TODO fix this hardcode
     // Implement list of structures for all connected threads
@@ -187,7 +190,7 @@ void* process_client(processor_args_t *pargs) {
 
                 break;
             case MSG_NEW_CHAT:
-                s_chat_add(schat, payload);
+                s_chat_add(&schat, payload);
                 size = strlen(payload) + 1;
 
                 s2c_mbuf.msg.type = MSG_PUT_CHAT;
