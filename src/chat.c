@@ -21,7 +21,6 @@ void c_chat_init() {
     mbuf_t mbuf;
     mbuf.msg.type = MSG_GET_CHAT;
     mbuf.msg.size = 0;
-    mbuf.msg.version = 0x1;
     mqueue_put(&c2s_queue, mbuf);
 }
 
@@ -135,7 +134,6 @@ void c_chat_open() {
             mbuf.payload = malloc(size);
             mbuf.msg.type = MSG_NEW_CHAT;
             mbuf.msg.size = size;
-            mbuf.msg.version = 0x1;
             memcpy(mbuf.payload, buf, size);
 
             loggerf("[C] sending NEW_CHAT: [%s]", (char *)mbuf.payload);

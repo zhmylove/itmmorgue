@@ -186,7 +186,6 @@ void* process_client(processor_args_t *pargs) {
                 }
                 s2c_mbuf.msg.type = MSG_PUT_CHAT;
                 s2c_mbuf.msg.size = size;
-                s2c_mbuf.msg.version = 0x1;
                 memcpy(s2c_mbuf.payload, schat, size);
 
                 loggerf("[S] Sending PUT: [%s] size=%zu", schat, size);
@@ -199,7 +198,6 @@ void* process_client(processor_args_t *pargs) {
 
                 s2c_mbuf.msg.type = MSG_PUT_CHAT;
                 s2c_mbuf.msg.size = size;
-                s2c_mbuf.msg.version = 0x1;
 
                 for (size_t curr = 0; curr < threads_pos; curr++) {
                     // will be freed during mqueue_get()
@@ -281,7 +279,6 @@ void send_sysmsg(mqueue_t *queue, const char *msg) {
     }
     s2c_mbuf.msg.type = MSG_PUT_SYS;
     s2c_mbuf.msg.size = msg_len;
-    s2c_mbuf.msg.version = 0x1;
     memcpy(s2c_mbuf.payload, msg, msg_len);
 
     loggerf("[S] Sending SYS: [%s] size=%zu", msg, msg_len);

@@ -2,6 +2,10 @@
 #ifndef PROTOCOL_H
 #define PROTOCOL_H
 
+#ifndef PROTOCOL_VERSION
+#define PROTOCOL_VERSION 0x2
+#endif /* PROTOCOL_VERSION */
+
 #define MQUEUE_SIZE 128
 
 typedef struct msg {

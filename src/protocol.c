@@ -28,6 +28,7 @@ void mqueue_put(mqueue_t *queue, mbuf_t mbuf) {
 
     pos = (pos + size) % MQUEUE_SIZE;
 
+    mbuf.msg.version = PROTOCOL_VERSION;
     queue->buf[pos] = mbuf;
     queue->size++;
 }
