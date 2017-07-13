@@ -90,7 +90,7 @@ void c_sysmsg_open() {
     do {
         windows_redraw();
 
-        wtimeout(W(W_SYSMSG), -1);
+        wtimeout(W(W_SYSMSG), 10);
         last_key = mvwgetch(W(W_SYSMSG), 0, 0);
 
         if (last_key == K[K_WINDOW_EXIT]) {
