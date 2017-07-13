@@ -20,6 +20,7 @@ enum stuff {
 
     S_GOLD            ,
     S_SCROLL          ,
+    S_BOOK            ,
 
     S_RING            ,
     S_WAND            ,
