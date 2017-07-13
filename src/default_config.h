@@ -147,6 +147,7 @@ struct t_conf_default {
 
     // TODO: multi-byte keycodes
     C_CHR("key_exit", 'q'),
+    C_CHR("key_window_exit", '\t'),
     C_CHR("key_clear_screen", 0x0C),
     C_CHR("key_backspace", 0x7F),
 
@@ -164,8 +165,6 @@ struct t_conf_default {
     C_CHR("key_chat_large", 'c'),
     C_CHR("key_sysmsg_large", 'P'),
 
-    // C_CHR("key_chat_exit", 0x1B), // we should avoid using Esc
-    C_CHR("key_chat_exit", 0x1B),
     C_CHR("key_chat_send", '\n'),
 
     C_CHR("key_zero", '0'),

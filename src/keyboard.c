@@ -7,6 +7,7 @@
  */
 void keyboard_init() {
     K[K_EXIT]             = conf("key_exit").cval;
+    K[K_WINDOW_EXIT]      = conf("key_window_exit").cval;
     K[K_CLR_SCR]          = conf("key_clear_screen").cval;
     K[K_BACKSPACE]        = conf("key_backspace").cval;
 
@@ -27,7 +28,6 @@ void keyboard_init() {
     K[K_SYSMSG_LARGE]     = conf("key_sysmsg_large").cval;
 
     // Chat controls
-    K[K_CHAT_EXIT]        = conf("key_chat_exit").cval;
     K[K_CHAT_SEND]        = conf("key_chat_send").cval;
 
     // Others

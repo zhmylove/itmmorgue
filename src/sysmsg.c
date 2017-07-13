@@ -93,10 +93,10 @@ void c_sysmsg_open() {
         wtimeout(W(W_SYSMSG), -1);
         last_key = mvwgetch(W(W_SYSMSG), 0, 0);
 
-        if (last_key == K[K_EXIT]) {
+        if (last_key == K[K_WINDOW_EXIT]) {
             break;
         }
-    } while (last_key != K[K_EXIT]);
+    } while (last_key != K[K_WINDOW_EXIT]);
 
     windows[W_SYSMSG].state = state_old;
     focus = focus_old;

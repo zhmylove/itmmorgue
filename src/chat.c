@@ -109,7 +109,7 @@ void c_chat_open() {
         wtimeout(W(W_CHAT), 10);
         last_key = mvwgetch(W(W_CHAT), 0, 0);
 
-        if (last_key == K[K_CHAT_EXIT]) {
+        if (last_key == K[K_WINDOW_EXIT]) {
             break;
         } else if (last_key == K[K_BACKSPACE]) { // Backspace
             if (inputpos == 0) {
@@ -158,7 +158,7 @@ void c_chat_open() {
             strncat(input + inputpos, buf, sizeof(input) - inputpos);
             inputpos = strlen(input);
         }
-    } while (last_key != K[K_CHAT_EXIT]);
+    } while (last_key != K[K_WINDOW_EXIT]);
 
     windows[W_CHAT].state = state_old;
     focus = focus_old;

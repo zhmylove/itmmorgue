@@ -285,7 +285,7 @@ void inventory_open() {
         } else if (K[K_TWO] == last_key) {
             warn("2");
         }
-    } while (last_key != K[K_EXIT]);
+    } while (last_key != K[K_WINDOW_EXIT]);
 
     windows[W_INVENTORY].state = HIDDEN;
     focus = focus_old;

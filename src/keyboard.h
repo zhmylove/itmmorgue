@@ -12,6 +12,7 @@
  */
 enum keyboard {
     K_EXIT = 0,
+    K_WINDOW_EXIT,
     K_CLR_SCR,
     K_BACKSPACE,
 
@@ -32,7 +33,6 @@ enum keyboard {
     K_SYSMSG_LARGE,
 
     // Chat controls
-    K_CHAT_EXIT,
     K_CHAT_SEND,
 
     // Others
