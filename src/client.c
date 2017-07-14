@@ -220,6 +220,8 @@ int client() {
         }
     } while (! end);
 
+    mqueue_destroy(&c2s_queue);
+
     return 0;
 }
 

@@ -130,8 +130,8 @@ void* process_client(processor_args_t *pargs) {
         if ((rc = readall(cs, &mbuf.msg, sizeof(mbuf.msg))) == 0) {
             logger("Client closed connection!");
             close(cs);
+            mqueue_destroy(s2c_queue);
             pthread_exit(NULL);
-            //continue;
         } else if (rc < 0) {
             logger("Error reading from socket!");
             client_connected = 0;
@@ -218,6 +218,7 @@ void* process_client(processor_args_t *pargs) {
     } while (client_connected == 1);
 
     close(cs);
+    mqueue_destroy(s2c_queue);
     // TODO is it reachable point?
     return NULL;
 }

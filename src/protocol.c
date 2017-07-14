@@ -73,3 +73,6 @@ int mqueue_get(mqueue_t *queue, mbuf_t *mbuf) {
     return 1;
 }
 
+void mqueue_destroy(mqueue_t *queue) {
+    pthread_mutex_destroy(&queue->mutex);
+}

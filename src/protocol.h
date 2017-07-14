@@ -44,6 +44,6 @@ typedef struct mqueue {
 void mqueue_init(mqueue_t *queue);
 int mqueue_get(mqueue_t *queue, mbuf_t *mbuf);
 void mqueue_put(mqueue_t *queue, mbuf_t mbuf);
-// TODO: void mqueue_destroy(mqueue_t *queue);
+void mqueue_destroy(mqueue_t *queue);
 
 #endif /* PROTOCOL_H */
