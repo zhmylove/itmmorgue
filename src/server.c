@@ -56,18 +56,18 @@ void server() {
     // TODO implement workers
     while ((cs = accept(s, (struct sockaddr *)&client, &client_len)) >= 0) {
         // TODO use dynamic allocation
-        processor_args_t pargs;
-        pargs.curr_client = client;
-        pargs.curr_client_len = client_len;
-        pargs.socket = cs;
-        pargs.id = threads_pos;
-        pargs.mqueueptr = s2c_queues + threads_pos;
+        connection_t connection;
+        connection.curr_client = client;
+        connection.curr_client_len = client_len;
+        connection.socket = cs;
+        connection.id = threads_pos;
+        connection.mqueueptr = s2c_queues + threads_pos;
 
         client_len = sizeof(client); // for Solaris
 
         if (pthread_create(threads + threads_pos++, NULL,
                     (void*(*)(void*))&process_client,
-                    &pargs) != 0) {
+                    &connection) != 0) {
             panic("Error creating processor thread!");
         }
     }
@@ -75,15 +75,15 @@ void server() {
     panic("Server exited abnormally");
 }
 
-void* process_client(processor_args_t *pargs) {
-    int cs = pargs->socket;
+void* process_client(connection_t *connection) {
+    int cs = connection->socket;
     int rc;
 
     if (pthread_detach(pthread_self()) != 0) {
         panic("Error detaching processor pthread!");
     }
 
-    mqueue_t *s2c_queue = pargs->mqueueptr;
+    mqueue_t *s2c_queue = connection->mqueueptr;
     mqueue_init(s2c_queue);
 
     struct timeval timeout;

@@ -30,6 +30,7 @@
 
 #include "config.h"
 #include "protocol.h"
+#include "connection.h"
 #include "client.h"
 #include "server.h"
 #include "trie/trie.h"
