@@ -127,7 +127,7 @@ void* process_client(processor_args_t *pargs) {
             continue;
         }
 
-        if ((rc = read(cs, &mbuf.msg, sizeof(mbuf.msg))) == 0) {
+        if ((rc = readall(cs, &mbuf.msg, sizeof(mbuf.msg))) == 0) {
             logger("Client closed connection!");
             close(cs);
             pthread_exit(NULL);

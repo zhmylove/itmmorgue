@@ -8,7 +8,7 @@
  * Items of this enum are indexes of K[], which represents key map. To add a
  * key, put its name into this enum, add configuration parameter into
  * default_config.h and assign it to corresponding element of K[] in keyboard.c
- * by calling conf("key_name").
+ * by calling conf("key_name").value.__cval.
  */
 enum keyboard {
     K_EXIT = 0,

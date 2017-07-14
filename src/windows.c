@@ -65,23 +65,23 @@ void windows_fill(int win, int keep_state) {
         char buf3[BUFSIZ];                                                   \
         strcpy(buf3, buf2);                                                  \
         strncat(buf3, "_ispercent", BUFSIZ - strlen(buf2));                  \
-        int val = conf(buf2).ival;                                           \
+        int val = CONF_IVAL(buf2);                                           \
         if ((char*)#parameter == (char*)"max_y") {                           \
-            int ispercent = conf(buf3).ival;                                 \
+            int ispercent = CONF_IVAL(buf3);                                 \
             if (ispercent) val = (int)(max_y * val / 100);                   \
             windows[win].parameter =                                         \
             val < 0 ? max_y + val - windows[win].y : val;                    \
         } else if ((char*)#parameter == (char*)"max_x") {                    \
-            int ispercent = conf(buf3).ival;                                 \
+            int ispercent = CONF_IVAL(buf3);                                 \
             if (ispercent) val = (int)(max_x * val / 100);                   \
             windows[win].parameter =                                         \
             val < 0 ? max_x + val - windows[win].x : val;                    \
         } else if ((char*)#parameter == (char*)"y") {                        \
-            int ispercent = conf(buf3).ival;                                 \
+            int ispercent = CONF_IVAL(buf3);                                 \
             if (ispercent) val = (int)(max_y * val / 100);                   \
             windows[win].parameter = val < 0 ? max_y + val : val;            \
         } else if ((char*)#parameter == (char*)"x") {                        \
-            int ispercent = conf(buf3).ival;                                 \
+            int ispercent = CONF_IVAL(buf3);                                 \
             if (ispercent) val = (int)(max_x * val / 100);                   \
             windows[win].parameter = val < 0 ? max_x + val : val;            \
         } else {                                                             \

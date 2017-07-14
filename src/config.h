@@ -39,6 +39,11 @@ typedef struct conf {
     enum conf_type type;   // type of value
 } conf_t;
 
+// Definitions for quick config value access
+#define CONF_IVAL(x) conf(x).value.__ival
+#define CONF_SVAL(x) conf(x).value.__sval
+#define CONF_CVAL(x) conf(x).value.__cval
+
 conf_t conf(char *key);
 void config_init(char *file);
 

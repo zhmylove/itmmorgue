@@ -78,7 +78,7 @@ void* worker() {
         }
 
 
-        if ((rc = read(sock, &mbuf.msg, sizeof(mbuf.msg))) == 0) {
+        if ((rc = readall(sock, &mbuf.msg, sizeof(mbuf.msg))) == 0) {
             server_connected = 0;
             // TODO implement dialog with this message:
             logger("Error getting message in worker!");
@@ -159,7 +159,7 @@ int client() {
         panic("Unable to set locale (ru,en)UTF-8!");
     }
 
-    locale_init(conf("file_locale").sval);
+    locale_init(CONF_SVAL("file_locale"));
 
     mqueue_init(&c2s_queue);
 

@@ -16,7 +16,7 @@ void c_chat_init() {
     
     chat[0] = '\0';
     input[0] = '\0';
-    strncpy(nickname, conf("player_nickname").sval, sizeof(nickname));
+    strncpy(nickname, CONF_SVAL("player_nickname"), sizeof(nickname));
 
     mbuf_t mbuf;
     mbuf.msg.type = MSG_GET_CHAT;
