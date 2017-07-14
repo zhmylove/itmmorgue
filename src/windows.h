@@ -19,6 +19,7 @@ extern char *windows_names[];
 
 // WINDOW pointer by NAME
 #define W(NAME) (windows[NAME].w)
+#define WIN(NAME, PROPERTY) (windows[W_##NAME].PROPERTY)
 
 #define MVW(WIN, ...) do { mvwprintw(W(WIN), __VA_ARGS__); } while(0)
 

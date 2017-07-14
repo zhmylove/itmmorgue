@@ -27,6 +27,8 @@ enum keyboard {
     K_MOVE_RIGHT_DOWN,
 
     // Window control
+    K_SCROLL_UP,
+    K_SCROLL_DOWN,
     K_MENU_LARGE,
     K_INVENTORY_LARGE,
     K_CHAT_LARGE,

@@ -160,6 +160,8 @@ struct t_conf_default {
     C_CHR("key_move_left_down", '1'),
     C_CHR("key_move_right_down", '3'),
 
+    C_CHR("key_scroll_up", '/'),
+    C_CHR("key_scroll_down", '*'),
     C_CHR("key_menu_large", 'm'),
     C_CHR("key_inventory_large", 'i'),
     C_CHR("key_chat_large", 'c'),

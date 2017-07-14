@@ -8,6 +8,7 @@
 
 char input[CHAT_MSG_MAXLEN + 2];
 size_t inputpos;
+size_t scrolloff = 0;
 
 void c_chat_init() {
     if ((chat = malloc(CHAT_MSG_MAXLEN + 1)) == NULL) {
@@ -16,6 +17,7 @@ void c_chat_init() {
     
     chat[0] = '\0';
     input[0] = '\0';
+    chat_num_lines = 0;
     strncpy(nickname, CONF_SVAL("player_nickname"), sizeof(nickname));
 
     mbuf_t mbuf;
@@ -29,27 +31,33 @@ void draw_chat() {
         return;
     }
 
-    int square = windows[W_CHAT].max_x * windows[W_CHAT].max_y;
+    int square = WIN(CHAT, max_x) * WIN(CHAT, max_y);
     size_t len = strlen(chat);
     char *chatptr = chat + len - 2;
-
-    if (windows[W_CHAT].state == LARGE) {
-        MVW(W_CHAT, windows[W_CHAT].max_y - 1, 0, "> %s", input);
-    }
+    char *inputptr = NULL;
+    char *inputptr_new = NULL;
 
     if (len < 2) {
-        return;
+        goto PS1;
     }
 
-    if (windows[W_CHAT].state == LARGE && square > windows[W_CHAT].max_x) {
-        square -= windows[W_CHAT].max_x;
+    if (WIN(CHAT, state) == LARGE && square > WIN(CHAT, max_x)) {
+        square -= WIN(CHAT, max_x);
+    }
+
+    for (size_t soff = scrolloff; soff; soff--) {
+        while (chatptr > chat && *chatptr-- != '\n');
+
+        if (chatptr == chat) {
+            break;
+        }
     }
 
     int curr = 0;
     while (chatptr > chat && curr < square) {
         switch (*chatptr) {
             case '\n':
-                curr += windows[W_CHAT].max_x - curr % windows[W_CHAT].max_x;
+                curr += WIN(CHAT, max_x) - curr % WIN(CHAT, max_x);
                 break;
             default:
                 if ((*chatptr & 0xC0) != 0x80) {
@@ -64,6 +72,22 @@ void draw_chat() {
     }
 
     MVW(W_CHAT, 0, 0, "%s", chatptr);
+
+PS1:
+    inputptr = input;
+    inputptr_new = input;
+    char PS1[6] = "> %s\n";
+
+    if (WIN(CHAT, state) == LARGE) {
+        while (anystrunplen(inputptr, WIN(CHAT, max_x) - 2, &inputptr_new) &&
+                inputptr != inputptr_new) {
+            inputptr = inputptr_new;
+            inputptr_new = inputptr;
+            PS1[0] = '+';
+        }
+
+        MVW(W_CHAT, WIN(CHAT, max_y) - 1, 0, PS1, inputptr);
+    }
 }
 
 void s_chat_add(char **schat, char *str) {
@@ -92,13 +116,19 @@ void c_chat_add(char *str) {
     }
 
     strcat(chat, str);
+
+    while (*str) {
+        if (*str++ == '\n') {
+            chat_num_lines++;
+        }
+    }
 }
 
 void c_chat_open() {
-    int state_old = windows[W_CHAT].state;
+    int state_old = WIN(CHAT, state);
     int focus_old = focus;
 
-    windows[W_CHAT].state = LARGE;
+    WIN(CHAT, state) = LARGE;
     focus = W_CHAT;
     windows_fill(W_CHAT, 1);
 
@@ -110,7 +140,16 @@ void c_chat_open() {
 
         if (last_key == K[K_WINDOW_EXIT]) {
             break;
-        } else if (last_key == K[K_BACKSPACE]) { // Backspace
+        } else if (last_key == K[K_SCROLL_UP]) {
+            // TODO what can we do with elastic windows scrolloff ?
+            if (scrolloff < chat_num_lines - WIN(CHAT, max_y)) {
+                scrolloff++;
+            }
+        } else if (last_key == K[K_SCROLL_DOWN]) {
+            if (scrolloff > 0) {
+                scrolloff--;
+            }
+        } else if (last_key == K[K_BACKSPACE]) {
             if (inputpos == 0) {
                 continue;
             }
@@ -158,7 +197,7 @@ void c_chat_open() {
         }
     } while (last_key != K[K_WINDOW_EXIT]);
 
-    windows[W_CHAT].state = state_old;
+    WIN(CHAT, state) = state_old;
     focus = focus_old;
     windows_fill(W_CHAT, 1);
 }

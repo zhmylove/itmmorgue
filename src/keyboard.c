@@ -22,6 +22,8 @@ void keyboard_init() {
     K[K_MOVE_RIGHT_DOWN]  = CONF_CVAL("key_move_right_down");
 
     // Window control
+    K[K_SCROLL_UP]        = CONF_CVAL("key_scroll_up");
+    K[K_SCROLL_DOWN]      = CONF_CVAL("key_scroll_down");
     K[K_MENU_LARGE]       = CONF_CVAL("key_menu_large");
     K[K_INVENTORY_LARGE]  = CONF_CVAL("key_inventory_large");
     K[K_CHAT_LARGE]       = CONF_CVAL("key_chat_large");

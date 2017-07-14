@@ -19,7 +19,7 @@ void draw_sysmsg() {
         return;
     }
 
-    int square = windows[W_SYSMSG].max_x * windows[W_SYSMSG].max_y;
+    int square = WIN(SYSMSG, max_x) * WIN(SYSMSG, max_y);
     size_t len = strlen(sysmsg);
     char *sysmsgptr = sysmsg + len - 2;
 
@@ -31,8 +31,8 @@ void draw_sysmsg() {
     while (sysmsgptr > sysmsg && curr < square) {
         switch (*sysmsg) {
             case '\n':
-                curr += windows[W_SYSMSG].max_x
-                    - curr % windows[W_SYSMSG].max_x;
+                curr += WIN(SYSMSG, max_x)
+                    - curr % WIN(SYSMSG, max_x);
                 break;
             default:
                 if ((*sysmsgptr & 0xC0) != 0x80) {
@@ -80,10 +80,10 @@ void c_sysmsg_add(char *str) {
 }
 
 void c_sysmsg_open() {
-    int state_old = windows[W_SYSMSG].state;
+    int state_old = WIN(SYSMSG, state);
     int focus_old = focus;
 
-    windows[W_SYSMSG].state = LARGE;
+    WIN(SYSMSG, state) = LARGE;
     focus = W_SYSMSG;
     windows_fill(W_SYSMSG, 1);
 
@@ -98,7 +98,7 @@ void c_sysmsg_open() {
         }
     } while (last_key != K[K_WINDOW_EXIT]);
 
-    windows[W_SYSMSG].state = state_old;
+    WIN(SYSMSG, state) = state_old;
     focus = focus_old;
     windows_fill(W_SYSMSG, 1);
 }

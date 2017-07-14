@@ -271,7 +271,7 @@ int wcolor(WINDOW *win, int color) {
 void inventory_open() {
     int focus_old = focus;
 
-    windows[W_INVENTORY].state = LARGE;
+    WIN(INVENTORY, state) = LARGE;
     focus = W_INVENTORY;
     windows_fill(W_INVENTORY, 1);
 
@@ -287,7 +287,7 @@ void inventory_open() {
         }
     } while (last_key != K[K_WINDOW_EXIT]);
 
-    windows[W_INVENTORY].state = HIDDEN;
+    WIN(INVENTORY, state) = HIDDEN;
     focus = focus_old;
     windows_fill(W_INVENTORY, 1);
 }

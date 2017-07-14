@@ -68,8 +68,10 @@ void panic(char *msg);
 int strtoi(const char *nptr, char **endptr, int base);
 
 // strlen() alternatives for UTF-8 strings
-size_t anystrlen(const char *str);
-size_t anystrnlen(const char *str, size_t maxlen);
+size_t anystrlen(char *str);
+size_t anystrnlen(char *str, size_t maxlen);
+size_t anystrnplen(char *str, size_t maxlen, char ** endp);
+size_t anystrunplen(char *str, size_t maxlen, char ** endp);
 #ifdef __sun
 size_t strnlen(const char *str, size_t maxlen);
 #endif /* __sun */

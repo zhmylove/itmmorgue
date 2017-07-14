@@ -9,6 +9,7 @@
 char *chat;
 char *schat;
 char nickname[CHAT_NICK_MAXLEN + 1];
+size_t chat_num_lines;
 
 void c_chat_init();
 void c_chat_open();
