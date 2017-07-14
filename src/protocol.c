@@ -8,11 +8,22 @@ void mqueue_init(mqueue_t *queue) {
 
     queue->size = 0;
     queue->start_position = 0;
+    if (0 != pthread_mutex_init(&queue->mutex, NULL)) {
+        panic("Cannot initialize message queue mutex!");
+    }
 }
 
 void mqueue_put(mqueue_t *queue, mbuf_t mbuf) {
     if (queue == NULL) {
         panic("Trying to put in NULL mqueue!");
+    }
+
+    int rc;
+    if (0 != (rc = pthread_mutex_lock(&queue->mutex))) {
+        if (EDEADLK == rc) {
+            panic("Message queue: deadlock!");
+        }
+        panic("Message queue: failure during mutex locking");
     }
 
     size_t pos = queue->start_position;
@@ -31,6 +42,8 @@ void mqueue_put(mqueue_t *queue, mbuf_t mbuf) {
     mbuf.msg.version = PROTOCOL_VERSION;
     queue->buf[pos] = mbuf;
     queue->size++;
+
+    pthread_mutex_unlock(&queue->mutex);
 }
 
 int mqueue_get(mqueue_t *queue, mbuf_t *mbuf) {
@@ -38,7 +51,16 @@ int mqueue_get(mqueue_t *queue, mbuf_t *mbuf) {
         panic("Trying to get from NULL mqueue!");
     }
 
+    int rc;
+    if (0 != (rc = pthread_mutex_lock(&queue->mutex))) {
+        if (EDEADLK == rc) {
+            panic("Message queue: deadlock!");
+        }
+        panic("Message queue: failure during mutex locking");
+    }
+
     if (queue->size == 0) {
+        pthread_mutex_unlock(&queue->mutex);
         return 0;
     }
 
@@ -47,6 +69,7 @@ int mqueue_get(mqueue_t *queue, mbuf_t *mbuf) {
         queue->start_position = 0;
     }
 
+    pthread_mutex_unlock(&queue->mutex);
     return 1;
 }
 

@@ -38,10 +38,12 @@ typedef struct mqueue {
     mbuf_t buf[MQUEUE_SIZE];
     size_t start_position;
     size_t size;
+    pthread_mutex_t mutex;
 } mqueue_t;
 
+void mqueue_init(mqueue_t *queue);
 int mqueue_get(mqueue_t *queue, mbuf_t *mbuf);
 void mqueue_put(mqueue_t *queue, mbuf_t mbuf);
-void mqueue_init(mqueue_t *queue);
+// TODO: void mqueue_destroy(mqueue_t *queue);
 
 #endif /* PROTOCOL_H */
