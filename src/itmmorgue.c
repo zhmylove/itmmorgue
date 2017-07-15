@@ -106,9 +106,6 @@ int readall(int fd, void *buf, size_t size) {
         return size;
     }
 
-    loggerf("readall: got=%zu size=%zu return=-1 error:%s", got, size, 
-            strerror(errno));
-
     return -1;
 }
 
