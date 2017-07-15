@@ -106,11 +106,13 @@ void windows_fill(int win, int keep_state) {
 #undef FILL_WIN_PARAMETER
 }
 
-void windows_init() {
-    focus = W_AREA;
+void windows_init(int keep_state) {
+    if (keep_state == 0) {
+        focus = W_AREA;
+    }
 
     for (int i = 0; i < W_SIZE; i++) {
-        windows_fill(i, 0);
+        windows_fill(i, keep_state);
 
         if (i == 0) {
             windows[0].w = stdscr;
@@ -134,7 +136,7 @@ void windows_init() {
 static void resize() {
     endwin();
     init_screen();
-    windows_init();
+    windows_init(1);
 }
 
 void sigwinch(int signum) {
@@ -144,7 +146,10 @@ void sigwinch(int signum) {
 }
 
 void init_screen() {
-    initscr();
+    if (initscr() == NULL) {
+        logger("[C] Unable to complete initscr()!");
+        panic("Unable to complete initscr()!");
+    }
 
     start_color();
     noecho();
@@ -161,8 +166,8 @@ void init_screen() {
     init_pair(7, COLOR_CYAN, COLOR_BLACK);
     init_pair(8, COLOR_MAGENTA, COLOR_BLACK);
 
-    clear();
-    refresh();
+    wclear(stdscr);
+    wrefresh(stdscr);
     windows[0].w = stdscr;
     getmaxyx(stdscr, max_y, max_x);
 }
