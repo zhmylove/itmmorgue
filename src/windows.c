@@ -167,9 +167,7 @@ void init_screen() {
     init_pair(8, COLOR_MAGENTA, COLOR_BLACK);
 
     wclear(stdscr);
-    logger("[c] 2");
     wrefresh(stdscr);
-    logger("[c] 3");
     windows[0].w = stdscr;
     getmaxyx(stdscr, max_y, max_x);
 }
