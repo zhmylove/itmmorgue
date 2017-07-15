@@ -180,6 +180,28 @@ struct t_conf_default {
     C_CHR("key_eight", '8'),
     C_CHR("key_nine", '9'),
 
+    C_CHR("stuff_none", ' '),
+    C_CHR("stuff_floor", '.'),
+    C_CHR("stuff_wall", '#'),
+    C_CHR("stuff_door", '+'),
+    C_CHR("stuff_dtree", '^'),
+    C_CHR("stuff_ltree", '^'),
+    C_CHR("stuff_dgrass", '.'),
+    C_CHR("stuff_lgrass", '.'),
+    C_CHR("stuff_player", '@'),
+    C_CHR("stuff_downstairs", '>'),
+    C_CHR("stuff_upstairs", '<'),
+
+    C_CHR("stuff_trap", '^'),
+    C_CHR("stuff_food", ':'),
+
+    C_CHR("stuff_gold", '$'),
+    C_CHR("stuff_scroll", '?'),
+    C_CHR("stuff_book", '?'),
+
+    C_CHR("stuff_ring", '='),
+    C_CHR("stuff_wand", '/'),
+
     C_STR("player_nickname", ""),
     C_STR("file_locale", ""),
     C_STR("file_server_log", "itmmorgue.log")
