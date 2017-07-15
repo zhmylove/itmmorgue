@@ -252,7 +252,18 @@ void server_fork_start() {
     if (server_started == 0) {
         close(STDIN_FILENO);
         close(STDOUT_FILENO);
+
+        sigset_t sigset;
+        sigfillset(&sigset);
+        sigdelset(&sigset, SIGTERM);
+
+        if (sigprocmask(SIG_SETMASK, &sigset, NULL) < 0) {
+            logger("Error setting signal mask!");
+            panic("Error setting signal mask!");
+        }
+
         server();
+
         exit(0);
     }
 
