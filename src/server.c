@@ -298,8 +298,6 @@ void send_sysmsg(connection_t *connection, enum msg_sysmsg_type type,
 
     loggerf("[S] Sending SYSMSG: [%s] size=%zu", msg, msg_len);
     mqueue_put(connection->mqueueptr, s2c_mbuf);
-
-    (void)type;
 }
 
 /*
@@ -326,4 +324,6 @@ void close_connection(connection_t *connection) {
     } else {
         connection->next->prev = connection->prev;
     }
+
+    free(connection);
 }
