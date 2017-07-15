@@ -1,10 +1,8 @@
 // vim: sw=4 ts=4 et :
 #include "server.h"
 
-// TODO implement dynamic resources allocation
-size_t threads_pos;
-pthread_t threads[128];
-mqueue_t s2c_queues[128];
+connection_t *first_connection;
+connection_t *last_connection;
 
 void server() {
     int s, rc, cs, one = 1;
@@ -48,26 +46,37 @@ void server() {
     }
     schat[0] = '\0';
 
-    // TODO fix this hardcode
-    // Implement list of structures for all connected threads
-    // to simplify iterate over them and access to their properties.
-    threads_pos = 0;
-
     // TODO implement workers
     while ((cs = accept(s, (struct sockaddr *)&client, &client_len)) >= 0) {
-        // TODO use dynamic allocation
-        connection_t connection;
-        connection.curr_client = client;
-        connection.curr_client_len = client_len;
-        connection.socket = cs;
-        connection.id = threads_pos;
-        connection.mqueueptr = s2c_queues + threads_pos;
+        connection_t *connection;
+        if (NULL == (connection =
+                (connection_t*)malloc(sizeof(connection_t)))) {
+            panic("Cannot allocate memory for client connection!");
+        }
+        connection->curr_client = client;
+        connection->curr_client_len = client_len;
+        connection->socket = cs;
+        connection->sysmsg_mask = ~0;
+        if (NULL == (connection->mqueueptr =
+                (mqueue_t*)malloc(sizeof(mqueue_t)))) {
+            panic("Cannot allocate memory for client message queue!");
+        }
+        connection->next = NULL;
+
+        if (NULL == first_connection) {
+            first_connection = last_connection = connection;
+            connection->prev = NULL;
+        } else {
+            connection->prev = last_connection;
+            last_connection->next = connection;
+            last_connection = connection;
+        }
 
         client_len = sizeof(client); // for Solaris
 
-        if (pthread_create(threads + threads_pos++, NULL,
+        if (pthread_create(&connection->thread, NULL,
                     (void*(*)(void*))&process_client,
-                    &connection) != 0) {
+                    connection) != 0) {
             panic("Error creating processor thread!");
         }
     }
@@ -129,8 +138,7 @@ void* process_client(connection_t *connection) {
 
         if ((rc = readall(cs, &mbuf.msg, sizeof(mbuf.msg))) == 0) {
             logger("Client closed connection!");
-            close(cs);
-            mqueue_destroy(s2c_queue);
+            close_connection(connection);
             pthread_exit(NULL);
         } else if (rc < 0) {
             logger("Error reading from socket!");
@@ -194,19 +202,22 @@ void* process_client(connection_t *connection) {
                 s2c_mbuf.msg.type = MSG_PUT_CHAT;
                 s2c_mbuf.msg.size = size;
 
-                for (size_t curr = 0; curr < threads_pos; curr++) {
+                for (connection_t *curr = first_connection; curr;
+                        curr = curr->next) {
                     // will be freed during mqueue_get()
                     if ((s2c_mbuf.payload = malloc(size)) == NULL) {
                         panic("Error allocating payload buffer!");
                     }
                     memcpy(s2c_mbuf.payload, payload, size);
 
-                    mqueue_put(s2c_queues + curr, s2c_mbuf);
+                    mqueue_put(curr->mqueueptr, s2c_mbuf);
 
-                    send_sysmsg(s2c_queues + curr,
+                    send_sysmsg(curr, SM_CHAT_NEW_MESSAGE,
                             "New message in your chat!\n");
                 }
 
+                //send_sysmsg(connection, SM_CHAT_NEW_MESSAGE,
+                //        "New message in your chat!\n");
                 free(payload);
 
                 break;
@@ -217,8 +228,7 @@ void* process_client(connection_t *connection) {
         }
     } while (client_connected == 1);
 
-    close(cs);
-    mqueue_destroy(s2c_queue);
+    close_connection(connection);
     // TODO is it reachable point?
     return NULL;
 }
@@ -274,12 +284,20 @@ void server_fork_start() {
 }
 
 /*
- * Creates MSG_PUT_SYSMSG message from msg, puts it into queue.
+ * Creates MSG_PUT_SYSMSG message from *msg*, puts it into queue.
+ * Drops messages, which *type* is not masked my sysmsg_mask of client.
  * 
  * queue : queue to put created message
+ * type  : type of message
  * msg   : message payload
  */
-void send_sysmsg(mqueue_t *queue, const char *msg) {
+void send_sysmsg(connection_t *connection, enum msg_sysmsg_type type,
+        const char *msg) {
+    if (NULL == connection) return;
+    if ((type & connection->sysmsg_mask) == 0) {
+        loggerf("[S] Dropping SYSMSG: [%s], type=%d", msg, type);
+    }
+
     mbuf_t s2c_mbuf;
     size_t msg_len = strlen(msg) + 1;
     if ((s2c_mbuf.payload = malloc(msg_len)) == NULL) {
@@ -290,5 +308,33 @@ void send_sysmsg(mqueue_t *queue, const char *msg) {
     memcpy(s2c_mbuf.payload, msg, msg_len);
 
     loggerf("[S] Sending SYSMSG: [%s] size=%zu", msg, msg_len);
-    mqueue_put(queue, s2c_mbuf);
+    mqueue_put(connection->mqueueptr, s2c_mbuf);
+}
+
+/*
+ * Deletes connection from list, closes socket, destroys mqueue, etc.
+ *
+ * connection : connection to close.
+ */
+void close_connection(connection_t *connection) {
+    if (NULL == connection) return;
+
+    // TODO: lock it!
+    // TODO: lock it!
+    // TODO: lock it!
+    close(connection->socket);
+    mqueue_destroy(connection->mqueueptr);
+    free(connection->mqueueptr);
+    if (NULL == connection->prev) {
+        first_connection = connection->next;
+    } else {
+        connection->prev->next = connection->next;
+    }
+    if (NULL == connection->next) {
+        last_connection = connection->prev;
+    } else {
+        connection->next->prev = connection->prev;
+    }
+
+    free(connection);
 }
