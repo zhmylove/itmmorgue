@@ -130,23 +130,24 @@ struct t_conf_default {
     C_INT("win_sysmsg_small_x_ispercent", 0),
     C_INT("win_sysmsg_small_max_y", 2),
     C_INT("win_sysmsg_small_max_y_ispercent", 0),
-    C_INT("win_sysmsg_small_max_x", 50),
-    C_INT("win_sysmsg_small_max_x_ispercent", 0),
+    C_INT("win_sysmsg_small_max_x", 70),
+    C_INT("win_sysmsg_small_max_x_ispercent", 1),
     C_INT("win_sysmsg_large_y", 0),
     C_INT("win_sysmsg_large_y_ispercent", 0),
     C_INT("win_sysmsg_large_x", 0),
     C_INT("win_sysmsg_large_x_ispercent", 0),
-    C_INT("win_sysmsg_large_max_y", 2),
-    C_INT("win_sysmsg_large_max_y_ispercent", 0),
+    C_INT("win_sysmsg_large_max_y", 100),
+    C_INT("win_sysmsg_large_max_y_ispercent", 1),
     C_INT("win_sysmsg_large_max_x", 70),
     C_INT("win_sysmsg_large_max_x_ispercent", 1),
-    C_INT("win_sysmsg_state", 2),
+    C_INT("win_sysmsg_state", 1),
 
     C_INT("splash_time", 1000000),
     C_INT("splash_delay", 3000),
 
     // TODO: multi-byte keycodes
     C_CHR("key_exit", 'q'),
+    C_CHR("key_window_exit", '\t'),
     C_CHR("key_clear_screen", 0x0C),
     C_CHR("key_backspace", 0x7F),
 
@@ -159,12 +160,13 @@ struct t_conf_default {
     C_CHR("key_move_left_down", '1'),
     C_CHR("key_move_right_down", '3'),
 
+    C_CHR("key_scroll_up", '/'),
+    C_CHR("key_scroll_down", '*'),
     C_CHR("key_menu_large", 'm'),
     C_CHR("key_inventory_large", 'i'),
     C_CHR("key_chat_large", 'c'),
+    C_CHR("key_sysmsg_large", 'P'),
 
-    // C_CHR("key_chat_exit", 0x1B), // we should avoid using Esc
-    C_CHR("key_chat_exit", 0x1B),
     C_CHR("key_chat_send", '\n'),
 
     C_CHR("key_zero", '0'),
@@ -200,8 +202,9 @@ struct t_conf_default {
     C_CHR("stuff_ring", '='),
     C_CHR("stuff_wand", '/'),
 
-    C_STR("locale_file", ""),
-    C_STR("server_log_file", "itmmorgue.log")
+    C_STR("player_nickname", ""),
+    C_STR("file_locale", ""),
+    C_STR("file_server_log", "itmmorgue.log")
 };
 #undef C_STR
 #undef C_INT

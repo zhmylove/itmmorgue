@@ -10,7 +10,7 @@ void splash_screen() {
 
     int skip = 0;
 
-    if (conf("splash_time").ival == 0) {
+    if (CONF_IVAL("splash_time") == 0) {
         endwin();
         return;
     }
@@ -52,7 +52,7 @@ void splash_screen() {
         D += (int)(max_x / 2) - 38;
     }
 
-    wtimeout(splash, conf("splash_delay").ival / 1000);
+    wtimeout(splash, CONF_IVAL("splash_delay") / 1000);
 
 #define s(y1, x1, c1, y2, x2, c2)        \
     wcolor(splash, L_RED);              \
@@ -251,7 +251,7 @@ void splash_screen() {
 
 nosplash:
     if (! skip) {
-        wtimeout(splash, conf("splash_time").ival / 1000);
+        wtimeout(splash, CONF_IVAL("splash_time") / 1000);
         wgetch(splash);
     }
 

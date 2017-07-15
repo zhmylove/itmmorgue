@@ -8,6 +8,7 @@
 
 #include "area.h"
 #include "chat.h"
+#include "sysmsg.h"
 
 #define CONNECTION_RETRIES_MAX 16
 

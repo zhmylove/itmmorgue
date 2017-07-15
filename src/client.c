@@ -78,7 +78,7 @@ void* worker() {
         }
 
 
-        if ((rc = read(sock, &mbuf.msg, sizeof(mbuf.msg))) == 0) {
+        if ((rc = readall(sock, &mbuf.msg, sizeof(mbuf.msg))) == 0) {
             server_connected = 0;
             // TODO implement dialog with this message:
             logger("Error getting message in worker!");
@@ -93,6 +93,9 @@ void* worker() {
         switch (mbuf.msg.type) {
             case MSG_PUT_CHAT:
                 logger("[C] [PUT_CHAT]");
+                break;
+            case MSG_PUT_SYSMSG:
+                logger("[C] [PUT_SYSMSG]");
                 break;
             default:
                 warnf("Unknown type: %d", mbuf.msg.type);
@@ -124,6 +127,12 @@ void* worker() {
                 free(payload);
 
                 break;
+            case MSG_PUT_SYSMSG:
+                c_sysmsg_add(payload);
+
+                free(payload);
+
+                break;
             default:
                 warnf("Unknown type: %d", mbuf.msg.type);
                 logger("[C] [UNKNOWN]");
@@ -150,7 +159,7 @@ int client() {
         panic("Unable to set locale (ru,en)UTF-8!");
     }
 
-    locale_init(conf("locale_file").sval);
+    locale_init(CONF_SVAL("file_locale"));
 
     mqueue_init(&c2s_queue);
 
@@ -177,6 +186,7 @@ int client() {
     // TODO rewrite this to get everything from server
     area_init();
     c_chat_init();
+    c_sysmsg_init();
 
     sock = -1;
 
@@ -198,6 +208,8 @@ int client() {
             menu(M_MAIN);
         } else if (K[K_CHAT_LARGE] == last_key) {
             c_chat_open();
+        } else if (K[K_SYSMSG_LARGE] == last_key) {
+            c_sysmsg_open();
         } else if (K[K_INVENTORY_LARGE] == last_key) {
             inventory_open();
         } else if (K[K_EXIT] == last_key) {
@@ -207,6 +219,8 @@ int client() {
             wrefresh(stdscr);
         }
     } while (! end);
+
+    mqueue_destroy(&c2s_queue);
 
     return 0;
 }

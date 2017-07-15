@@ -6,9 +6,9 @@
 #include "keyboard.h"
 #include "windows.h"
 
-char *chat;
 char input[CHAT_MSG_MAXLEN + 2];
 size_t inputpos;
+size_t scrolloff = 0;
 
 void c_chat_init() {
     if ((chat = malloc(CHAT_MSG_MAXLEN + 1)) == NULL) {
@@ -17,29 +17,13 @@ void c_chat_init() {
     
     chat[0] = '\0';
     input[0] = '\0';
+    chat_num_lines = 0;
+    strncpy(nickname, CONF_SVAL("player_nickname"), sizeof(nickname));
 
     mbuf_t mbuf;
     mbuf.msg.type = MSG_GET_CHAT;
     mbuf.msg.size = 0;
-    mbuf.msg.version = 0x1;
     mqueue_put(&c2s_queue, mbuf);
-    
-    // c_chat_add("qwe  1\n");
-    // c_chat_add("qwe  2\n");
-    // c_chat_add("qwe  3\n");
-    // c_chat_add("qwe  4\n");
-    // c_chat_add("qwe  5\n");
-    // c_chat_add("qwe  6\n");
-    // c_chat_add("qwe  7\n");
-    // c_chat_add("qwe  8\n");
-    // c_chat_add("qwe  9\n");
-    // c_chat_add("qwe 10\n");
-    // c_chat_add("qwe 11\n");
-    // c_chat_add("qwe 12\n");
-    // c_chat_add("qwe 13\n");
-    // c_chat_add("qwe 14\n");
-    // c_chat_add("qwe 15\n");
-    // c_chat_add("qwe 16\n");
 }
 
 void draw_chat() {
@@ -47,23 +31,33 @@ void draw_chat() {
         return;
     }
 
-    int square = windows[W_CHAT].max_x * windows[W_CHAT].max_y;
+    int square = WIN(CHAT, max_x) * WIN(CHAT, max_y);
     size_t len = strlen(chat);
     char *chatptr = chat + len - 2;
+    char *inputptr = NULL;
+    char *inputptr_new = NULL;
 
     if (len < 2) {
-        return;
+        goto PS1;
     }
 
-    if (windows[W_CHAT].state == LARGE && square > windows[W_CHAT].max_x) {
-        square -= windows[W_CHAT].max_x;
+    if (WIN(CHAT, state) == LARGE && square > WIN(CHAT, max_x)) {
+        square -= WIN(CHAT, max_x);
+    }
+
+    for (size_t soff = scrolloff; soff; soff--) {
+        while (chatptr > chat && *chatptr-- != '\n');
+
+        if (chatptr == chat) {
+            break;
+        }
     }
 
     int curr = 0;
     while (chatptr > chat && curr < square) {
         switch (*chatptr) {
             case '\n':
-                curr += windows[W_CHAT].max_x - curr % windows[W_CHAT].max_x;
+                curr += WIN(CHAT, max_x) - curr % WIN(CHAT, max_x);
                 break;
             default:
                 if ((*chatptr & 0xC0) != 0x80) {
@@ -79,23 +73,35 @@ void draw_chat() {
 
     MVW(W_CHAT, 0, 0, "%s", chatptr);
 
-    if (windows[W_CHAT].state == LARGE) {
-        MVW(W_CHAT, windows[W_CHAT].max_y - 1, 0, "> %s", input);
+PS1:
+    inputptr = input;
+    inputptr_new = input;
+    char PS1[6] = "> %s\n";
+
+    if (WIN(CHAT, state) == LARGE) {
+        while (anystrunplen(inputptr, WIN(CHAT, max_x) - 2, &inputptr_new) &&
+                inputptr != inputptr_new) {
+            inputptr = inputptr_new;
+            inputptr_new = inputptr;
+            PS1[0] = '+';
+        }
+
+        MVW(W_CHAT, WIN(CHAT, max_y) - 1, 0, PS1, inputptr);
     }
 }
 
-void s_chat_add(char *chat, char *str) {
-    int oldsize = strlen(chat) + 1;
+void s_chat_add(char **schat, char *str) {
+    int oldsize = strlen(*schat) + 1;
     int newsize = oldsize + strlen(str) + 1;
 
     // TODO take care of CHAT_MSG_BACKLOG
     // TODO do not forget that this routine is used by both client and server
 
-    if ((chat = realloc(chat, newsize)) == NULL) {
-        panic("Error reallocating chat buffer!");
+    if ((*schat = realloc(*schat, newsize)) == NULL) {
+        panic("Error reallocating server chat buffer!");
     }
 
-    strcat(chat, str);
+    strcat(*schat, str);
 }
 
 void c_chat_add(char *str) {
@@ -110,47 +116,70 @@ void c_chat_add(char *str) {
     }
 
     strcat(chat, str);
+
+    while (*str) {
+        if (*str++ == '\n') {
+            chat_num_lines++;
+        }
+    }
 }
 
 void c_chat_open() {
-    int state_old = windows[W_CHAT].state;
+    int state_old = WIN(CHAT, state);
     int focus_old = focus;
 
-    windows[W_CHAT].state = LARGE;
+    WIN(CHAT, state) = LARGE;
     focus = W_CHAT;
     windows_fill(W_CHAT, 1);
 
     do {
         windows_redraw();
 
-        // TODO receive chat history from server
-
         wtimeout(W(W_CHAT), 10);
         last_key = mvwgetch(W(W_CHAT), 0, 0);
-        if (last_key == K[K_CHAT_EXIT]) {
+
+        if (last_key == K[K_WINDOW_EXIT]) {
             break;
-        } else if (last_key == K[K_BACKSPACE]) { // Backspace
+        } else if (last_key == K[K_SCROLL_UP]) {
+            // TODO what can we do with elastic windows scrolloff ?
+            if (scrolloff < chat_num_lines - WIN(CHAT, max_y)) {
+                scrolloff++;
+            }
+        } else if (last_key == K[K_SCROLL_DOWN]) {
+            if (scrolloff > 0) {
+                scrolloff--;
+            }
+        } else if (last_key == K[K_BACKSPACE]) {
             if (inputpos == 0) {
                 continue;
             }
+
             inputpos--;
             while ((*(input + inputpos) & 0xC0) == 0x80) inputpos--;
             input[inputpos] = '\0';
         } else if (last_key == K[K_CHAT_SEND]) {
+            if (inputpos == 0) {
+                continue;
+            }
+
             input[inputpos++] = '\n';
             input[inputpos++] = '\0';
 
             mbuf_t mbuf;
-            size_t size = strlen(input) + 1;
+            size_t bufsize = strlen(input) + strlen(nickname) + 4;
+            char *buf = malloc(bufsize);
+            snprintf(buf, bufsize, "<%s> %s", nickname, input);
+            size_t size = strlen(buf) + 1;
             mbuf.payload = malloc(size);
             mbuf.msg.type = MSG_NEW_CHAT;
             mbuf.msg.size = size;
-            mbuf.msg.version = 0x1;
-            memcpy(mbuf.payload, input, size);
+            memcpy(mbuf.payload, buf, size);
 
             loggerf("[C] sending NEW_CHAT: [%s]", (char *)mbuf.payload);
 
             mqueue_put(&c2s_queue, mbuf);
+
+            free(buf);
 
             inputpos = 0;
             memset(input, '\0', CHAT_MSG_MAXLEN + 2);
@@ -160,14 +189,15 @@ void c_chat_open() {
 
         char buf[sizeof(input) - inputpos - 2];
         buf[0] = '\0';
-        mvwgetnstr(W(W_CHAT), 0, 0, buf, sizeof(input) - inputpos);
+        mvwgetnstr(W(W_CHAT), 0, 0, buf,
+                sizeof(input) - inputpos - strlen(nickname));
         if (strnlen(buf, sizeof(buf) > 0)) {
             strncat(input + inputpos, buf, sizeof(input) - inputpos);
             inputpos = strlen(input);
         }
-    } while (last_key != K[K_CHAT_EXIT]);
+    } while (last_key != K[K_WINDOW_EXIT]);
 
-    windows[W_CHAT].state = state_old;
+    WIN(CHAT, state) = state_old;
     focus = focus_old;
     windows_fill(W_CHAT, 1);
 }

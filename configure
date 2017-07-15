@@ -9,9 +9,11 @@ SRCDIR='src'
 LIBDIR='lib'
 WORKDIR='bin'
 SRC='itmmorgue.c client.c config.c splash.c locale.c menu.c stuff.c'
-SRC="$SRC windows.c area.c chat.c keyboard.c server.c protocol.c"
+SRC="$SRC windows.c area.c chat.c keyboard.c server.c protocol.c sysmsg.c"
+SRC="$SRC connection.c"
 HDR='itmmorgue.h client.h config.h default_config.h stuff.h windows.h'
-HDR="$HDR area.h chat.h keyboard.h server.h protocol.h"
+HDR="$HDR area.h chat.h keyboard.h server.h protocol.h sysmsg.h"
+HDR="$HDR connection.h"
 LIB='trie/trie.o'
 DEBUG=1
 ####################################################################
@@ -35,6 +37,10 @@ done
 CFLAGS="--std=gnu99 -pedantic -Wall -Wextra -Werror -ggdb3 -I$LIBDIR"
 [ x1 = "x$DEBUG" ] && CFLAGS="$CFLAGS -D_DEBUG"
 LDFLAGS=''
+
+# Calculate protocol version
+PROTO="-DPROTOCOL_VERSION="'`perl -lne '"'\
+"'$$a+=$$_+$$. for split//;END{print$$a}'"'"' src/*`'
 
 case $OS in
     SunOS) 
@@ -165,7 +171,7 @@ O=`echo "$C " | sed 's/\\.c /.o/g'`
 O="$WORKDIR/$O"
 cat >>Makefile <<EOF
 $O : $SRCDIR/$C $HEADERS
-	\$(CC) $CFLAGS -c $SRCDIR/$C -o $O
+	\$(CC) $CFLAGS $PROTO -c $SRCDIR/$C -o $O
 
 EOF
 done

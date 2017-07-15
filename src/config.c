@@ -17,7 +17,8 @@ static enum config_parser_retval parse_option_string(const char *opt,
 
 static enum config_parser_retval parse_option_int(const char *opt, conf_t *rc);
 
-static enum config_parser_retval parse_option_char(const char *opt, conf_t *rc);
+static enum config_parser_retval parse_option_char(const char *opt,
+    conf_t *rc);
 
 static enum config_parser_retval (*parsers[])(const char *opt, conf_t *rc) = {
     parse_option_string,
@@ -48,14 +49,16 @@ conf_t conf(char *key) {
  */
 static enum config_parser_retval parse_option_string(const char *opt,
         conf_t *rc) {
-    size_t len = strnlen(opt, MAX_OPT_LEN);
-    rc->sval = (char*) malloc(len);
+    size_t len = strnlen(opt, MAX_OPT_LEN - 1);
+    rc->sval = (char*) malloc(len + 1);
 
     if (NULL == rc->sval) {
         panicf("Allocation failed in file %s, line %d", __FILE__, __LINE__);
     }
 
     strncpy(rc->sval, opt, len);
+
+    rc->sval[len] = '\0';
 
     rc->type = CONF_STRING;
 
@@ -89,8 +92,8 @@ static enum config_parser_retval parse_option_int(const char *opt,
 
 
 /*
- * Retrieves first character from opt. Non multi-byte. If opt is longer than one
- * character, returns CP_TOO_LONG, if opt[0] is '\0' returns CP_NO_VALUE.
+ * Retrieves first character from opt. Non multi-byte. If opt is longer than
+ * one character, returns CP_TOO_LONG, if opt[0] is '\0' returns CP_NO_VALUE.
  *
  * opt : value of option to parse
  * rc  : place to save result

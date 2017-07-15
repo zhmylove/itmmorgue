@@ -201,7 +201,7 @@ void m_options(int id, WINDOW *win) {
             menus[items[item_id]].f(item_id, win);
             return;
         }
-    } while (last_key != ERR && last_key != K[K_EXIT]);
+    } while (last_key != ERR && last_key != K[K_WINDOW_EXIT]);
 
     return;
 }
@@ -261,7 +261,7 @@ void m_main(int id, WINDOW *win) {
             menus[items[item_id]].f(items[item_id], win);
             return;
         }
-    } while (last_key != ERR && last_key != K[K_EXIT]);
+    } while (last_key != ERR && last_key != K[K_WINDOW_EXIT]);
 
     return;
 }
