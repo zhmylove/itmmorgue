@@ -81,10 +81,10 @@ void* worker() {
         if ((rc = readall(sock, &mbuf.msg, sizeof(mbuf.msg))) == 0) {
             server_connected = 0;
             // TODO implement dialog with this message:
-            logger("Error getting message in worker!");
+            logger("[C] Error getting message in worker!");
             continue;
         } else if (rc < 0) {
-            logger("Error reading from socket!");
+            logger("[C] Error reading from socket!");
             server_connected = 0;
             break;
         }
@@ -114,7 +114,7 @@ void* worker() {
 
             if (readall(sock, payload, mbuf.msg.size) !=
                     (ssize_t)mbuf.msg.size) {
-                logger("Error reading payload");
+                logger("[C] Error reading payload");
             }
 
             loggerf("[C] Received buf: [%s]", payload);
@@ -181,7 +181,7 @@ int client() {
 
     splash_screen();
 
-    windows_init();
+    windows_init(0);
 
     // TODO rewrite this to get everything from server
     area_init();

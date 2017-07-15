@@ -137,13 +137,14 @@ void* process_client(connection_t *connection) {
         }
 
         if ((rc = readall(cs, &mbuf.msg, sizeof(mbuf.msg))) == 0) {
-            logger("Client closed connection!");
+            logger("[S] Client closed connection!");
             close_connection(connection);
             pthread_exit(NULL);
         } else if (rc < 0) {
-            logger("Error reading from socket!");
-            client_connected = 0;
-            break;
+            loggerf("[S] Error reading from socket [%d][%s]!",
+                    rc, strerror(errno));
+            close_connection(connection);
+            pthread_exit(NULL);
         }
 
         // rc > 0
@@ -173,7 +174,7 @@ void* process_client(connection_t *connection) {
 
             if (readall(cs, payload, mbuf.msg.size) !=
                     (ssize_t)mbuf.msg.size) {
-                logger("Error reading payload");
+                logger("[S] Error reading payload");
             }
 
             loggerf("[S] Received buf: [%s]", payload);
@@ -268,7 +269,7 @@ void server_fork_start() {
         sigdelset(&sigset, SIGTERM);
 
         if (sigprocmask(SIG_SETMASK, &sigset, NULL) < 0) {
-            logger("Error setting signal mask!");
+            logger("[S] Error setting signal mask!");
             panic("Error setting signal mask!");
         }
 
