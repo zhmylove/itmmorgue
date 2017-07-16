@@ -4,7 +4,7 @@
 
 // #define CHAT_MSG_BACKLOG 16
 #define CHAT_MSG_MAXLEN 256
-#define CHAT_NICK_MAXLEN 32
+#define CHAT_NICK_MAXLEN PLAYER_NAME_MAXLEN
 
 char *chat;
 char *schat;

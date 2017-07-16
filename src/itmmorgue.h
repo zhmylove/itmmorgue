@@ -28,13 +28,24 @@
 #include <errno.h>
 #include <pthread.h>
 
+// Dark and light colors
+enum colors {
+    D_WHITE, D_YELLOW, D_RED, D_GREEN, D_BLUE, D_BLACK, D_CYAN, D_MAGENTA,
+    L_WHITE, L_YELLOW, L_RED, L_GREEN, L_BLUE, L_BLACK, L_CYAN, L_MAGENTA
+};
+
+#define PLAYER_NAME_MAXLEN 32
+
 #include "config.h"
 #include "protocol.h"
 #include "connection.h"
+#include "player.h"
 #include "client.h"
 #include "server.h"
 #include "trie/trie.h"
 #include "stuff.h"
+#include "tiles.h"
+#include "levels.h"
 
 int client(void);
 

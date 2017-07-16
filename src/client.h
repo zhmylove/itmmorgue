@@ -42,12 +42,6 @@ enum menus {
     M_SIZE
 };
 
-// Dark and light colors for wcolor()
-enum colors {
-    D_WHITE, D_YELLOW, D_RED, D_GREEN, D_BLUE, D_BLACK, D_CYAN, D_MAGENTA,
-    L_WHITE, L_YELLOW, L_RED, L_GREEN, L_BLUE, L_BLACK, L_CYAN, L_MAGENTA
-};
-
 typedef struct menu {
     void (*f)(int id, WINDOW *);
     char *caption;

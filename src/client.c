@@ -99,6 +99,12 @@ void* worker() {
             case MSG_PUT_SYSMSG:
                 logger("[C] [PUT_SYSMSG]");
                 break;
+            case MSG_PUT_AREA:
+                logger("[C] [PUT_AREA]");
+                break;
+            case MSG_PUT_LEVEL:
+                logger("[C] [PUT_LEVEL]");
+                break;
             default:
                 warnf("Unknown type: %d", mbuf.msg.type);
                 logger("[C] [UNKNOWN]");
@@ -131,6 +137,18 @@ void* worker() {
                 break;
             case MSG_PUT_SYSMSG:
                 c_sysmsg_add(payload);
+
+                free(payload);
+
+                break;
+            case MSG_PUT_AREA:
+                c_area_update(1, (tileblock_t *)payload);
+
+                free(payload);
+
+                break;
+            case MSG_PUT_LEVEL:
+                c_level_add((level_t *)payload);
 
                 free(payload);
 
@@ -186,7 +204,6 @@ int client() {
     windows_init(0);
 
     // TODO rewrite this to get everything from server
-    area_init();
     c_chat_init();
     c_sysmsg_init();
 

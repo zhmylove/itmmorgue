@@ -92,8 +92,17 @@ void* process_client(connection_t *connection) {
         panic("Error detaching processor pthread!");
     }
 
+    // TODO move this section under obtaining color + nickname
+    size_t id = player_init(L_YELLOW, "bsi", connection);
+
     mqueue_t *s2c_queue = connection->mqueueptr;
     mqueue_init(s2c_queue);
+
+    s_levels_init();
+
+    // TODO make this periodically
+    s_level_send(0, players + id);
+    s_area_send(0, players + id);
 
     struct timeval timeout;
     timeout.tv_sec  = 0;

@@ -3,7 +3,6 @@
 #define SYSMSG_H
 
 #define SYSMSG_MAXLEN 256
-#define CHAT_NICK_MAXLEN 32
 
 char *sysmsg;
 
