@@ -133,6 +133,8 @@ void c_chat_open() {
     windows_fill(W_CHAT, 1);
 
     do {
+        CHECK_CONNECTION();
+
         windows_redraw();
 
         wtimeout(W(W_CHAT), 10);

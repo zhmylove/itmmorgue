@@ -25,6 +25,7 @@ int connect_to_server(char *address) {
     srv.sin_addr.s_addr = inet_addr(address);
 
     if (connect(sock, (struct sockaddr *)&srv, sizeof(srv)) >= 0) {
+        worker_start();
         return 1; // success
     }
 
@@ -58,6 +59,7 @@ void* worker() {
                 continue;
             }
 
+            loggerf("Writing to sock: %d", sock);
             if ((rc = write(sock, mbuf.payload, mbuf.msg.size)) < 0) {
                 panic("Error sending message in worker!");
             }
@@ -196,10 +198,11 @@ int client() {
         menu(M_MAIN);
     }
 
-    worker_start();
-
     end = 0;
     do {
+
+        CHECK_CONNECTION();
+
         windows_redraw();
 
         wtimeout(stdscr, 100);
@@ -211,7 +214,7 @@ int client() {
         } else if (K[K_SYSMSG_LARGE] == last_key) {
             c_sysmsg_open();
         } else if (K[K_INVENTORY_LARGE] == last_key) {
-            inventory_open();
+            c_inventory_open();
         } else if (K[K_EXIT] == last_key) {
             end = 1;
         } else if (K[K_CLR_SCR] == last_key) {

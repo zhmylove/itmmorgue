@@ -88,6 +88,8 @@ void c_sysmsg_open() {
     windows_fill(W_SYSMSG, 1);
 
     do {
+        CHECK_CONNECTION();
+
         windows_redraw();
 
         wtimeout(W(W_SYSMSG), 10);

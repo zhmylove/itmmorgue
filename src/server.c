@@ -136,6 +136,8 @@ void* process_client(connection_t *connection) {
             continue;
         }
 
+        logger("[S] waiting mbuf");
+
         if ((rc = readall(cs, &mbuf.msg, sizeof(mbuf.msg))) == 0) {
             logger("[S] Client closed connection!");
             close_connection(connection);

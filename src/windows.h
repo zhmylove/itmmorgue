@@ -45,7 +45,7 @@ void windows_check();
 void windows_init();
 void windows_redraw();
 void windows_fill();
-void inventory_open();
+void c_inventory_open();
 int wcolor(WINDOW *win, int color);
 
 #endif /* WINDOWS_H */

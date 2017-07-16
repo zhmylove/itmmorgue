@@ -273,21 +273,24 @@ int wcolor(WINDOW *win, int color) {
     return wattrset(win, color_curses);
 }
 
-void inventory_open() {
+void c_inventory_open() {
     int focus_old = focus;
 
     WIN(INVENTORY, state) = LARGE;
     focus = W_INVENTORY;
     windows_fill(W_INVENTORY, 1);
 
-    windows_redraw();
-
-    wtimeout(W(W_INVENTORY), -1);
     do {
+        CHECK_CONNECTION();
+
+        windows_redraw();
+
+        wtimeout(W(W_INVENTORY), -1);
         last_key = mvwgetch(W(W_INVENTORY), 0, 0);
-        if (K[K_ONE] == last_key) {
+
+        if (last_key == K[K_ONE]) {
             warn("1");
-        } else if (K[K_TWO] == last_key) {
+        } else if (last_key == K[K_TWO]) {
             warn("2");
         }
     } while (last_key != K[K_WINDOW_EXIT]);
