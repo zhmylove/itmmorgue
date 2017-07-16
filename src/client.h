@@ -12,6 +12,12 @@
 
 #define CONNECTION_RETRIES_MAX 16
 
+#define CHECK_CONNECTION()                                                  \
+    while (server_connected == 0) {                                         \
+        strncpy(menu_msg, _("Server connection lost!"), sizeof(menu_msg));  \
+        menu(M_MAIN);                                                       \
+    }
+
 int last_key;               // keycode of the last pressed key
 int end;                    // flag of program termination
 
@@ -51,6 +57,7 @@ int client();
 int connect_to_server(char *address);
 void speak_with_server();
 int color2attr(enum colors color);
+void worker_start();
 
 extern void menu(size_t menu_id);
 extern void splash_screen();

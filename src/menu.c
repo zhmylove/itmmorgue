@@ -135,6 +135,7 @@ void m_connect(int id, WINDOW *win) {
 
     if (server_connected == 1) {
         // TODO implement dialog with kinda: "server already connected"
+        c_sysmsg_add("Server is already connected!");
         return;
     }
 
