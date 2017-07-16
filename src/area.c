@@ -41,8 +41,12 @@ void c_level_add(level_t *level) {
     c_levels_curr = c_levels_len++;
 }
 
-static inline size_t tilepos(uint16_t y, uint16_t x) {
-    return y * c_levels[c_levels_curr].max_x + x;
+size_t lvltilepos(uint16_t max_x, uint16_t y, uint16_t x) {
+    return y * max_x + x;
+}
+
+size_t tilepos(uint16_t y, uint16_t x) {
+    return lvltilepos(c_levels[c_levels_curr].max_x, y, x);
 }
 
 void tile_destroy(size_t index) {
@@ -97,70 +101,6 @@ void c_area_update(size_t ngroups, tileblock_t *tileblock) {
         tileblock = (tileblock_t*)((char *)tileblock + sizeof(tileblock_t) -
                 sizeof(tile_t));
     }
-}
-
-// TODO need to obtain **area from server
-void area_init() {
-    level_t lvl;
-    lvl.id = 0x13;
-    strcpy(lvl.name, "375");
-    lvl.max_y = 13;
-    lvl.max_x = 66;
-
-    c_level_add(&lvl);
-
-    tile_t t1;
-    t1.top = S_PLAYER;
-    t1.color = L_YELLOW;
-    t1.x = 10;
-    t1.y = 10;
-
-    tile_t t2;
-    t2.top = S_PLAYER;
-    t2.color = D_BLUE;
-    t2.x = 20;
-    t2.y = 10;
-
-    tile_t t3;
-    t3.top = S_GRASS;
-    t3.color = L_GREEN;
-    t3.x = 30;
-    t3.y = 10;
-
-    tile_t t4;
-    t4.top = S_PLAYER;
-    t4.color = L_RED;
-    t4.x = 30;
-    t4.y = 10;
-
-    tileblock_t *tbl;
-    if ((tbl = (tileblock_t *)malloc(
-                    sizeof(tile_t) * 4 +
-                    (sizeof(tileblock_t) - sizeof(tile_t)) * 2
-                    )) == NULL) {
-        panic("Error creation 375!");
-    }
-    tbl->count = 2;
-    tbl->zcount = 1;
-
-    char *curr = (char*)&(tbl->tiles);
-    memcpy(curr + sizeof(tile_t) * 0, &t1, sizeof(tile_t));
-    memcpy(curr + sizeof(tile_t) * 1, &t2, sizeof(tile_t));
-
-    tileblock_t *tbl2 = (tileblock_t *)((char *)tbl + sizeof(tile_t) * 2 +
-                    (sizeof(tileblock_t) - sizeof(tile_t)) * 1);
-    tbl2->count = 1;
-    tbl2->zcount = 2;
-
-    curr = (char*)&(tbl2->tiles);
-    memcpy(curr + sizeof(tile_t) * 0, &t3, sizeof(tile_t));
-    memcpy(curr + sizeof(tile_t) * 1, &t4, sizeof(tile_t));
-
-    warnf("%p %p", (void*)tbl, (void*)tbl2);
-
-    c_area_update(2, tbl);
-
-    free(tbl);
 }
 
 void draw_area() {

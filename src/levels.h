@@ -2,15 +2,19 @@
 #ifndef LEVELS_H
 #define LEVELS_H
 
-#define MAX_LEVEL_NAME 8
+#define MAX_LEVEL_NAME 32
 
 typedef struct level {
     uint64_t id;
-    char name[MAX_LEVEL_NAME];
     uint16_t max_y;
     uint16_t max_x;
     uint16_t size;
     tile_t *area;
+    char name[MAX_LEVEL_NAME];
 } level_t;
+
+void s_levels_init();
+void s_level_send(size_t level, player_t *player);
+void s_area_send(size_t level, player_t *player);
 
 #endif /* LEVELS_H */
