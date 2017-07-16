@@ -234,10 +234,30 @@ void config_init(char *file) {
 
     if (access(file, R_OK) < 0) {
         warnf("Unable to initialize main config: %s", file);
-        return;
     }
 
     parse_file(file);
+
+    char *home = getenv("HOME");
+    if (home && *home) {
+        char buf[8192];
+
+        snprintf(buf, sizeof(buf), "%s/.config/%s", home, file);
+
+        if (access(buf, R_OK) < 0) {
+            warnf("[info] Config: %s: not found.", buf);
+        } else {
+            parse_file(buf);
+        }
+
+        snprintf(buf, sizeof(buf), "%s/.%s", home, file);
+
+        if (access(buf, R_OK) < 0) {
+            warnf("[info] Config: %s: not found.", buf);
+        } else {
+            parse_file(buf);
+        }
+    }
 
 #ifdef _DEBUG
     config_dump();
@@ -309,7 +329,7 @@ void parse_file(char *file) {
             }
 
             if (trie_put(t_conf, key, (void *)&config_value, sizeof(conf_t),
-                       config_deallocator) != 0) {
+                        config_deallocator) != 0) {
                 panic("Failed to fill t_conf!");
             }
         }
