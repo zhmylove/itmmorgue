@@ -35,6 +35,8 @@
 #include "server.h"
 #include "trie/trie.h"
 #include "stuff.h"
+#include "tiles.h"
+#include "levels.h"
 
 int client(void);
 

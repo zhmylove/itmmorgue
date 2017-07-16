@@ -10,8 +10,8 @@ void stuff_init() {
     S[S_FLOOR       ] = conf("stuff_floor").cval                          ;
     S[S_WALL        ] = conf("stuff_wall").cval                           ;
     S[S_DOOR        ] = conf("stuff_door").cval                           ;
-    S[S_TREE        ] = conf("stuff_tree").cval                          ;
-    S[S_GRASS       ] = conf("stuff_grass").cval                         ;
+    S[S_TREE        ] = conf("stuff_tree").cval                           ;
+    S[S_GRASS       ] = conf("stuff_grass").cval                          ;
     S[S_PLAYER      ] = conf("stuff_player").cval                         ;
     S[S_DOWNSTAIRS  ] = conf("stuff_downstairs").cval                     ;
     S[S_UPSTAIRS    ] = conf("stuff_upstairs").cval                       ;
