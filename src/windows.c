@@ -228,7 +228,7 @@ static void draw_any(int win) {
 }
 
 void windows_redraw() {
-    if (max_x < 80 || max_y < 25) {
+    if (max_x < 80 || max_y < 24) {
         redrawwin(stdscr);
         mvwprintw(stdscr, 
                 (int)(max_y / 2) - 2,
@@ -238,7 +238,7 @@ void windows_redraw() {
         mvwprintw(stdscr, 
                 (int)(max_y / 2) - 1,
                 (int)(max_x / 2) - 15,
-                "Windows is smaller than 80x25!"
+                "Windows is smaller than 80x24!"
                 );
         wrefresh(stdscr);
         return;
