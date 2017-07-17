@@ -52,6 +52,8 @@ int client(void);
 int log_fd;
 int client(void);
 void logger(char *str);
+int synchronized_readall(pthread_mutex_t *mutex, int fd, void *buf,
+        size_t size);
 int readall(int fd, void *buf, size_t size);
 
 // Panic related definitions
