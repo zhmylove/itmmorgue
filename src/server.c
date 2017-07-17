@@ -168,6 +168,9 @@ void* process_client(connection_t *connection) {
             case MSG_GET_CHAT:
                 logger("[S] [GET_CHAT]");
                 break;
+            case MSG_NICKNAME:
+                logger("[S] [NICKNAME]");
+                break;
             default:
                 warnf("Unknown type: %d", mbuf.msg.type);
                 logger("[S] [UNKNOWN]");
@@ -233,6 +236,24 @@ void* process_client(connection_t *connection) {
                 //send_sysmsg(connection, SM_CHAT_NEW_MESSAGE,
                 //        "New message in your chat!\n");
                 free(payload);
+
+                break;
+            case MSG_NICKNAME:
+                if (mbuf.msg.size >= PLAYER_NAME_MAXLEN) {
+                    // TODO: send error message
+                    close_connection(connection);
+                    pthread_exit(NULL);
+                }
+                strncpy(players[id].nickname, payload, mbuf.msg.size);
+
+                char join_msg[PLAYER_NAME_MAXLEN * 4];
+                strcpy(join_msg, "Player ");
+                strcat(join_msg, players[id].nickname);
+                strcat(join_msg, " has found his place in this world!\n");
+                for (connection_t *curr = first_connection; curr;
+                        curr = curr->next) {
+                    send_sysmsg(curr, SM_PLAYER_JOINED, join_msg);
+                }
 
                 break;
             default:

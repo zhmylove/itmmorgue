@@ -19,6 +19,8 @@ typedef struct msg {
         MSG_ECHO_REQUEST,     // s2c echo request
         MSG_ECHO_REPLY,       // c2s echo reply
 
+        MSG_NICKNAME,         // c2s user nickname in payload
+
         MSG_PUT_LEVEL,        // s2c level transmission
         MSG_PUT_AREA,         // s2c area transmission
 
