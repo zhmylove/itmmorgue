@@ -9,6 +9,7 @@ typedef struct connection {
     struct sockaddr_in curr_client; // Client socket address
     socklen_t curr_client_len;      // Size of previous field
     int socket;                     // Client socket file descriptor
+    pthread_mutex_t socket_mutex;   // Mutex for synchronizing reading
     pthread_t thread;               // Worker thread
     int id;                         // Number of client
     uint32_t sysmsg_mask;           // Mask of system messages (see protocol.h)

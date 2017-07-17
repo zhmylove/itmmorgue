@@ -56,6 +56,7 @@ void server() {
         connection->curr_client = client;
         connection->curr_client_len = client_len;
         connection->socket = cs;
+        pthread_mutex_init(&connection->socket_mutex, NULL);
         connection->sysmsg_mask = ~0;
         if (NULL == (connection->mqueueptr =
                 (mqueue_t*)malloc(sizeof(mqueue_t)))) {
@@ -147,7 +148,8 @@ void* process_client(connection_t *connection) {
 
         logger("[S] waiting mbuf");
 
-        if ((rc = readall(cs, &mbuf.msg, sizeof(mbuf.msg))) == 0) {
+        if ((rc = synchronized_readall(&connection->socket_mutex, cs,
+                        &mbuf.msg, sizeof(mbuf.msg))) == 0) {
             logger("[S] Client closed connection!");
             close_connection(connection);
             pthread_exit(NULL);
@@ -183,8 +185,8 @@ void* process_client(connection_t *connection) {
                 panic("Unable to allocate buffer for payload!");
             }
 
-            if (readall(cs, payload, mbuf.msg.size) !=
-                    (ssize_t)mbuf.msg.size) {
+            if (synchronized_readall(&connection->socket_mutex, cs, payload,
+                        mbuf.msg.size) != (ssize_t)mbuf.msg.size) {
                 logger("[S] Error reading payload");
             }
 
