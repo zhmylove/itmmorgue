@@ -49,21 +49,6 @@ void draw_sysmsg() {
     MVW(W_SYSMSG, 0, 0, "%s", sysmsgptr);
 }
 
-void s_sysmsg_add(char **ssysmsg, char *str) {
-    int oldsize = strlen(*ssysmsg) + 1;
-    int newsize = oldsize + strlen(str) + 1;
-
-    // TODO: actualize this todos
-    // TODO take care of CHAT_MSG_BACKLOG
-    // TODO do not forget that this routine is used by both client and server
-
-    if ((*ssysmsg = realloc(*ssysmsg, newsize)) == NULL) {
-        panic("Error reallocating server sysmsg buffer!");
-    }
-
-    strcat(*ssysmsg, str);
-}
-
 void c_sysmsg_add(char *str) {
     int oldsize = strlen(sysmsg) + 1;
     int newsize = oldsize + strlen(str) + 1;

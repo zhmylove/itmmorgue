@@ -168,8 +168,8 @@ void* process_client(connection_t *connection) {
             case MSG_GET_CHAT:
                 logger("[S] [GET_CHAT]");
                 break;
-            case MSG_NICKNAME:
-                logger("[S] [NICKNAME]");
+            case MSG_REPORT_NICKNAME:
+                logger("[S] [REPORT_NICKNAME]");
                 break;
             default:
                 warnf("Unknown type: %d", mbuf.msg.type);
@@ -233,23 +233,30 @@ void* process_client(connection_t *connection) {
                             "New message in your chat!\n");
                 }
 
-                //send_sysmsg(connection, SM_CHAT_NEW_MESSAGE,
-                //        "New message in your chat!\n");
                 free(payload);
 
                 break;
-            case MSG_NICKNAME:
+            case MSG_REPORT_NICKNAME:
                 if (mbuf.msg.size >= PLAYER_NAME_MAXLEN) {
-                    // TODO: send error message
+                    logger("[S] Long nickname received");
+                    s2c_mbuf.msg.type = MSG_ERROR_NICKNAME;
+                    s2c_mbuf.msg.size = strlen("Nickname is too long") + 1;
+                    if (NULL == (s2c_mbuf.payload =
+                                (char*)malloc(s2c_mbuf.msg.size))) {
+                        panic("[S] Cannot allocate ERRROR_NICKNAME payload!");
+                    }
+                    strcpy(s2c_mbuf.payload, "Nickname is too long");
+                    mqueue_put(s2c_queue, s2c_mbuf);
+
                     close_connection(connection);
                     pthread_exit(NULL);
                 }
                 strncpy(players[id].nickname, payload, mbuf.msg.size);
 
                 char join_msg[PLAYER_NAME_MAXLEN * 4];
-                strcpy(join_msg, "Player ");
-                strcat(join_msg, players[id].nickname);
-                strcat(join_msg, " has found his place in this world!\n");
+                sprintf(join_msg,
+                        "Player %s has found his place in the world!\n",
+                        players[id].nickname);
                 for (connection_t *curr = first_connection; curr;
                         curr = curr->next) {
                     send_sysmsg(curr, SM_PLAYER_JOINED, join_msg);

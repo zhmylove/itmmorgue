@@ -45,7 +45,7 @@ void* worker() {
 
     // Send nickname
     mbuf_t mbuf;
-    mbuf.msg.type = MSG_NICKNAME;
+    mbuf.msg.type = MSG_REPORT_NICKNAME;
     mbuf.msg.size = strlen(CONF_SVAL("player_nickname")) + 1;
     if (NULL == (mbuf.payload = (char*)malloc(mbuf.msg.size))) {
         panic("[C] Cannot allocate nickname payload buffer");
