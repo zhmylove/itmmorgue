@@ -6,6 +6,12 @@
 // TODO add to itmmorgue.h
 #include <math.h>
 
+
+// TODO HERE:
+// 1. place cities
+// 2. place roads
+
+
 /*
  * ' ' = nothing
  * '#' = wall
@@ -17,12 +23,16 @@
 char *area = NULL;
 
 #define CITY_NAMELEN 16
+enum city_size {
+    CITY_TINY,
+    CITY_SMALL,
+    CITY_MEDIUM,
+    CITY_BIG,
+    CITY_LARGE,
+    CITY_SIZE
+};
 typedef struct city {
-    enum city_size {
-        CITY_SMALL,
-        CITY_MEDIUM,
-        CITY_LARGE
-    } size;
+    enum city_size size;
     char name[CITY_NAMELEN];
 } city_t;
 
@@ -83,7 +93,7 @@ subarea_t terra_subarea_safe(char *area,
     subarea_t rc;
     rc.count = 0;
     rc.lines = NULL;
-    
+
     // TODO move below?
     if ((rc.lines = (subline_t *)malloc(sizeof(subline_t) * max_y)) == NULL) {
         panic("Error allocating subline!");
@@ -185,7 +195,7 @@ size_t terra_place_building(char *area, size_t area_max_y, size_t area_max_x,
                 case '_':
                     continue;
                 case '+':
-                    CURR = '_';
+                    CURR = '_'; // small easter-egg, never'll be found ;-)
                     continue;
                 case '#':
                     break;
@@ -227,9 +237,10 @@ size_t terra_place_building(char *area, size_t area_max_y, size_t area_max_x,
 #endif /* _DEBUG */
 
         // TODO maybe extend this to check a direction:
-        // kinda LEFT(grass) && RIGHT(floor) and vice versa
+        // kinda LEFT(grass) && RIGHT(floor) and vise versa
 
         if ( // yeah, vim's so crazy in indentation!
+                // this shity code just takes some precautions
                 (
                  (
                   terra_is_walkable(
@@ -290,6 +301,15 @@ size_t terra_place_building_large(char *area, size_t max_y, size_t max_x,
         size_t center_y, size_t center_x) {
     return terra_place_building(area, max_y, max_x, center_y, center_x, 64);
 }
+
+typedef size_t(*terra_build_func_t)(char*, size_t, size_t, size_t, size_t);
+static terra_build_func_t terra_build_func[CITY_SIZE] = {
+        terra_place_building_tiny,
+        terra_place_building_small,
+        terra_place_building_medium,
+        terra_place_building_big,
+        terra_place_building_large
+    };
 
 size_t terra_place_forest(subarea_t sub, size_t density) {
     size_t rc = 0;
@@ -373,11 +393,11 @@ int terra_create(char **area, size_t max_y, size_t max_x, city_t *cities,
     }
 
     // Place building
-    terra_place_building_tiny(AREA, max_y, max_x, 10, 10);
-    terra_place_building_small(AREA, max_y, max_x, 10, 25);
-    terra_place_building_medium(AREA, max_y, max_x, 20, 10);
-    terra_place_building_big(AREA, max_y, max_x, 20, 35);
-    terra_place_building_large(AREA, max_y, max_x, 20, 41);
+    terra_build_func[CITY_TINY  ](AREA, max_y, max_x, 10, 10);
+    terra_build_func[CITY_SMALL ](AREA, max_y, max_x, 10, 25);
+    terra_build_func[CITY_MEDIUM](AREA, max_y, max_x, 20, 10);
+    terra_build_func[CITY_BIG   ](AREA, max_y, max_x, 20, 35);
+    terra_build_func[CITY_LARGE ](AREA, max_y, max_x, 20, 41);
 
     //     // Place the cities
     //     // Maybe we need to write a function, that works with filled space?
