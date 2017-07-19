@@ -43,6 +43,16 @@ void* worker() {
         panic("Error detaching pthread!");
     }
 
+    // Send nickname
+    mbuf_t mbuf;
+    mbuf.msg.type = MSG_REPORT_NICKNAME;
+    mbuf.msg.size = strlen(CONF_SVAL("player_nickname")) + 1;
+    if (NULL == (mbuf.payload = (char*)malloc(mbuf.msg.size))) {
+        panic("[C] Cannot allocate nickname payload buffer");
+    }
+    strcpy(mbuf.payload, CONF_SVAL("player_nickname"));
+    mqueue_put(&c2s_queue, mbuf);
+
     do {
         fd_set fds;
         FD_ZERO(&fds);
