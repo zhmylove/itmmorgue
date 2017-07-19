@@ -22,7 +22,6 @@
  */
 char *area = NULL;
 
-#define CITY_NAMELEN 16
 enum city_size {
     CITY_TINY,
     CITY_SMALL,
@@ -31,6 +30,9 @@ enum city_size {
     CITY_LARGE,
     CITY_SIZE
 };
+
+#define CITY_NAMELEN 16
+
 typedef struct city {
     enum city_size size;
     char name[CITY_NAMELEN];
@@ -49,6 +51,11 @@ typedef struct subarea {
     size_t abs_max_x;
     subline_t *lines; // pointer to the sublines
 } subarea_t;
+
+typedef struct xy {
+    int y;
+    int x;
+} xy_t;
 
 // LOCAL STUFF BEGIN
 #define _DEBUG
@@ -325,11 +332,6 @@ size_t terra_place_city(char *area, size_t area_max_y, size_t area_max_x,
     return rc;
 }
 
-typedef struct xy {
-    int x;
-    int y;
-} xy_t;
-
 int terra_connect(xy_t A, xy_t B, xy_t **path, size_t *pathlen) {
 #define PATH (*path)
 #define STEPS (*pathlen)
@@ -457,6 +459,11 @@ int terra_create(char **area, size_t max_y, size_t max_x, city_t *cities,
     // Place forests
     size_t forest_square = 0;
     ttl = 64;
+
+    if (forest < 10) {
+         goto CITIES; // Forest? No, never heard of it.
+    }
+
     while (forest_square < square * forest / 100) {
         if (ttl-- == 0) {
             panic("Forest: ttl expired!");
@@ -486,15 +493,13 @@ int terra_create(char **area, size_t max_y, size_t max_x, city_t *cities,
 
     rc += forest_square;
 
+CITIES:
+
     // Place cities
     rc += terra_place_city(AREA, max_y, max_x, 15, 15, CITY_SMALL);
 
-    xy_t A;
-    A.y = 10;
-    A.x = 10;
-    xy_t B;
-    B.y = 30;
-    B.x = 90;
+    xy_t A = { 10, 20 };
+    xy_t B = { 30, 90 };
 
     rc += terra_place_roads(AREA, max_y, max_x, A, B);
 
