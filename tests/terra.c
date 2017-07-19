@@ -26,6 +26,20 @@ typedef struct city {
     char name[CITY_NAMELEN];
 } city_t;
 
+typedef struct subline {
+    size_t length;    // length of the subline
+    char *start;      // pointers to the sublines beginning
+} subline_t;
+
+typedef struct subarea {
+    size_t count;     // number of the sublines
+    size_t abs_min_y; // absolute coordinates of corners
+    size_t abs_min_x;
+    size_t abs_max_y;
+    size_t abs_max_x;
+    subline_t *lines; // pointer to the sublines
+} subarea_t;
+
 // LOCAL STUFF BEGIN
 #define _DEBUG
 void panic(char *str) {
@@ -33,6 +47,23 @@ void panic(char *str) {
     exit(2);
 }
 // LOCAL STUFF END
+
+size_t terra_pos(size_t area_max_x, size_t y, size_t x) {
+    return y * area_max_x + x;
+}
+
+int terra_is_walkable(char ch) {
+    switch (ch) {
+        case ' ':
+        case '.':
+        case '_':
+            return 1;
+        default:
+            return 0;
+    }
+
+    return 0;
+}
 
 void terra_visualize(char *area, size_t max_y, size_t max_x) {
     if (area == NULL) {
@@ -45,32 +76,25 @@ void terra_visualize(char *area, size_t max_y, size_t max_x) {
     }
 }
 
-typedef struct subline {
-    size_t length;    // length of the subline
-    char *start;      // pointers to the sublines beginning
-} subline_t;
-
-typedef struct subarea {
-    size_t count;     // number of the sublines
-    subline_t *lines; // pointer to the sublines
-} subarea_t;
-
-subarea_t terra_subarea(char *area,
-        size_t area_max_y, size_t area_max_x,
+subarea_t terra_subarea_safe(char *area,
+        size_t area_max_y, size_t area_max_x, size_t indent,
         size_t center_y, size_t center_x, 
         size_t max_y, size_t max_x /* symmetry */) {
     subarea_t rc;
     rc.count = 0;
     rc.lines = NULL;
     
+    // TODO move below?
     if ((rc.lines = (subline_t *)malloc(sizeof(subline_t) * max_y)) == NULL) {
         panic("Error allocating subline!");
     }
 
     // Taking borders into account
     // NB! these values are really min() and max() values, not the size! :)
-    size_t s_min_y = center_y > max_y / 2 ? center_y - max_y / 2 : 0;
-    size_t s_min_x = center_x > max_x / 2 ? center_x - max_x / 2 : 0;
+    size_t s_min_y = center_y > max_y / 2 ?
+        center_y - max_y / 2 : 0;
+    size_t s_min_x = center_x > max_x / 2 ?
+        center_x - max_x / 2 : 0;
     size_t s_max_y = center_y + max_y / 2 < area_max_y ?
         center_y + max_y / 2 : area_max_y;
     size_t s_max_x = center_x + max_x / 2 < area_max_x ?
@@ -79,6 +103,33 @@ subarea_t terra_subarea(char *area,
     s_max_y += max_y & 1;
     s_max_x += max_x & 1;
 
+    // Safeness BEGIN
+    if (area_max_y / 2 <= indent || area_max_x / 2 <= indent) {
+        panic("Too big indent over area!");
+    }
+
+    // Move the borders
+    if (s_min_y < indent) {
+        s_max_y += indent - s_min_y;
+        s_min_y = indent;
+    }
+    if (s_min_x < indent) {
+        s_max_x += indent - s_min_x;
+        s_min_x = indent;
+    }
+    if (s_max_y > area_max_y - indent) {
+        s_min_y -= s_max_y - area_max_y + indent;
+        s_max_y = area_max_y - indent;
+    }
+    if (s_max_x > area_max_x - indent) {
+        s_min_x -= s_max_x - area_max_x + indent;
+        s_max_x = area_max_x - indent;
+    }
+    if (s_min_y < indent || s_min_x < indent) {
+        panic("Too big indent specified!");
+    }
+    // Safeness END
+
     for (size_t j = 0, i = s_min_y; i < s_max_y; j++, i++) {
         rc.count++;
 
@@ -86,10 +137,23 @@ subarea_t terra_subarea(char *area,
         rc.lines[j].start = area + area_max_x * i + s_min_x;
     }
 
+    rc.abs_min_y = s_min_y;
+    rc.abs_min_x = s_min_x;
+    rc.abs_max_y = s_max_y - 1;
+    rc.abs_max_x = s_max_x - 1;
+
     return rc;
 }
 
-size_t terra_place_building(char *area, size_t max_y, size_t max_x,
+subarea_t terra_subarea(char *area,
+        size_t area_max_y, size_t area_max_x,
+        size_t center_y, size_t center_x,
+        size_t max_y, size_t max_x /* symmetry */) {
+    return terra_subarea_safe(area, area_max_y, area_max_x, 0,
+            center_y, center_x, max_y, max_x /* symmetry */);
+}
+
+size_t terra_place_building(char *area, size_t area_max_y, size_t area_max_x,
         size_t center_y, size_t center_x, size_t square) {
     size_t rc = 0;
 
@@ -108,10 +172,8 @@ size_t terra_place_building(char *area, size_t max_y, size_t max_x,
         }
     }
 
-    subarea_t sub = terra_subarea(area, max_y, max_x,
+    subarea_t sub = terra_subarea_safe(area, area_max_y, area_max_x, 1,
             center_y, center_x, size_y, size_x);
-
-    fprintf(stderr, "%zu %zu", size_y, size_x);
 
     for (size_t i = 0; i < sub.count; i++) {
         for (size_t j = 0; j < sub.lines[i].length; j++) {
@@ -119,9 +181,15 @@ size_t terra_place_building(char *area, size_t max_y, size_t max_x,
             rc++; // we'll measure total square for forest
 
             // we'll place building over EVERYTHING
-            // if (CURR != ' ') {
-            //     continue;
-            // }
+            switch (CURR) {
+                case '_':
+                    continue;
+                case '+':
+                    CURR = '_';
+                    continue;
+                case '#':
+                    break;
+            }
 
             if (i == 0 || i == sub.count - 1 ||
                     j == 0 || j == sub.lines[i].length - 1) {
@@ -133,10 +201,66 @@ size_t terra_place_building(char *area, size_t max_y, size_t max_x,
         }
     }
 
+    // Place some doors
     int door_placed = 0;
     int door_required = 1 + random() % 2; // up to 2 doors
     while (door_placed < door_required) {
-        door_placed++;
+        size_t X, Y; // absolute coordinates of potential door
+
+        if (random() % 101 < 50) {
+            // horizontal wall door
+            Y = random() % 101 < 50 ? sub.abs_min_y : sub.abs_max_y;
+            X = 1 + sub.abs_min_x + random() % (sub.abs_max_x - sub.abs_min_x);
+        } else {
+            // vertical wall door
+            Y = 1 + sub.abs_min_y + random() % (sub.abs_max_y - sub.abs_min_y);
+            X = random() % 101 < 50 ? sub.abs_min_x : sub.abs_max_x;
+        }
+
+#ifdef _DEBUG
+        fprintf(stderr, "Door: %zu %zu (%zu %zu %zu %zu)\n", Y, X,
+                sub.abs_min_y,
+                sub.abs_min_x,
+                sub.abs_max_y,
+                sub.abs_max_x
+               );
+#endif /* _DEBUG */
+
+        // TODO maybe extend this to check a direction:
+        // kinda LEFT(grass) && RIGHT(floor) and vice versa
+
+        if ( // yeah, vim's so crazy in indentation!
+                (
+                 (
+                  terra_is_walkable(
+                      area[terra_pos(area_max_x, Y, X - 1)]) &&
+                  terra_is_walkable(
+                      area[terra_pos(area_max_x, Y, X + 1)]) &&
+                  ! terra_is_walkable(
+                      area[terra_pos(area_max_x, Y - 1, X)]) &&
+                  ! terra_is_walkable(
+                      area[terra_pos(area_max_x, Y + 1, X)])
+                 ) ||
+                 (
+                  terra_is_walkable(
+                      area[terra_pos(area_max_x, Y - 1, X)]) &&
+                  terra_is_walkable(
+                      area[terra_pos(area_max_x, Y + 1, X)]) &&
+                  ! terra_is_walkable(
+                      area[terra_pos(area_max_x, Y, X - 1)]) &&
+                  ! terra_is_walkable(
+                      area[terra_pos(area_max_x, Y, X + 1)])
+                 )
+                 ) &&
+                 area[terra_pos(area_max_x, Y + 1, X)] != '+' &&
+                 area[terra_pos(area_max_x, Y - 1, X)] != '+' &&
+                 area[terra_pos(area_max_x, Y, X + 1)] != '+' &&
+                 area[terra_pos(area_max_x, Y, X - 1)] != '+'
+                 ) {
+                     area[terra_pos(area_max_x, Y, X)] = '+';
+
+                     door_placed++;
+                 }
     }
 
     return rc;
@@ -253,7 +377,7 @@ int terra_create(char **area, size_t max_y, size_t max_x, city_t *cities,
     terra_place_building_small(AREA, max_y, max_x, 10, 25);
     terra_place_building_medium(AREA, max_y, max_x, 20, 10);
     terra_place_building_big(AREA, max_y, max_x, 20, 35);
-    terra_place_building_large(AREA, max_y, max_x, 30, 40);
+    terra_place_building_large(AREA, max_y, max_x, 20, 41);
 
     //     // Place the cities
     //     // Maybe we need to write a function, that works with filled space?
