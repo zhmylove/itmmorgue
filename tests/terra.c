@@ -302,14 +302,108 @@ size_t terra_place_building_large(char *area, size_t max_y, size_t max_x,
     return terra_place_building(area, max_y, max_x, center_y, center_x, 64);
 }
 
-typedef size_t(*terra_build_func_t)(char*, size_t, size_t, size_t, size_t);
-static terra_build_func_t terra_build_func[CITY_SIZE] = {
+typedef size_t(*terra_building_func_t)(char*, size_t, size_t, size_t, size_t);
+static terra_building_func_t terra_building_func[CITY_SIZE] = {
         terra_place_building_tiny,
         terra_place_building_small,
         terra_place_building_medium,
         terra_place_building_big,
         terra_place_building_large
     };
+
+size_t terra_place_city(char *area, size_t area_max_y, size_t area_max_x,
+        size_t center_y, size_t center_x, enum city_size size) {
+    int rc = 0;
+
+    // Place buildings
+    terra_building_func[CITY_TINY  ](area, area_max_y, area_max_x, 10, 10);
+    terra_building_func[CITY_SMALL ](area, area_max_y, area_max_x, 10, 25);
+    terra_building_func[CITY_MEDIUM](area, area_max_y, area_max_x, 20, 10);
+    terra_building_func[CITY_BIG   ](area, area_max_y, area_max_x, 20, 35);
+    terra_building_func[CITY_LARGE ](area, area_max_y, area_max_x, 20, 41);
+
+    return rc;
+}
+
+typedef struct xy {
+    int x;
+    int y;
+} xy_t;
+
+int terra_connect(xy_t A, xy_t B, xy_t **path, size_t *pathlen) {
+#define PATH (*path)
+#define STEPS (*pathlen)
+
+    PATH = NULL;
+    STEPS = 0;
+    xy_t curr = A;
+
+    while (curr.x != B.x || curr.y != B.y) {
+        if ((PATH = (xy_t*)realloc(PATH, (STEPS + 1) * sizeof(xy_t)))== NULL) {
+            panic("Error allocating terra path!");
+        }
+
+        // TODO add randomness
+        if (curr.x != B.x) {
+            PATH[STEPS].x = (curr.x < B.x) ? curr.x + 1 : curr.x - 1;
+        } else {
+            PATH[STEPS].x = curr.x;
+        }
+
+        if (curr.y != B.y) {
+            PATH[STEPS].y = (curr.y < B.y) ? curr.y + 1 : curr.y - 1;
+        } else {
+            PATH[STEPS].y = curr.y;
+        }
+
+        curr = PATH[STEPS++];
+
+        // TODO add some kind of TTL
+    }
+
+    if (curr.x == B.x && curr.y == B.y) {
+        return 1;
+    }
+
+#undef PATH
+    return 0; // connection failed
+}
+
+size_t terra_place_roads(char *area, size_t area_max_y, size_t area_max_x, 
+        xy_t A, xy_t B) {
+    size_t rc = 0;
+
+#define CURR (sub.lines[i].start[j])
+
+    xy_t *path;
+    size_t pathlen;
+
+    if (terra_connect(A, B, &path, &pathlen) == 0) {
+        fprintf(stderr, "%zu\n", pathlen);
+        panic("Unable to connect A and B with road!");
+    }
+
+    for (size_t i = 0; i < pathlen; i++) {
+        subarea_t sub = terra_subarea(area, area_max_y, area_max_x,
+                path[i].y, path[i].x, 3, 3);
+
+        for (size_t i = 0; i < sub.count; i++) {
+            for (size_t j = 0; j < sub.lines[i].length; j++) {
+                if (CURR != ' ' && CURR != '^') {
+                    continue;
+                }
+
+                rc++; // we'll measure only new square for roads
+
+                CURR = '%'; // TODO turn into grass
+            }
+        }
+    }
+
+#undef CURR
+
+    return rc;
+}
 
 size_t terra_place_forest(subarea_t sub, size_t density) {
     size_t rc = 0;
@@ -357,8 +451,6 @@ int terra_create(char **area, size_t max_y, size_t max_x, city_t *cities,
     for (size_t i = 0; i < max_y; i++) {
         for (size_t j = 0; j < max_x; j++) {
             AREA[i * max_x + j] = ' ';
-
-            rc++;
         }
     }
 
@@ -392,28 +484,19 @@ int terra_create(char **area, size_t max_y, size_t max_x, city_t *cities,
                 density);                                // density
     }
 
-    // Place building
-    terra_build_func[CITY_TINY  ](AREA, max_y, max_x, 10, 10);
-    terra_build_func[CITY_SMALL ](AREA, max_y, max_x, 10, 25);
-    terra_build_func[CITY_MEDIUM](AREA, max_y, max_x, 20, 10);
-    terra_build_func[CITY_BIG   ](AREA, max_y, max_x, 20, 35);
-    terra_build_func[CITY_LARGE ](AREA, max_y, max_x, 20, 41);
+    rc += forest_square;
 
-    //     // Place the cities
-    //     // Maybe we need to write a function, that works with filled space?
-    //     for (int i = 0; i < cities_len; i++) {
-    //         if (ttl-- <= 0) {
-    //             return -1;
-    //         }
-    // 
-    //         size_t center = random() % (max_y * max_x + 1);
-    //         for (ttl = 64; ttl >= 0; ttl--) {
-    //         }
-    // 
-    //         if (ttl <= 0) {
-    //             return -2;
-    //         }
-    //     }
+    // Place cities
+    rc += terra_place_city(AREA, max_y, max_x, 15, 15, CITY_SMALL);
+
+    xy_t A;
+    A.y = 10;
+    A.x = 10;
+    xy_t B;
+    B.y = 30;
+    B.x = 90;
+
+    rc += terra_place_roads(AREA, max_y, max_x, A, B);
 
     // // Fill remaining with grass
     // for (int i = 0; i < max_y * max_x; i++) {
@@ -423,7 +506,7 @@ int terra_create(char **area, size_t max_y, size_t max_x, city_t *cities,
     // }
 #undef AREA
 
-    return 0;
+    return rc;
 }
 
 int main(int argc, char *argv[]) {   
