@@ -76,3 +76,39 @@ int mqueue_get(mqueue_t *queue, mbuf_t *mbuf) {
 void mqueue_destroy(mqueue_t *queue) {
     pthread_mutex_destroy(&queue->mutex);
 }
+
+/*
+ * Writes mbuf with non-zero payload size into socket.
+ *
+ * mbuf   : buffer to send
+ * socket : receiver
+ *
+ * ret    : -1 on failure
+*/
+static int mbuf_send_with_payload(mbuf_t *mbuf, int socket) {
+    struct iovec parts[2];
+    parts[0].iov_base = &mbuf->msg;
+    parts[0].iov_len = sizeof(mbuf->msg);
+    parts[1].iov_base = mbuf->payload;
+    parts[1].iov_len = mbuf->msg.size;
+    int rc = writev(socket, parts, 2);
+
+    free(mbuf->payload);
+
+    return rc;
+}
+
+/*
+ * Writes any mbuf size into socket.
+ *
+ * mbuf   : buffer to send
+ * socket : receiver
+ *
+ * ret    : -1 on failure
+*/
+int mbuf_send(mbuf_t *mbuf, int socket) {
+    if (mbuf->msg.size == 0) {
+        return write(socket, &mbuf->msg, sizeof(msg_t));
+    }
+    return mbuf_send_with_payload(mbuf, socket);
+}
