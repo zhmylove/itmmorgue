@@ -4,12 +4,13 @@
 #include <stdio.h>
 #include <stdlib.h>
 // TODO add to itmmorgue.h
+// TODO add -lm for Linux
 #include <math.h>
-
 
 // TODO HERE:
 // 1. place cities
 // 2. place roads
+// 3. fix memory leaks (add free() for subarea_t, subline_t)
 
 
 /*
@@ -57,13 +58,48 @@ typedef struct xy {
     int x;
 } xy_t;
 
-// LOCAL STUFF BEGIN
+// TODO remove LOCAL STUFF BEGIN
+
 #define _DEBUG
 void panic(char *str) {
     fprintf(stderr, "%s\n", str);
     exit(2);
 }
-// LOCAL STUFF END
+unsigned long long sysutime() {
+    struct timeval tv; 
+
+    if (gettimeofday(&tv, NULL) < 0) {
+        panic("Unable to get system time!");
+    }
+
+    return tv.tv_sec * 1000000 + tv.tv_usec;
+}
+enum stuff {
+    S_NONE            ,
+    S_CITY            , // city outside buildings
+    S_FLOOR           , // in building
+    S_WALL            , // of building
+    S_DOOR            , // of building
+    S_TREE            , // in forest
+    S_GRASS           , // in forest
+    S_FIELD           , // in plains
+    S_PLAYER          ,
+    S_DOWNSTAIRS      ,
+    S_UPSTAIRS        ,
+
+    S_TRAP            ,
+    S_FOOD            ,
+
+    S_GOLD            ,
+    S_SCROLL          ,
+    S_BOOK            ,
+
+    S_RING            ,
+    S_WAND            ,
+    S_SIZE
+};
+
+// TODO end remove LOCAL STUFF END
 
 size_t terra_pos(size_t area_max_x, size_t y, size_t x) {
     return y * area_max_x + x;
@@ -171,7 +207,7 @@ subarea_t terra_subarea(char *area,
 }
 
 size_t terra_place_building(char *area, size_t area_max_y, size_t area_max_x,
-        size_t center_y, size_t center_x, size_t square) {
+        size_t center_y, size_t center_x, size_t square, subarea_t *retsub) {
     size_t rc = 0;
 
     int side = (int)(sqrt(square) / 2);
@@ -281,53 +317,107 @@ size_t terra_place_building(char *area, size_t area_max_y, size_t area_max_x,
                  }
     }
 
+    *retsub = sub;
     return rc;
 }
 
 size_t terra_place_building_tiny(char *area, size_t max_y, size_t max_x,
-        size_t center_y, size_t center_x) {
-    return terra_place_building(area, max_y, max_x, center_y, center_x, 9);
+        size_t center_y, size_t center_x, subarea_t *retsub) {
+    return terra_place_building(area, max_y, max_x, center_y, center_x, 9,
+            retsub);
 }
 
 size_t terra_place_building_small(char *area, size_t max_y, size_t max_x,
-        size_t center_y, size_t center_x) {
-    return terra_place_building(area, max_y, max_x, center_y, center_x, 12);
+        size_t center_y, size_t center_x, subarea_t *retsub) {
+    return terra_place_building(area, max_y, max_x, center_y, center_x, 12,
+            retsub);
 }
 
 size_t terra_place_building_medium(char *area, size_t max_y, size_t max_x,
-        size_t center_y, size_t center_x) {
-    return terra_place_building(area, max_y, max_x, center_y, center_x, 16);
+        size_t center_y, size_t center_x, subarea_t *retsub) {
+    return terra_place_building(area, max_y, max_x, center_y, center_x, 16,
+            retsub);
 }
 
 size_t terra_place_building_big(char *area, size_t max_y, size_t max_x,
-        size_t center_y, size_t center_x) {
-    return terra_place_building(area, max_y, max_x, center_y, center_x, 49);
+        size_t center_y, size_t center_x, subarea_t *retsub) {
+    return terra_place_building(area, max_y, max_x, center_y, center_x, 49,
+            retsub);
 }
 
 size_t terra_place_building_large(char *area, size_t max_y, size_t max_x,
-        size_t center_y, size_t center_x) {
-    return terra_place_building(area, max_y, max_x, center_y, center_x, 64);
+        size_t center_y, size_t center_x, subarea_t *retsub) {
+    return terra_place_building(area, max_y, max_x, center_y, center_x, 64,
+            retsub);
 }
 
-typedef size_t(*terra_building_func_t)(char*, size_t, size_t, size_t, size_t);
+typedef size_t(*terra_building_func_t)(char*, size_t, size_t, size_t, size_t,
+        subarea_t*);
 static terra_building_func_t terra_building_func[CITY_SIZE] = {
-        terra_place_building_tiny,
-        terra_place_building_small,
-        terra_place_building_medium,
-        terra_place_building_big,
-        terra_place_building_large
-    };
+    terra_place_building_tiny,
+    terra_place_building_small,
+    terra_place_building_medium,
+    terra_place_building_big,
+    terra_place_building_large
+};
 
 size_t terra_place_city(char *area, size_t area_max_y, size_t area_max_x,
         size_t center_y, size_t center_x, enum city_size size) {
     int rc = 0;
 
     // Place buildings
-    terra_building_func[CITY_TINY  ](area, area_max_y, area_max_x, 10, 10);
-    terra_building_func[CITY_SMALL ](area, area_max_y, area_max_x, 10, 25);
-    terra_building_func[CITY_MEDIUM](area, area_max_y, area_max_x, 20, 10);
-    terra_building_func[CITY_BIG   ](area, area_max_y, area_max_x, 20, 35);
-    terra_building_func[CITY_LARGE ](area, area_max_y, area_max_x, 20, 41);
+
+    // TODO adjust coefficients
+    subarea_t sub;             // subarea for the building
+    size_t R = size * 12 + 12; // fine selected random radius
+    size_t N = size * 10 + 10; // number of buildings
+
+    // city border limits
+    size_t c_min_y = (R > center_y) ? 0 : center_y - R;
+    size_t c_min_x = (R > center_x) ? 0 : center_x - R;
+    size_t c_max_y = (R + center_y > area_max_y) ? area_max_y : R + center_y;
+    size_t c_max_x = (R + center_x > area_max_x) ? area_max_x : R + center_x;
+
+    size_t c_abs_min_y = area_max_y;
+    size_t c_abs_min_x = area_max_x;
+    size_t c_abs_max_y = 0;
+    size_t c_abs_max_x = 0;
+
+    for (size_t i = 0; i < N; i++) {
+        size_t b_center_y = c_min_y + random() % (c_max_y - c_min_y + 1);
+        size_t b_center_x = c_min_x + random() % (c_max_x - c_min_x + 1);
+
+        rc += terra_building_func[random() % (size + 1)](
+                area, area_max_y, area_max_x, b_center_y, b_center_x, &sub
+                );
+
+        if (sub.abs_min_y < c_abs_min_y) { 
+            c_abs_min_y = sub.abs_min_y;
+        }
+        if (sub.abs_min_x < c_abs_min_x) { 
+            c_abs_min_x = sub.abs_min_x;
+        }
+        if (sub.abs_max_y > c_abs_max_y) { 
+            c_abs_max_y = sub.abs_max_y;
+        }
+        if (sub.abs_max_x > c_abs_max_x) { 
+            c_abs_max_x = sub.abs_max_x;
+        }
+    }
+
+    // Cleanup non-buildings (grass/forest/etc.)
+    for (size_t i = c_abs_min_y; i <= c_abs_max_y; i++) {
+        for (size_t j = c_abs_min_x; j <= c_abs_max_x; j++) {
+            switch (area[terra_pos(area_max_x, i, j)]) {
+                case '_':
+                case '#':
+                case '+':
+                    continue;
+                default:
+                    area[terra_pos(area_max_x, i, j)] = 'x';
+            }
+        }
+    }
 
     return rc;
 }
@@ -420,7 +510,7 @@ size_t terra_place_forest(subarea_t sub, size_t density) {
             }
 
             // use <33 values for density to walk through
-            if (random() % 101 <= density) {
+            if ((size_t)(random() % 101) <= density) {
                 CURR = '^';
             } else {
                 CURR = '.';
@@ -441,8 +531,7 @@ int terra_create(char **area, size_t max_y, size_t max_x, city_t *cities,
 
     size_t square = max_y * max_x;
 
-    srandomdev();
-    srandom(random());
+    srandom(sysutime());
 
     // TODO fix sizeof(tile_t)
     if ((AREA = malloc(sizeof(char) * max_y * max_x)) == NULL) {
@@ -461,7 +550,7 @@ int terra_create(char **area, size_t max_y, size_t max_x, city_t *cities,
     ttl = 64;
 
     if (forest < 10) {
-         goto CITIES; // Forest? No, never heard of it.
+        goto CITIES; // Forest? No, never heard of it.
     }
 
     while (forest_square < square * forest / 100) {
@@ -496,7 +585,9 @@ int terra_create(char **area, size_t max_y, size_t max_x, city_t *cities,
 CITIES:
 
     // Place cities
-    rc += terra_place_city(AREA, max_y, max_x, 15, 15, CITY_SMALL);
+    rc += terra_place_city(AREA, max_y, max_x, 15, 15, CITY_MEDIUM);
+
+    // TODO place roads between all the cities
 
     xy_t A = { 10, 20 };
     xy_t B = { 30, 90 };
@@ -516,8 +607,8 @@ CITIES:
 
 int main(int argc, char *argv[]) {   
 
-    size_t max_y = 55;
-    size_t max_x = 155;
+    size_t max_y = 100;
+    size_t max_x = 100;
     size_t forest = 75; // average percent
 
 #define CITIES_LEN 2

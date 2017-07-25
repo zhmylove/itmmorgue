@@ -78,7 +78,7 @@ size_t anystrlen(char *str) {
 #ifdef __sun
 size_t strnlen(const char *str, size_t maxlen) {
     size_t rc = 0;
-    
+
     while (maxlen-- && *str++) {
         rc++;
     }
@@ -149,6 +149,26 @@ void logger(char *str) {
     if (write(log_fd, buf, len) < 0) {
         panic("Unable to write log output!");
     }
+}
+
+unsigned long long systime() {
+    struct timeval tv;
+
+    if (gettimeofday(&tv, NULL) < 0) {
+        panic("Unable to get system time!");
+    }
+
+    return tv.tv_sec;
+}
+
+unsigned long long sysutime() {
+    struct timeval tv;
+
+    if (gettimeofday(&tv, NULL) < 0) {
+        panic("Unable to get system time!");
+    }
+
+    return tv.tv_sec * 1000000 + tv.tv_usec;
 }
 
 int main(int argc, char *argv[]) {
