@@ -190,6 +190,7 @@ subarea_t terra_subarea_safe(char *area,
         rc.lines[j].start = area + area_max_x * i + s_min_x;
     }
 
+    // TODO CHECK
     rc.abs_min_y = s_min_y;
     rc.abs_min_x = s_min_x;
     rc.abs_max_y = s_max_y - 1;
@@ -214,6 +215,10 @@ size_t terra_place_building(char *area, size_t area_max_y, size_t area_max_x,
     size_t square_new = 0;
     size_t size_y = 3 + random() % (3) * random() % (side + 1);
     size_t size_x = 3 + random() % (3) * random() % (side + 1);
+
+#ifdef _DEBUG
+    fprintf(stderr, "SUBAREA: %zu x %zu\n", size_y, size_x);
+#endif /* _DEBUG */
 
     while (square_new < square) {
         square_new = size_y * size_x;
