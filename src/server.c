@@ -119,19 +119,9 @@ void* process_client(connection_t *connection) {
 
         // send messages to the client if any
         while (mqueue_get(s2c_queue, &mbuf) > 0) {
-            if ((rc = write(cs, &mbuf.msg, sizeof(msg_t))) < 0) {
+            if (1 == send_mbuf(&mbuf, cs)) {
                 panic("Error sending message in server thread!");
             }
-
-            if (mbuf.msg.size == 0) {
-                continue;
-            }
-
-            if ((rc = write(cs, mbuf.payload, mbuf.msg.size)) < 0) {
-                panic("Error sending message in worker!");
-            }
-
-            free(mbuf.payload);
         }
 
         do {

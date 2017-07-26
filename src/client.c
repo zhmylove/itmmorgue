@@ -61,20 +61,9 @@ void* worker() {
 
         // send messages to the server if any
         while (mqueue_get(&c2s_queue, &mbuf) > 0) {
-            if ((rc = write(sock, &mbuf.msg, sizeof(msg_t))) < 0) {
+            if (-1 == send_mbuf(&mbuf, sock)) {
                 panic("Error sending message in worker!");
             }
-
-            if (mbuf.msg.size == 0) {
-                continue;
-            }
-
-            loggerf("Writing to sock: %d", sock);
-            if ((rc = write(sock, mbuf.payload, mbuf.msg.size)) < 0) {
-                panic("Error sending message in worker!");
-            }
-
-            free(mbuf.payload);
         }
 
         do {
