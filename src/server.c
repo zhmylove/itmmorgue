@@ -119,7 +119,7 @@ void* process_client(connection_t *connection) {
 
         // send messages to the client if any
         while (mqueue_get(s2c_queue, &mbuf) > 0) {
-            if (1 == send_mbuf(&mbuf, cs)) {
+            if (1 == send_mbuf(cs, &mbuf)) {
                 panic("Error sending message in server thread!");
             }
         }

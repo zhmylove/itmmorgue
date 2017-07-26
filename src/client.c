@@ -61,7 +61,7 @@ void* worker() {
 
         // send messages to the server if any
         while (mqueue_get(&c2s_queue, &mbuf) > 0) {
-            if (-1 == send_mbuf(&mbuf, sock)) {
+            if (-1 == send_mbuf(sock, &mbuf)) {
                 panic("Error sending message in worker!");
             }
         }
