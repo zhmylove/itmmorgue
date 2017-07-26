@@ -87,7 +87,7 @@ void mqueue_destroy(mqueue_t *queue) {
 */
 static int send_fat_mbuf( int socket, mbuf_t *mbuf) {
     struct iovec parts[2];
-    parts[0].iov_base = &mbuf->msg;
+    parts[0].iov_base = (caddr_t)&mbuf->msg;
     parts[0].iov_len = sizeof(mbuf->msg);
     parts[1].iov_base = mbuf->payload;
     parts[1].iov_len = mbuf->msg.size;
