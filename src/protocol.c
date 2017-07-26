@@ -85,7 +85,7 @@ void mqueue_destroy(mqueue_t *queue) {
  *
  * ret    : -1 on failure
 */
-static int send_fat_mbuf(mbuf_t *mbuf, int socket) {
+static int send_fat_mbuf( int socket, mbuf_t *mbuf) {
     struct iovec parts[2];
     parts[0].iov_base = &mbuf->msg;
     parts[0].iov_len = sizeof(mbuf->msg);
@@ -106,9 +106,9 @@ static int send_fat_mbuf(mbuf_t *mbuf, int socket) {
  *
  * ret    : -1 on failure
 */
-int send_mbuf(mbuf_t *mbuf, int socket) {
+int send_mbuf(int socket, mbuf_t *mbuf) {
     if (mbuf->msg.size == 0) {
         return write(socket, &mbuf->msg, sizeof(msg_t));
     }
-    return send_fat_mbuf(mbuf, socket);
+    return send_fat_mbuf(socket, mbuf);
 }

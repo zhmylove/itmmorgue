@@ -74,7 +74,7 @@ int mqueue_get(mqueue_t *queue, mbuf_t *mbuf);
 void mqueue_put(mqueue_t *queue, mbuf_t mbuf);
 void mqueue_destroy(mqueue_t *queue);
 
-int send_mbuf(mbuf_t *mbuf, int socket);
+int send_mbuf(int socket, mbuf_t *mbuf);
 
 
 #endif /* PROTOCOL_H */
