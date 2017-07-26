@@ -16,6 +16,8 @@ void server() {
 
     server_started = 1;
 
+    s_levels_init();
+
     addr.sin_family      = AF_INET;
     addr.sin_port        = htons(SERVER_PORT);
     addr.sin_addr.s_addr = INADDR_ANY;
@@ -98,8 +100,6 @@ void* process_client(connection_t *connection) {
 
     mqueue_t *s2c_queue = connection->mqueueptr;
     mqueue_init(s2c_queue);
-
-    s_levels_init();
 
     // TODO make this periodically
     s_level_send(0, players + id);
