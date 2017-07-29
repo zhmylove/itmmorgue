@@ -578,6 +578,10 @@ int terra_create(char **area, size_t max_y, size_t max_x, city_t *cities,
                 size_y, size_x);
 #endif /* _DEBUG */
 
+        // TODO revise an effect
+        // size_y = size_y / 2 + random() % (1 + size_y / 2);
+        // size_x = size_x / 2 + random() % (1 + size_x / 2);
+
         // TODO what's with density ?
         forest_square += terra_place_forest(
                 terra_subarea(AREA, max_y, max_x,
