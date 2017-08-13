@@ -3,6 +3,8 @@
 #include <unistd.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <sys/time.h>
+#include <string.h>
 // TODO add to itmmorgue.h
 // TODO add -lm for Linux
 #include <math.h>
@@ -230,8 +232,23 @@ size_t terra_place_building(char *area, size_t area_max_y, size_t area_max_x,
         }
     }
 
-    subarea_t sub = terra_subarea_safe(area, area_max_y, area_max_x, 1,
-            center_y, center_x, size_y, size_x);
+    subarea_t sub;
+    memset(&sub, 0, sizeof(sub));
+
+    while (sub.abs_max_y - sub.abs_min_y < 2 ||
+            sub.abs_max_x - sub.abs_min_x < 2) {
+        // In sake of safety
+        if (center_y < 1) {
+            center_y = 1;
+        }
+
+        if (center_x < 1) {
+            center_x = 1;
+        }
+
+        sub = terra_subarea_safe(area, area_max_y, area_max_x, 1,
+                center_y, center_x, size_y, size_x);
+    }
 
     for (size_t i = 0; i < sub.count; i++) {
         for (size_t j = 0; j < sub.lines[i].length; j++) {
@@ -283,6 +300,12 @@ size_t terra_place_building(char *area, size_t area_max_y, size_t area_max_x,
                 sub.abs_max_x
                );
 #endif /* _DEBUG */
+
+        // Just skip the door if it's already here ;)
+        if (area[terra_pos(area_max_x, Y, X)] == '+') {
+            door_placed++;
+            continue;
+        }
 
         // TODO maybe extend this to check a direction:
         // kinda LEFT(grass) && RIGHT(floor) and vise versa
