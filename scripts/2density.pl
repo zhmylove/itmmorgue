@@ -6,13 +6,15 @@ use v5.18;
 use warnings;
 no warnings 'experimental';
 use utf8;
-binmode STDOUT, ':utf8';
 
-my $h = 30;     # height
-my $w = 20;     # width
-my $scale = 50; # nothing
+use GD::Simple;
 
-my @T;          # surface array
+my $h = 256;    # height
+my $w = 256;    # width
+my $scale = 26; # scale for gradient color (see GD.pm)
+
+my @T; # surface array
+my @D; # dirty flag
 
 ###
 #
@@ -22,8 +24,7 @@ my @T;          # surface array
 # You may be interested in dividing all of the values by $scale and
 # use the result as trees density.
 #
-# TODO we have to solve how many times should we call fill_a_circle()
-# concerning $h and $w.
+# TODO we have to decide how many times call fill_a_circle()
 #
 ###
 
@@ -31,35 +32,61 @@ my @T;          # surface array
 for (my $i = 0; $i < $h; $i++) {
    for (my $j = 0; $j < $w; $j++) {
       $T[$i][$j] = 50;
+      $D[$i][$j] = 1;
    }
 }
 
-sub fill_a_circle {
+# Modify a circle subarea
+# arg: modification power
+sub fill_a_circle($) {
+   print STDERR ">";
+   my $strength = $_[0];
+
    # - get random point
    my ($rx, $ry) = (int($h * rand), int($w * rand));
    $rx = $h if $rx > $h;
    $ry = $w if $ry > $w;
    # - get random delta
    my $sign = (rand >= 0.5) ? -1 : 1;
-   my $delta = $sign * 50 * rand;
+   my $delta = $sign * $strength * rand;
    # - calculate radius of change
    my $radius = int abs ($T[$rx][$ry] - $delta);
    # - fill a circle
    do {
-      for (my $i = 0; $i < $h; $i++) {
-         for (my $j = 0; $j < $w; $j++) {
+      print STDERR "+";
+
+      my $minX = $rx - $radius;
+      $minX = 0 if $minX < 0;
+      my $maxX = $rx + $radius + 1;
+      $maxX = $h if $maxX > $h;
+      my $minY = $ry - $radius;
+      $minY = 0 if $minY < 0;
+      my $maxY = $ry + $radius + 1;
+      $maxY = $w if $maxY > $w;
+
+      for (my $i = $minX; $i < $maxX; $i++) {
+         for (my $j = $minY; $j < $maxY; $j++) {
             if (($i - $rx)**2 + ($j - $ry)**2 < $radius * $radius) {
                $T[$i][$j] += $sign;
+               $D[$i][$j] = 0;
             }
          }
       }
    } while ($radius-- > 0);
 }
 
-fill_a_circle();
-fill_a_circle();
-fill_a_circle();
-#TODO how many times?
+do {
+   #TODO how many times?
+   fill_a_circle(25);
+   fill_a_circle(25);
+} while (sub {
+      for (my $i = 0; $i < $h; $i++) {
+         for (my $j = 0; $j < $w; $j++) {
+            return 1 if $D[$i][$j];
+         }
+      }
+      return 0;
+   }->() > 0);
 
 # Fix negatives
 for (my $i = 0; $i < $h; $i++) {
@@ -92,10 +119,17 @@ for (my $i = 0; $i < $h; $i++) {
    }
 }
 
+print STDERR "\n";
+my $img = GD::Simple->new($w, $h);
+$img->bgcolor("blue");
+$img->clear();
 # Print the surface out
 for (my $i = 0; $i < $h; $i++) {
    for (my $j = 0; $j < $w; $j++) {
-      printf "%02d ", $T[$i][$j];
+      $img->line($j, $i, $j, $i,
+         $img->fgcolor(sprintf("gradient%d", $T[$i][$j] + 24)));
    }
-   print "\n";
 }
+
+binmode STDOUT;
+print $img->png;
