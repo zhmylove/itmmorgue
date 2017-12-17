@@ -53,7 +53,7 @@ case $OS in
         CFLAGS="$CFLAGS -pthread"
         ;;
     Linux)
-        CFLAGS="$CFLAGS -lncursesw -pthread"
+        CFLAGS="$CFLAGS -lncursesw -pthread -I /usr/include/ncursesw"
         CFLAGS_END="-lncursesw"
         ;;
     *)
