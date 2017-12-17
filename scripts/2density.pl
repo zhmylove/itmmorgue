@@ -9,9 +9,11 @@ use utf8;
 
 use GD::Simple;
 
-my $h = 256;    # height
-my $w = 256;    # width
-my $scale = 26; # scale for gradient color (see GD.pm)
+my $h = 768;     # height
+my $w = 768;     # width
+my $scale = 26;  # scale for gradient color (see GD.pm)
+my $burden = 50; # initial radius of changes
+my $bstep = 150; # burden stepping
 
 my @T; # surface array
 my @D; # dirty flag
@@ -32,7 +34,7 @@ my @D; # dirty flag
 for (my $i = 0; $i < $h; $i++) {
    for (my $j = 0; $j < $w; $j++) {
       $T[$i][$j] = 50;
-      $D[$i][$j] = 1;
+      $D[$i][$j] = 0;
    }
 }
 
@@ -46,6 +48,8 @@ sub fill_a_circle($) {
    my ($rx, $ry) = (int($h * rand), int($w * rand));
    $rx = $h if $rx > $h;
    $ry = $w if $ry > $w;
+   return 0 if $D[$rx][$ry] > 1;
+
    # - get random delta
    my $sign = (rand >= 0.5) ? -1 : 1;
    my $delta = $sign * $strength * rand;
@@ -66,23 +70,24 @@ sub fill_a_circle($) {
 
       for (my $i = $minX; $i < $maxX; $i++) {
          for (my $j = $minY; $j < $maxY; $j++) {
-            if (($i - $rx)**2 + ($j - $ry)**2 < $radius * $radius) {
+            #if (($i - $rx)**2 + ($j - $ry)**2 < $radius * $radius)
+            {
                $T[$i][$j] += $sign;
-               $D[$i][$j] = 0;
+               $D[$i][$j] ++;
             }
          }
       }
    } while ($radius-- > 0);
+
+   return 1;
 }
 
 do {
-   #TODO how many times?
-   fill_a_circle(25);
-   fill_a_circle(25);
+   $burden += $bstep if fill_a_circle($burden);
 } while (sub {
       for (my $i = 0; $i < $h; $i++) {
          for (my $j = 0; $j < $w; $j++) {
-            return 1 if $D[$i][$j];
+            return 1 unless $D[$i][$j];
          }
       }
       return 0;
