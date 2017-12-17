@@ -2,135 +2,94 @@
 # made by: KorG
 
 use strict;
-use v5.18;
 use warnings;
-no warnings 'experimental';
-use utf8;
+use v5.18;
 
 use GD::Simple;
 
-my $h = 768;     # height
-my $w = 768;     # width
-my $scale = 26;  # scale for gradient color (see GD.pm)
-my $burden = 50; # initial radius of changes
-my $bstep = 150; # burden stepping
+my $range = 50;
+my $H = 768;
+my $W = 768;
 
-my @T; # surface array
-my @D; # dirty flag
+my ($levels, $step_min, $step_max) = (21, 15, 55);
 
-###
-#
-# SYNOPSIS
-#
-# This code generates a surface for smooth 2D probability distribution.
-# You may be interested in dividing all of the values by $scale and
-# use the result as trees density.
-#
-# TODO we have to decide how many times call fill_a_circle()
-#
-###
+# T -- result
+# C -- current
+# N -- next
+# D -- deltas
+# S -- steps
+my (@T, @C, @N, @D, @S);
+my ($line, $abs_max, $abs_min, $steps) = (0, -~0, ~0);
 
-# Initial fill of the surface
-for (my $i = 0; $i < $h; $i++) {
-   for (my $j = 0; $j < $w; $j++) {
-      $T[$i][$j] = 50;
-      $D[$i][$j] = 0;
-   }
-}
+srand;
 
-# Modify a circle subarea
-# arg: modification power
-sub fill_a_circle($) {
-   print STDERR ">";
-   my $strength = $_[0];
+sub get_line(\@) {
+   my $out = $_[0];
+   @$out = ();
 
-   # - get random point
-   my ($rx, $ry) = (int($h * rand), int($w * rand));
-   $rx = $h if $rx > $h;
-   $ry = $w if $ry > $w;
-   return 0 if $D[$rx][$ry] > 1;
+   my $first = $range * rand;
+   my $curr = $first;
 
-   # - get random delta
-   my $sign = (rand >= 0.5) ? -1 : 1;
-   my $delta = $sign * $strength * rand;
-   # - calculate radius of change
-   my $radius = int abs ($T[$rx][$ry] - $delta);
-   # - fill a circle
    do {
-      print STDERR "+";
 
-      my $minX = $rx - $radius;
-      $minX = 0 if $minX < 0;
-      my $maxX = $rx + $radius + 1;
-      $maxX = $h if $maxX > $h;
-      my $minY = $ry - $radius;
-      $minY = 0 if $minY < 0;
-      my $maxY = $ry + $radius + 1;
-      $maxY = $w if $maxY > $w;
+      my $sign = rand >= 0.5 ? -1 : 1;
 
-      for (my $i = $minX; $i < $maxX; $i++) {
-         for (my $j = $minY; $j < $maxY; $j++) {
-            #if (($i - $rx)**2 + ($j - $ry)**2 < $radius * $radius)
-            {
-               $T[$i][$j] += $sign;
-               $D[$i][$j] ++;
-            }
-         }
-      }
-   } while ($radius-- > 0);
+      my $count = int ($step_min + $step_max * rand);
 
-   return 1;
+      my $delta = $range * rand; #TODO lower boundary of diff
+      my $step = ($delta - $curr) / $count;
+
+      do {
+         push @$out, $curr;
+         $curr += $step;
+      } while ($count-- > 0 && @$out < $W);
+
+   } while (@$out < $W);
 }
+
+sub print_line(@) {
+   printf "%02d ", int for @_;
+   print "\n";
+}
+
+# first line
+get_line @C;
+push @{$T[$line++]}, @C;
 
 do {
-   $burden += $bstep if fill_a_circle($burden);
-} while (sub {
-      for (my $i = 0; $i < $h; $i++) {
-         for (my $j = 0; $j < $w; $j++) {
-            return 1 unless $D[$i][$j];
-         }
+   get_line @N;
+
+   my $max = -~0;
+
+   for (0..$W-1) {
+      $D[$_] = $N[$_] - $C[$_];
+      $max = $D[$_] if $D[$_] > $max;
+   }
+   my $steps = int abs ++$max;
+   $S[$_] = $D[$_] / $steps for (0..$W-1);
+
+   while ($steps-- > 0 && $line < $H) {
+      for (0..$W-1) {
+         $T[$line][$_] = ($C[$_] += $S[$_]);
+         $abs_max = $C[$_] if $abs_max < $C[$_];
+         $abs_min = $C[$_] if $abs_min > $C[$_];
       }
-      return 0;
-   }->() > 0);
+      $line++;
+   }
+} while ($line < $H);
 
-# Fix negatives
-for (my $i = 0; $i < $h; $i++) {
-   for (my $j = 0; $j < $w; $j++) {
-      $T[$i][$j] = abs $T[$i][$j];
+for (my $i = 0; $i < $H; $i++) {
+   for (my $j = 0; $j < $W; $j++) {
+      $T[$i][$j] = $levels * ($T[$i][$j] - $abs_min) / $abs_max;
    }
 }
+# print_line @{$T[$_]} for (0..$H-1);
 
-# Get max and min values
-my ($max, $min) = (-~0, ~0);
-for (my $i = 0; $i < $h; $i++) {
-   for (my $j = 0; $j < $w; $j++) {
-      $max = $T[$i][$j] if $max < $T[$i][$j];
-      $min = $T[$i][$j] if $min > $T[$i][$j];
-   }
-}
-
-# Move the surface down
-for (my $i = 0; $i < $h; $i++) {
-   for (my $j = 0; $j < $w; $j++) {
-      $T[$i][$j] -= $min;
-   }
-}
-
-# Normalize the surface
-$max -= $min;
-for (my $i = 0; $i < $h; $i++) {
-   for (my $j = 0; $j < $w; $j++) {
-      $T[$i][$j] = $scale * $T[$i][$j] / $max;
-   }
-}
-
-print STDERR "\n";
-my $img = GD::Simple->new($w, $h);
+my $img = GD::Simple->new($W, $H);
 $img->bgcolor("blue");
 $img->clear();
-# Print the surface out
-for (my $i = 0; $i < $h; $i++) {
-   for (my $j = 0; $j < $w; $j++) {
+for (my $i = 0; $i < $H; $i++) {
+   for (my $j = 0; $j < $W; $j++) {
       $img->line($j, $i, $j, $i,
          $img->fgcolor(sprintf("gradient%d", $T[$i][$j] + 24)));
    }
