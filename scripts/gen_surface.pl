@@ -7,6 +7,24 @@ use v5.18;
 
 use GD::Simple;
 
+###
+#
+# Generate the surface. It's the initial script for terra generation process.
+#
+# USAGE:
+# perl gen_surface.pl [-h<Height>] [-w<Width>] | ...
+#
+# ENVIRONMENT:
+# Basically, it should be enough to leave the ENVIRONMENT as is.
+# Here are available variables:
+#
+# - TILES=1  (default) stdout <<< tiles, as is
+# - RTILES=1           stdout <<< tiles, numbers
+# - PNG=1              stdout <<< binary(PNG image)
+# - TXT=1              stdout <<< human readable density map
+#
+###
+
 # range -- more mountains, less plains (also vertical contraction)
 # Height and Width
 my $range = 40;
@@ -79,8 +97,8 @@ sub print_tiles(@) {
 
    # 4 S_TREE
    # 5 S_GRASS
-   my ($S_TREE, $S_GRASS) = (4, 5);
-   ($S_TREE, $S_GRASS) = ("^", ".") if $ENV{RTILES};
+   my ($S_TREE, $S_GRASS) = ("^", ".");
+   ($S_TREE, $S_GRASS) = (4, 5) if $ENV{RTILES};
 
    #TODO get 0.3 and 0.3 magic constants from the parameters
    printf((rand($_) > rand(0.3) + 0.3) ? $S_TREE : $S_GRASS) for @_;

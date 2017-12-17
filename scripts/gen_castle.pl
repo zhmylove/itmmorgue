@@ -61,6 +61,6 @@ print @{$T[$_]}, "\n" for (0..$H-1);
 
 #TODO
 # 1. Move the castle to $rx x $ry
-# 2. Check if there is enought place for castle, or regenerate $rx x $ry
+# 2. Check if there is enough space for the castle, or regenerate $rx x $ry
 # 3. Improve $rx x $ry generation with padding to avoid overflows
 # 4. Generate @CASTLE dynamically
