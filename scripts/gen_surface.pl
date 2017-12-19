@@ -31,8 +31,8 @@ use gen;
 # range -- more mountains, less plains (also vertical contraction)
 # Height and Width
 my $range = 40;
-my $H = 90;
-my $W = 130;
+my $H = 24;
+my $W = 80;
 
 # levels   -- something for normalization (21 : see gradiens in GD.pm)
 # step_min -- keyline distance stepping (aka horizontal contraction)
