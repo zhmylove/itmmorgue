@@ -85,7 +85,10 @@ sub overlay_unsafe {
 
    while ($h > 0) {
       my $ty = $y;
-      $T->[$x][$ty++] = $_ for @{$building->[@$building - $h--]};
+      for (@{$building->[@$building - $h--]}) {
+         $ty++ and next unless defined $_ && !/[ ]/;
+         $T->[$x][$ty++] = $_;
+      }
       $x++;
    }
 }
