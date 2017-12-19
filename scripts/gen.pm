@@ -101,35 +101,61 @@ sub check_area_is_free {
    my $T = get_level_ref();
 
    while ($h-- > 0) {
-      return 0 if grep {!/[.^]/} @{$T->[$x++]}[$y..$y+$w-1];
+      return 0 if grep {!/[.,^]/} @{$T->[$x++]}[$y..$y+$w-1];
    }
 
    return 1;
 }
 
+# (internal, unsafe) Fill specified area with char
+sub _fill_area_with_char {
+   die "Wrong number of arguments " unless @_ == 5;
+   my ($x, $y, $h, $w, $pchar) = @_;
+
+   my $T = get_level_ref();
+   while ($h-- > 0) {
+      @{$T->[$x++]}[$y..$y+$w-1] = split //, $pchar x $w;
+   }
+}
+
 # Get free area on the current level
-# arg1: area height
-# arg2: area width
+# arg1:      area height
+# arg2:      area width
+# opt. arg3: area padding
+# opt. arg4: padding character
 sub get_free_area {
-   my ($self, $h, $w) = @_;
+   my ($self, $h, $w, $p, $pchar) = @_;
+
+   # default padding is 0
+   $p = 0 unless defined $p;
 
    die "Invalid height or width" unless defined $h && defined $w;
 
    my ($H, $W) = get_size();
 
-   die "Level ($W.$H) is too small for area ($w.$h)" if $H < $h || $W < $w;
+   die "Level ($W.$H) is too small for area ($w.$h) with padding $p!" if
+   ($H < $h + 2 * $p) || ($W < $w + 2 * $p);
 
    # random X and Y on the level
    my ($rx, $ry);
 
-   #TODO correct the value
+   #TODO correct ttl value
    my $ttl = 1e3;
 
    do {
-      ($rx, $ry) = (int rand($H - 1 - $h), int rand($W - 1 - $w));
-   } while ($ttl-- > 0 && not check_area_is_free(undef, $rx, $ry, $h, $w));
+      $rx = $p + int rand($H - 1 - $h - 2 * $p);
+      $ry = $p + int rand($W - 1 - $w - 2 * $p);
+   } while ($ttl-- > 0 && not check_area_is_free(
+         undef, $rx - $p, $ry - $p, $h + 2 * $p, $w + 2 * $p
+      )
+   );
 
    die "Unable to get free area" unless $ttl > 0;
+
+# fill padding area if character specified
+#TODO fill only padding
+   _fill_area_with_char($rx - $p, $ry - $p, $h + 2 * $p, $w + 2 * $p, $pchar)
+   if defined $pchar;
 
    ($ry, $rx);
 }

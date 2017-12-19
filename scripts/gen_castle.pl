@@ -17,33 +17,31 @@ my ($H, $W) = gen->get_size();
 
 my @CASTLE = (
    [ split //, "###########" ],
-   [ split //, "#.........#" ],
-   [ split //, "#..#...#..#" ],
-   [ split //, "#..#...#..#" ],
-   [ split //, "#..#...#..#" ],
-   [ split //, "#..#.C.#..#" ],
-   [ split //, "#..#...#..#" ],
-   [ split //, "#..#####..#" ],
-   [ split //, "#.........#" ],
-   [ split //, "#####.#####" ],
-   [ split //, "....#.#...." ],
-   [ split //, "^.^.#.#.^.^" ],
-   [ split //, ".^..#.#..^." ],
+   [ split //, "#_________#" ],
+   [ split //, "#__#___#__#" ],
+   [ split //, "#__#___#__#" ],
+   [ split //, "#__#___#__#" ],
+   [ split //, "#__#_C_#__#" ],
+   [ split //, "#__#___#__#" ],
+   [ split //, "#__#####__#" ],
+   [ split //, "#_________#" ],
+   [ split //, "#####_#####" ],
+   [ split //, "....#_#...." ],
+   [ split //, "^.^.#_#.^.^" ],
+   [ split //, ".^..#_#..^." ],
    [ split //, "^.^.....^.^" ],
 );
 
-# Get random point for the castle
-my ($ry, $rx) = gen->get_free_area(scalar @CASTLE, scalar @{$CASTLE[0]});
-
 # Put the building on the level
-gen->overlay_unsafe($ry, $rx, \@CASTLE);
+gen->overlay_unsafe(
+   gen->get_free_area(scalar @CASTLE, scalar @{$CASTLE[0]}, 1, ','),
+   \@CASTLE);
 
-($ry, $rx) = gen->get_free_area(scalar @CASTLE, scalar @{$CASTLE[0]});
-gen->overlay_unsafe($ry, $rx, \@CASTLE);
+gen->overlay_unsafe(
+   gen->get_free_area(scalar @CASTLE, scalar @{$CASTLE[0]}),
+   \@CASTLE);
 
 # Print the surface
 gen->print_level();
 
-#TODO
-# * Improve $rx x $ry generation with padding to avoid overflows
-# * Generate @CASTLE dynamically
+#TODO Generate @CASTLE dynamically
