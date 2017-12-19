@@ -4,8 +4,11 @@
 use strict;
 use warnings;
 use v5.18;
+use lib '.';
 
-use GD::Simple;
+use gen;
+
+#use GD::Simple;
 
 ###
 #
@@ -36,13 +39,17 @@ my $W = 130;
 # step_max
 my ($levels, $step_min, $step_max) = (0.9, 15, 55);
 
-# T -- result
 # C -- current
 # N -- next
 # D -- deltas
 # S -- steps
-my (@T, @C, @N, @D, @S);
-my ($line, $abs_max, $abs_min, $steps) = (0, -~0, ~0);
+my (@C, @N, @D, @S);
+# T -- result reference
+my ($line, $abs_max, $abs_min, $steps, $T) = (0, -~0, ~0);
+
+# Let's generate level 0 -- the surface
+gen->level(0);
+$T = gen->get_level_ref();
 
 # Parse options
 for (@ARGV) {
@@ -107,7 +114,7 @@ sub print_tiles(@) {
 
 # first keyline
 get_line @C;
-push @{$T[$line++]}, @C;
+push @{$T->[$line++]}, @C;
 
 do {
    get_line @N;
@@ -123,7 +130,7 @@ do {
 
    while ($steps-- > 0 && $line < $H) {
       for (0..$W-1) {
-         $T[$line][$_] = ($C[$_] += $S[$_]);
+         $T->[$line][$_] = ($C[$_] += $S[$_]);
          $abs_max = $C[$_] if $abs_max < $C[$_];
          $abs_min = $C[$_] if $abs_min > $C[$_];
       }
@@ -133,12 +140,12 @@ do {
 
 for (my $i = 0; $i < $H; $i++) {
    for (my $j = 0; $j < $W; $j++) {
-      $T[$i][$j] = $levels * ($T[$i][$j] - $abs_min) / $abs_max;
+      $T->[$i][$j] = $levels * ($T->[$i][$j] - $abs_min) / $abs_max;
    }
 }
 
 if (1 == ($ENV{TXT} // 0)) {
-   print_line @{$T[$_]} for (0..$H-1);
+   print_line @{$T->[$_]} for (0..$H-1);
 }
 
 ###
@@ -150,7 +157,7 @@ if (1 == ($ENV{TXT} // 0)) {
 
 if ((1 == ($ENV{TILES} // 0)) ||
    (not defined $ENV{PNG} && not defined $ENV{TXT})) {
-   print_tiles @{$T[$_]} for (0..$H-1);
+   print_tiles @{$T->[$_]} for (0..$H-1);
 }
 
 
@@ -161,7 +168,7 @@ if (1 == ($ENV{PNG} // 0)) {
    for (my $i = 0; $i < $H; $i++) {
       for (my $j = 0; $j < $W; $j++) {
          $img->line($j, $i, $j, $i,
-            $img->fgcolor(sprintf("gradient%d", $T[$i][$j] + 24)));
+            $img->fgcolor(sprintf("gradient%d", $T->[$i][$j] + 24)));
       }
    }
 
