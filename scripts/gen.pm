@@ -9,6 +9,7 @@ use warnings;
 no warnings 'experimental';
 use utf8;
 binmode STDOUT, ':utf8';
+srand;
 
 my (@WORLD, @SIZE);
 my $level = 0;
@@ -152,12 +153,29 @@ sub get_free_area {
 
    die "Unable to get free area" unless $ttl > 0;
 
-# fill padding area if character specified
-#TODO fill only padding
+   # fill padding area if character specified
+   #TODO fill only padding
    _fill_area_with_char($rx - $p, $ry - $p, $h + 2 * $p, $w + 2 * $p, $pchar)
    if defined $pchar;
 
    ($ry, $rx);
+}
+
+# Overlay arg1 array over current level on free space
+# arg1:      2d array reference
+# opt. arg2: padding
+# opt. arg3: padding character
+sub overlay_anywhere {
+   my ($self, $array, $padding, $pchar) = @_;
+
+   die "Not an ARRAY reference at all: $array" unless ref $array eq "ARRAY";
+   die "Not an ARRAY reference: $array->[0]" unless ref $array->[0] eq "ARRAY";
+
+   overlay_unsafe(undef, get_free_area(
+         undef, scalar @$array, scalar @{$array->[0]}, $padding, $pchar
+      ),
+      $array
+   );
 }
 
 1;

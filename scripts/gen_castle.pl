@@ -11,9 +11,8 @@ use lib '.';
 
 use gen;
 
-srand;
-my $T = gen->read_level();
-my ($H, $W) = gen->get_size();
+# Read a level into memory from STDIN
+gen->read_level();
 
 my @CASTLE = (
    [ split //, "###########" ],
@@ -32,14 +31,9 @@ my @CASTLE = (
    [ split //, "^.^.....^.^" ],
 );
 
-# Put the building on the level
-gen->overlay_unsafe(
-   gen->get_free_area(scalar @CASTLE, scalar @{$CASTLE[0]}, 1, ','),
-   \@CASTLE);
-
-gen->overlay_unsafe(
-   gen->get_free_area(scalar @CASTLE, scalar @{$CASTLE[0]}),
-   \@CASTLE);
+# Put some buildings on the level
+gen->overlay_anywhere(\@CASTLE, 2, 'x');
+gen->overlay_anywhere(\@CASTLE);
 
 # Print the surface
 gen->print_level();
