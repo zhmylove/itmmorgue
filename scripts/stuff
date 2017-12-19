@@ -1,0 +1,31 @@
+-=- Here is the list of stuff symbols -=-
+- TITLE   -- enum element title
+- IN_GEN  -- character for generator
+- IN_GAME -- default value (for view)
+- COMMENT -- comment
+
+TITLE           IN_GEN IN_GAME COMMENT
+------------------------------------------------------------------------------
+S_NONE          [ ]    [ ]     // should be considered transparent
+S_CITY          [,]    [.]     // city outside buildings
+S_FLOOR         [_]    [.]     // in building
+S_WALL          [#]    [#]     // of building
+S_DOOR          [+]    [+]     // of building
+S_TREE          [^]    [^]     // in forest
+S_GRASS         [.]    [.]     // in forest
+S_FIELD         [ ]    [.]     // in plains
+S_PLAYER        [@]    [@]
+S_DOWNSTAIRS    [>]    [>]
+S_UPSTAIRS      [<]    [<]
+                       
+S_TRAP          [ ]    [^]
+S_FOOD          ---    [%]
+                       
+S_GOLD          [$]    [$]
+S_SCROLL        [ ]    [?]
+S_BOOK          [ ]    [?]
+                       
+S_RING          [ ]    [*]
+S_WAND          [/]    [/]
+
+S_SIZE          ---    ---     // used as enum size
