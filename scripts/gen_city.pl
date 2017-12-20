@@ -38,6 +38,9 @@ $building = [ map { [ split // ] } (
    )
 ];
 
+# Rotate the building somehow
+gen->array_rotate($building);
+
 # Overlay the building
 gen->overlay_anywhere($building);
 

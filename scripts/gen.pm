@@ -196,6 +196,7 @@ sub overlay_anywhere {
 sub recreate_level_unsafe {
    my ($self, $y, $x, $char) = @_;
    my $T = get_level_ref();
+   $char = ' ' unless defined $char;
 
    # Feast for garbage collector
    @$T = ();
@@ -204,6 +205,50 @@ sub recreate_level_unsafe {
    @{$T->[$_]} = split //, $char x $x for 0..$y-1;
 
    update_size();
+}
+
+# Rotate specified array
+# arg1:      array reference
+# opt. arg2: direction ( 0 -- nothing, 1 -- CW, 2 -- 180, 3 -- CCW )
+sub array_rotate {
+   my ($self, $array, $direction) = @_;
+
+   $direction = int rand 4 unless defined $direction;
+
+   return unless $direction;
+
+   sub _reverse {
+      my $ref = $_[0];
+
+      @{$ref->[$_]} = reverse @{$ref->[$_]} for 0..@$ref - 1;
+   }
+
+   sub _flip {
+      my $ref = $_[0];
+
+      @$ref = reverse @$ref;
+   }
+
+   sub _cw {
+      my $ref = $_[0];
+
+      my @new;
+      for my $line (0..@{$ref->[0]} - 1) {
+         @{$new[$line]} = map { $ref->[$_][$line] } 0..@$ref - 1;
+      }
+      @$ref = @new;
+   }
+
+   if ($direction == 1) {      #CW
+      _cw($array);
+      _reverse($array);
+   } elsif ($direction == 2) { # 180 degree rotation
+      _flip($array);
+      _reverse($array);
+   } else {                    # CCW
+      _cw($array);
+      _flip($array);
+   }
 }
 
 1;

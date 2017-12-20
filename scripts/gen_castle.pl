@@ -31,6 +31,9 @@ my @CASTLE = map { [ split // ] } (
    "^ ^     ^ ^" ,
 );
 
+# Rotate the building somehow
+gen->array_rotate(\@CASTLE);
+
 # Put some buildings on the level
 gen->overlay_anywhere(\@CASTLE, 2, ',');
 gen->overlay_anywhere(\@CASTLE);
