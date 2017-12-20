@@ -13,9 +13,17 @@ srand;
 
 my (@WORLD, @SIZE);
 my $level = 0;
+my $qr_free = qr'[.^]';
 
-# Get or set the current level
+# Get or set current level
 sub level { $level = $_[1] // $level }
+
+# Get or set current free regex
+sub free_regex {
+   my $regex = $_[1] // '[.^]';
+
+   $qr_free = qr"$regex";
+}
 
 # (internal) Return a reference to the whole world
 sub _get_world_ref { \@WORLD }
@@ -105,7 +113,7 @@ sub check_area_is_free {
    my $T = get_level_ref();
 
    while ($h-- > 0) {
-      return 0 if grep {!/[.,^]/} @{$T->[$x++]}[$y..$y+$w-1];
+      return 0 if grep {!/$qr_free/} @{$T->[$x++]}[$y..$y+$w-1];
    }
 
    return 1;
@@ -157,7 +165,7 @@ sub get_free_area {
    die "Unable to get free area" unless $ttl > 0;
 
    # fill padding area if character specified
-   #TODO fill only padding
+   #TODO fill only padding (be careful with S_NONE)
    _fill_area_with_char($rx - $p, $ry - $p, $h + 2 * $p, $w + 2 * $p, $pchar)
    if defined $pchar;
 
@@ -179,6 +187,23 @@ sub overlay_anywhere {
       ),
       $array
    );
+}
+
+# Recreate level and fill it with specified character
+# arg1:      Y size of the level
+# arg2:      X size of the level
+# opt. arg3: a character to fill the level with
+sub recreate_level_unsafe {
+   my ($self, $y, $x, $char) = @_;
+   my $T = get_level_ref();
+
+   # Feast for garbage collector
+   @$T = ();
+
+   # Fill entire level
+   @{$T->[$_]} = split //, $char x $x for 0..$y-1;
+
+   update_size();
 }
 
 1;
