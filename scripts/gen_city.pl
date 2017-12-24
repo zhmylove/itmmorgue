@@ -17,9 +17,6 @@ gen->read_level();
 # Switch to the first level
 gen->level(1);
 
-# Get a reference to the first level
-my $CITY = gen->get_level_ref();
-
 # Create a new level
 gen->recreate_level_unsafe(15, 10, ',');
 
@@ -38,11 +35,8 @@ $building = [ map { [ split // ] } (
    )
 ];
 
-# Rotate the building somehow
-gen->array_rotate($building);
-
-# Overlay the building
-gen->overlay_anywhere($building);
+# Overlay the building with rotation
+gen->overlay_somehow($building);
 
 #TODO Make a loop to build multiple buildings. use eval or die
 
@@ -53,7 +47,7 @@ gen->level(0);
 gen->free_regex();
 
 # Overlay generated city over it
-gen->overlay_anywhere($CITY);
+gen->overlay_somehow(gen->get_level_ref(1));
 
 # Print the level
 gen->print_level(0);

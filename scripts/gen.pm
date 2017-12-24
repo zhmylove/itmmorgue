@@ -251,4 +251,26 @@ sub array_rotate {
    }
 }
 
+# Overlay arg1 array over current level on free space with random rotation
+# arg1:      array reference
+# opt. arg2: hash with args for subroutines:
+#  - rotate   => ARRAY (array_rotate)
+#  - overlay  => ARRAY (overlay_anywhere)
+sub overlay_somehow {
+   my ($self, $array, $args) = @_;
+
+   die "Not an ARRAY reference at all: $array" unless ref $array eq "ARRAY";
+   die "Not an ARRAY reference: $array->[0]" unless ref $array->[0] eq "ARRAY";
+
+   return array_rotate(undef, $array), overlay_anywhere(undef, $array)
+   unless defined $args;
+
+   my (@rotate, @overlay);
+   @rotate  = @{$args->{rotate}}  if defined $args->{rotate};
+   @overlay = @{$args->{overlay}} if defined $args->{overlay};
+
+   array_rotate(undef, $array, @rotate);
+   overlay_anywhere(undef, $array, @overlay);
+}
+
 1;
