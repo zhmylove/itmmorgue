@@ -273,4 +273,63 @@ sub overlay_somehow {
    overlay_anywhere(undef, $array, @overlay);
 }
 
+sub generate_blurred_area {
+   die "Invalid arguments number" unless @_ == 4;
+
+   my ($self, $level, $char, $factor) = @_;
+
+   die "Level $level does not exist" unless ref $WORLD[$level] eq "ARRAY";
+
+   die "Invalid $factor <> (0..1)" unless $factor >= 0 && $factor <= 1;
+   
+   my ($h, $w) = get_size(undef, $level);
+
+   my $sx = 0.5 * (1 - $factor) * $h;
+   my $sy = 0.5 * (1 - $factor) * $w; #TODO check <<<<<
+
+   my $T = get_level_ref();
+
+   # Generate smooth random line y(0) = 0 and y($) = 0
+   # arg1: length
+   # arg2: start_solid
+   # arg3: stop_solid
+   # arg4: char
+   sub _get_line($$$$) {
+      my @L;
+
+      my ($length, $start_solid, $stop_solid, $char) = @_;
+      my $curr = 0;
+
+      my $magic_constant = 3;
+
+      # Left side (before solid block)
+      do {
+         push @L, ($curr >= $magic_constant) ? $char : " ";
+         $curr += rand($start_solid) / $start_solid;
+      } while (@L < $start_solid);
+
+      # Solid block
+      push @L, $char while (@L < $stop_solid);
+
+      $curr = 2 * $magic_constant;
+
+      # Right side (after solid block)
+      do {
+         push @L, ($curr >= $magic_constant) ? $char : " ";
+         $curr -= rand($start_solid) / $start_solid;
+      } while (@L < $length);
+
+
+      @L;
+   }
+
+   #TODO do something with non-solid height (upper and lower boundaries)
+
+   for (my $x = 0; $x < $h; $x++) {
+      $T->[$x] = [ _get_line($w, $sx, $w - $sx, $char) ];
+   }
+
+   $T;
+}
+
 1;

@@ -17,10 +17,15 @@ gen->read_level();
 # Switch to the first level
 gen->level(1);
 
-# Create a new level
-gen->recreate_level_unsafe(15, 10, ',');
+# Get random angle for the city being built
+my $city_angle = int rand 4;
 
-#TODO Generate interesting city ground
+# Create a new level
+#TODO generate random city size
+gen->recreate_level_unsafe($city_angle % 2 ? (40, 20) : (20, 40));
+
+# Generate city ground
+gen->generate_blurred_area(1, ',', 0.15);
 
 # Use ',' as free space too
 gen->free_regex('[.,^]');
@@ -28,9 +33,10 @@ gen->free_regex('[.,^]');
 #TODO Generate this building dynamically
 my $building;
 $building = [ map { [ split // ] } (
+      "  1  ",
       "##+##",
-      "#...#",
-      "#...#",
+      "#___#",
+      "#___#",
       "#####",
    )
 ];
@@ -47,7 +53,7 @@ gen->level(0);
 gen->free_regex();
 
 # Overlay generated city over it
-gen->overlay_somehow(gen->get_level_ref(1));
+gen->overlay_somehow(gen->get_level_ref(1), {rotate => [$city_angle]});
 
 # Print the level
 gen->print_level(0);
