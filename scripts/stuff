@@ -14,7 +14,7 @@ S_WALL          [#]    [#]     ---         // of building
 S_DOOR          [+]    [+]     ---         // of building
 S_TREE          [^]    [^]     [3]         // in forest
 S_GRASS         [.]    [.]     [4]         // in forest
-S_FIELD         [ ]    [.]     [5]         // in plains (?)
+S_FIELD         ["]    [.]     [5]         // in plains (?)
 S_PLAYER        [@]    [@]     ---  
 S_DOWNSTAIRS    [>]    [>]     ---  
 S_UPSTAIRS      [<]    [<]     ---  

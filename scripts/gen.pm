@@ -13,14 +13,14 @@ srand;
 
 my (@WORLD, @SIZE);
 my $level = 0;
-my $qr_free = qr'[.^]';
+my $qr_free = qr'[."^]';
 
 # Get or set current level
 sub level { $level = $_[1] // $level }
 
 # Get or set current free regex
 sub free_regex {
-   my $regex = $_[1] // '[.^]';
+   my $regex = $_[1] // '[."^]';
 
    $qr_free = qr"$regex";
 }

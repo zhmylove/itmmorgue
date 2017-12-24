@@ -28,7 +28,7 @@ gen->recreate_level_unsafe($city_angle % 2 ? (40, 20) : (20, 40));
 gen->generate_blurred_area(1, ',', 0.15);
 
 # Use ',' as free space too
-gen->free_regex('[.,^]');
+gen->free_regex('[.,"^]');
 
 #TODO Generate this building dynamically
 my $building;

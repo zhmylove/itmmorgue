@@ -104,11 +104,22 @@ sub print_tiles(@) {
 
    # 4 S_TREE
    # 5 S_GRASS
-   my ($S_TREE, $S_GRASS) = ("^", ".");
-   ($S_TREE, $S_GRASS) = (4, 5) if $ENV{RTILES};
+   # 6 S_GRASS
+   my ($S_TREE, $S_GRASS, $S_FIELD) = ("^", ".", "\"");
+   ($S_TREE, $S_GRASS, $S_FIELD) = (4, 5, 6) if $ENV{RTILES};
 
    #TODO get 0.3 and 0.3 magic constants from the parameters
-   printf((rand($_) > rand(0.3) + 0.3) ? $S_TREE : $S_GRASS) for @_;
+
+   for (@_) {
+      my ($rand, $threshold) = (rand($_), rand(0.3));
+      if ($rand > $threshold + 0.3) {
+         printf $S_TREE;
+      } elsif ($rand < 0.1) { #TODO estimate this magic value
+         printf $S_FIELD;
+      } else {
+         printf $S_GRASS;
+      }
+   }
    print "\n";
 }
 
