@@ -2,7 +2,7 @@
 - TITLE       -- enum element title
 - IN_GEN      -- character for generator
 - IN_GAME     -- default value (for view)
-- PLACEHOLDER -- walkable space placeholder (next to doors), should be replaced in the end
+- PLACEHOLDER -- walkable space placeholder (next to doors)
 - COMMENT     -- comment
 
 TITLE           IN_GEN IN_GAME PLACEHOLDER COMMENT
