@@ -32,9 +32,10 @@ S_POTION        [l]    [!]     ---
 
 S_SIZE          ---    ---     ---         // used as enum size
 
--=- Need to be set after level import by the game itself
+-=- Needs to be set by the game itself right after level import 
 A-Z -- building types and spawned inside mobs:
-- C -- castle (loot and spawn special mobs)
+- C -- castle (expensive loot and spawn special aggressive mobs)
+- F -- fortress (spawn peaceful mobs and probably expensive loot)
 
 t   -- trap
 l   -- loot
