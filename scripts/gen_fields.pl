@@ -6,7 +6,7 @@ use warnings;
 
 my @f = ();
 
-s/\n//, push @f, [split(//, $_)] while <>;
+s/\n//, push @f, [split(//, $_)] while <STDIN>;
 my @nf = ();
 
 for my $i (0..@f-1) {
@@ -19,9 +19,18 @@ for my $i (0..@f-1) {
   }
 }
 
+my $finalize = 0;
+for (@ARGV) {
+  $finalize = 1 if /^-f$/;
+}
+
 for my $i (0..@f-1) {
   for my $j (0..@{$f[$i]}-1) {
-    $f[$i][$j] = $nf[$i][$j] >= 5 ? '"' : '.' if $f[$i][$j] =~ /[".]/;
+    if ($finalize) {
+      $f[$i][$j] = '.' if $f[$i][$j] =~ /[".]/ && $nf[$i][$j] <= 4;
+    } else {
+      $f[$i][$j] = $nf[$i][$j] >= 4 ? '"' : '.' if $f[$i][$j] =~ /[".]/;
+    }
   }
 }
 
