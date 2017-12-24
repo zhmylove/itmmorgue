@@ -1,31 +1,35 @@
 -=- Here is the list of stuff symbols -=-
-- TITLE   -- enum element title
-- IN_GEN  -- character for generator
-- IN_GAME -- default value (for view)
-- COMMENT -- comment
+- TITLE       -- enum element title
+- IN_GEN      -- character for generator
+- IN_GAME     -- default value (for view)
+- PLACEHOLDER -- walkable space placeholder (next to doors), should be replaced in the end
+- COMMENT     -- comment
 
-TITLE           IN_GEN IN_GAME COMMENT
+TITLE           IN_GEN IN_GAME PLACEHOLDER COMMENT
 ------------------------------------------------------------------------------
-S_NONE          [ ]    [ ]     // should be considered transparent
-S_CITY          [,]    [.]     // city outside buildings
-S_FLOOR         [_]    [.]     // in building
-S_WALL          [#]    [#]     // of building
-S_DOOR          [+]    [+]     // of building
-S_TREE          [^]    [^]     // in forest
-S_GRASS         [.]    [.]     // in forest
-S_FIELD         [ ]    [.]     // in plains
-S_PLAYER        [@]    [@]
-S_DOWNSTAIRS    [>]    [>]
-S_UPSTAIRS      [<]    [<]
-                       
-S_TRAP          [ ]    [^]
-S_FOOD          ---    [%]
-                       
-S_GOLD          [$]    [$]
-S_SCROLL        [ ]    [?]
-S_BOOK          [ ]    [?]
-                       
-S_RING          [ ]    [*]
-S_WAND          [/]    [/]
+S_NONE          [ ]    [ ]     ---         // should be considered transparent
+S_CITY          [,]    [.]     [1]         // city outside buildings
+S_FLOOR         [_]    [.]     [2]         // in building
+S_WALL          [#]    [#]     ---         // of building
+S_DOOR          [+]    [+]     ---         // of building
+S_TREE          [^]    [^]     [3]         // in forest
+S_GRASS         [.]    [.]     [4]         // in forest
+S_FIELD         [ ]    [.]     [5]         // in plains
+S_PLAYER        [@]    [@]     ---  
+S_DOWNSTAIRS    [>]    [>]     ---  
+S_UPSTAIRS      [<]    [<]     ---  
+                               ---  
+S_TRAP          [ ]    [^]     ---  
+S_FOOD          ---    [%]     [l]         // l for loot
+                               ---  
+S_GOLD          [$]    [$]     [l] 
+S_SCROLL        [ ]    [?]     [l] 
+S_BOOK          [ ]    [?]     [l] 
+                               ---  
+S_RING          [ ]    [*]     [l] 
+S_WAND          [/]    [/]     [l] 
+                               ---  
+S_SIZE          ---    ---     ---         // used as enum size
 
-S_SIZE          ---    ---     // used as enum size
+A-Z -- building types:
+C : castle (loot and spawn special mobs)
