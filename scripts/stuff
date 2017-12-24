@@ -14,22 +14,27 @@ S_WALL          [#]    [#]     ---         // of building
 S_DOOR          [+]    [+]     ---         // of building
 S_TREE          [^]    [^]     [3]         // in forest
 S_GRASS         [.]    [.]     [4]         // in forest
-S_FIELD         [ ]    [.]     [5]         // in plains
+S_FIELD         [ ]    [.]     [5]         // in plains (?)
 S_PLAYER        [@]    [@]     ---  
 S_DOWNSTAIRS    [>]    [>]     ---  
 S_UPSTAIRS      [<]    [<]     ---  
-                               ---  
-S_TRAP          [ ]    [^]     ---  
-S_FOOD          ---    [%]     [l]         // l for loot
-                               ---  
-S_GOLD          [$]    [$]     [l] 
-S_SCROLL        [ ]    [?]     [l] 
-S_BOOK          [ ]    [?]     [l] 
-                               ---  
-S_RING          [ ]    [*]     [l] 
-S_WAND          [/]    [/]     [l] 
-                               ---  
+
+S_TRAP          [t]    [^]     ---
+S_FOOD          ---    [%]     ---
+
+S_GOLD          [l]    [$]     ---
+S_SCROLL        [l]    [?]     --- 
+S_BOOK          [l]    [?]     --- 
+
+S_RING          [l]    [*]     --- 
+S_WAND          [l]    [/]     --- 
+S_POTION        [l]    [!]     --- 
+
 S_SIZE          ---    ---     ---         // used as enum size
 
-A-Z -- building types:
-C : castle (loot and spawn special mobs)
+-=- Need to be set after level import by the game itself
+A-Z -- building types and spawned inside mobs:
+- C -- castle (loot and spawn special mobs)
+
+t   -- trap
+l   -- loot
