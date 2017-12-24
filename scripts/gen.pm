@@ -284,8 +284,8 @@ sub generate_blurred_area {
    
    my ($h, $w) = get_size(undef, $level);
 
-   my $sx = 0.5 * (1 - $factor) * $h;
-   my $sy = 0.5 * (1 - $factor) * $w; #TODO check <<<<<
+   my $sy = 0.5 * (1 - $factor) * $h;
+   my $sx = 0.5 * (1 - $factor) * $w;
 
    my $T = get_level_ref();
 
@@ -298,6 +298,7 @@ sub generate_blurred_area {
       my @L;
 
       my ($length, $start_solid, $stop_solid, $char) = @_;
+
       my $curr = 0;
 
       my $magic_constant = 3;
@@ -319,14 +320,19 @@ sub generate_blurred_area {
          $curr -= rand($start_solid) / $start_solid;
       } while (@L < $length);
 
-
       @L;
    }
 
-   #TODO do something with non-solid height (upper and lower boundaries)
+   array_rotate(undef, $T, 1);
 
-   for (my $x = 0; $x < $h; $x++) {
-      $T->[$x] = [ _get_line($w, $sx, $w - $sx, $char) ];
+   for (my $x = $sx / 2; $x < $w - $sx / 2; $x++) {
+      $T->[$x] = [ _get_line($h, $sy, $h - $sy, $char) ];
+   }
+
+   array_rotate(undef, $T, 3);
+
+   for (my $y = $sy; $y < $h - $sy; $y++) {
+      $T->[$y] = [ _get_line($w, $sx, $w - $sx, $char) ];
    }
 
    $T;

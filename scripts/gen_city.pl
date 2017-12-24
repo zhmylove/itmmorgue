@@ -25,7 +25,7 @@ my $city_angle = int rand 4;
 gen->recreate_level_unsafe($city_angle % 2 ? (40, 20) : (20, 40));
 
 # Generate city ground
-gen->generate_blurred_area(1, ',', 0.15);
+gen->generate_blurred_area(1, ',', 0.45);
 
 # Use ',' as free space too
 gen->free_regex('[.,"^]');
