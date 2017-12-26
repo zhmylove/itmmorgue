@@ -14,6 +14,8 @@ void server() {
         panic("Server is already running!");
     }
 
+    s_levels_init();
+
     server_started = 1;
 
     addr.sin_family      = AF_INET;
@@ -98,8 +100,6 @@ void* process_client(connection_t *connection) {
 
     mqueue_t *s2c_queue = connection->mqueueptr;
     mqueue_init(s2c_queue);
-
-    s_levels_init();
 
     // TODO make this periodically
     s_level_send(0, players + id);
