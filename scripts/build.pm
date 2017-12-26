@@ -61,7 +61,7 @@ sub get_building {
   unless $w >= 5 && $h >= 5;
 
   # Checks that arg is wall
-  sub wallp { $stuff{wall} eq $_[0]; }
+  sub wallp { '#' eq $_[0]; }
 
   # Adds some doors to building
   sub place_doors {
