@@ -14,6 +14,8 @@ void server() {
         panic("Server is already running!");
     }
 
+    s_levels_init();
+
     server_started = 1;
 
     s_levels_init();
