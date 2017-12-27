@@ -18,8 +18,6 @@ void server() {
 
     server_started = 1;
 
-    s_levels_init();
-
     addr.sin_family      = AF_INET;
     addr.sin_port        = htons(SERVER_PORT);
     addr.sin_addr.s_addr = INADDR_ANY;
