@@ -8,6 +8,9 @@
 #else
 #include <ncurses/ncurses.h>
 #endif /* __FreeBSD__ || __linux__ */
+#if defined(__FreeBSD__)
+#include <sys/uio.h>
+#endif /* __FreeBSD__ */
 #include <stdlib.h>
 #include <string.h>
 #include <ctype.h>
