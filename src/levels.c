@@ -74,7 +74,8 @@ void s_area_send(size_t level, player_t *player) {
     tileblock_t *tbl;
     size_t size = LVL(level).max_y * LVL(level).max_x;
 
-    loggerf("[S] s_area_send(%lu): %d x %d", level, LVL(level).max_y, LVL(level).max_x);
+    loggerf("[S] s_area_send(%zu): %d x %d", level,
+            LVL(level).max_y, LVL(level).max_x);
 
     /* "1" is because tileblocks are unneeded in the game:
      * we had decided to send only visible data (.top)
