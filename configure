@@ -147,6 +147,9 @@ all: $EXECUTABLE
 run: run_client
 	@echo "Running the game..."
 
+test: all
+	@echo "Your test not passed! "
+
 run_client: $EXECUTABLE
 	$VARS_CLIENT $EXECUTABLE
 
