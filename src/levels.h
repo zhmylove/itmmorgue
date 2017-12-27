@@ -14,7 +14,7 @@ typedef struct level {
     uint64_t id;
     uint16_t max_y;
     uint16_t max_x;
-    uint16_t size;
+    uint32_t size;
     tile_t *area;
     char name[MAX_LEVEL_NAME];
 } level_t;
