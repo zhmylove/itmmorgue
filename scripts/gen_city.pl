@@ -10,6 +10,7 @@ binmode STDOUT, ':utf8';
 use lib '.';
 
 use gen;
+use build;
 
 # Read zero (main) level into memory from STDIN
 gen->read_level();
@@ -30,16 +31,15 @@ gen->generate_blurred_area(1, ',', 0.45);
 # Use ',' as free space too
 gen->free_regex('[.,"^]');
 
-#TODO Generate this building dynamically
-my $building;
-$building = [ map { [ split // ] } (
-      "  1  ",
-      "##+##",
-      "#___#",
-      "#___#",
-      "#####",
-   )
-];
+my $building = build::get_building(rand(13)+6, rand(13)+6);
+# $building = [ map { [ split // ] } (
+#       "  1  ",
+#       "##+##",
+#       "#___#",
+#       "#___#",
+#       "#####",
+#    )
+# ];
 
 # Overlay the building with rotation
 gen->overlay_somehow($building);
