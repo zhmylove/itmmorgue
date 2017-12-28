@@ -10,7 +10,7 @@ pusk() {
    perl "$@"
 }
 
-[ -z "$1" ] && set -w512 -h256
+[ -z "$1" ] && set -- -w512 -h256
 
 pusk "surface creation"       gen_surface.pl "$@"                      |
 pusk "fields normalization"   gen_fields.pl                            |

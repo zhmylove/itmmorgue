@@ -4,11 +4,13 @@
 
 enum stuff {
     S_NONE            ,
+    S_CITY            ,
     S_FLOOR           ,
     S_WALL            ,
     S_DOOR            ,
     S_TREE            ,
     S_GRASS           ,
+    S_FIELD           ,
     S_PLAYER          ,
     S_DOWNSTAIRS      ,
     S_UPSTAIRS        ,
@@ -22,6 +24,8 @@ enum stuff {
 
     S_RING            ,
     S_WAND            ,
+    S_POTION          ,
+
     S_SIZE
 };
 
