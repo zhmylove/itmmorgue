@@ -21,9 +21,12 @@ gen->level(1);
 # Get random angle for the city being built
 my $city_angle = int rand 4;
 
-# Create a new level
-#TODO generate random city size
-gen->recreate_level_unsafe($city_angle % 2 ? (40, 20) : (20, 40));
+# Create a new level for city
+my $size = 10 * 6 + rand(2 * 10 * 6);
+my ($city_h, $city_w) = (0.4 * $size, 0.6 * $size);
+gen->recreate_level_unsafe(
+   $city_angle % 2 ? ($city_w, $city_h) : ($city_h, $city_w)
+);
 
 # Generate city ground
 gen->generate_blurred_area(1, ',', 0.45);
@@ -31,7 +34,8 @@ gen->generate_blurred_area(1, ',', 0.45);
 # Use ',' as free space too
 gen->free_regex('[.,"^]');
 
-my $building = build::get_building(rand(13)+6, rand(13)+6);
+do {
+   my $building = build::get_building(rand(8)+5, rand(8)+5);
 # $building = [ map { [ split // ] } (
 #       "  1  ",
 #       "##+##",
@@ -41,8 +45,9 @@ my $building = build::get_building(rand(13)+6, rand(13)+6);
 #    )
 # ];
 
-# Overlay the building with rotation
-gen->overlay_somehow($building);
+   # Overlay the building with rotation
+   gen->overlay_somehow($building);
+} for (1..6);
 
 #TODO Make a loop to build multiple buildings. use eval or die
 
