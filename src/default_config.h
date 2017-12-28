@@ -184,6 +184,8 @@ struct t_conf_default {
     C_CHR("key_nine", '9'),
 
     C_CHR("stuff_none", ' '),
+    C_CHR("stuff_city", '.'),
+    C_CHR("stuff_field", '.'),
     C_CHR("stuff_floor", '.'),
     C_CHR("stuff_wall", '#'),
     C_CHR("stuff_door", '+'),
@@ -202,6 +204,7 @@ struct t_conf_default {
 
     C_CHR("stuff_ring", '='),
     C_CHR("stuff_wand", '/'),
+    C_CHR("stuff_potion", '!'),
 
     C_STR("player_nickname", ""),
     C_INT("player_color", 10),

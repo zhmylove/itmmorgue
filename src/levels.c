@@ -41,17 +41,23 @@ void s_levels_init() {
     while ((ch = getc(gen)) != EOF) {
         // TODO parse ch
         tile_t buftile;
+        // Unfortunately we can't write anything except switch()
         switch ((char)ch) {
             case '\n':
                 y++;
                 x = 0;
                 continue;
-            case '^':
-                buftile.top = S_TREE;
-                buftile.color = L_GREEN;
-                break;
+#define MAP(CHAR, TOP, COLOR) case CHAR: buftile.top = TOP; buftile.color = COLOR; break;
+                MAP('#', S_WALL        , D_WHITE   );
+                MAP('.', S_GRASS       , D_GREEN   );
+                MAP('^', S_TREE        , L_GREEN   );
+                MAP(',', S_CITY        , L_BLACK   );
+                MAP('_', S_FLOOR       , D_WHITE   );
+                MAP('"', S_FIELD       , D_YELLOW  );
+                MAP('+', S_DOOR        , L_WHITE   );
+#undef MAP
             default:
-                buftile.top = S_FLOOR;
+                buftile.top = S_NONE;
                 buftile.color = L_BLACK;
         }
         buftile.x = x;
