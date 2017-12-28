@@ -16,8 +16,8 @@ struct t_conf_default {
     char *key;
     conf_t value;
 } t_conf_default[] = {
-    C_INT("level_width", 256),
-    C_INT("level_height", 64),
+    C_INT("level_width", 512),
+    C_INT("level_height", 256),
 
     C_INT("win_stdscr_small_y", 0),
     C_INT("win_stdscr_small_y_ispercent", 0),
