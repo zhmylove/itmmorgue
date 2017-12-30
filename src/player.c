@@ -44,3 +44,14 @@ void s_players_send(player_t *player) {
     mqueue_put(player->connection->mqueueptr, s2c_mbuf);
 }
 
+void c_send_move(enum keyboard last_key) {
+    mbuf_t mbuf;
+    mbuf.msg.type = MSG_MOVE_PLAYER;
+    mbuf.msg.size = sizeof(enum keyboard);
+    if ((mbuf.payload = malloc(mbuf.msg.size)) == NULL) {
+        panic("[C] Error allocating movement buffer!");
+    }
+    memcpy(mbuf.payload, &last_key, mbuf.msg.size);
+
+    mqueue_put(&c2s_queue, mbuf);
+}

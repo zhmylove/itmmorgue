@@ -172,7 +172,7 @@ void c_chat_open() {
             char *buf = malloc(bufsize);
             snprintf(buf, bufsize, "<%s> %s", nickname, input);
             size_t size = strlen(buf) + 1;
-            mbuf.payload = malloc(size);
+            mbuf.payload = malloc(size); // TODO check
             mbuf.msg.type = MSG_NEW_CHAT;
             mbuf.msg.size = size;
             memcpy(mbuf.payload, buf, size);

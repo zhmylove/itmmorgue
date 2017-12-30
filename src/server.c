@@ -162,6 +162,9 @@ void* process_client(connection_t *connection) {
             case MSG_REPORT_NICKNAME:
                 logger("[S] [REPORT_NICKNAME]");
                 break;
+            case MSG_MOVE_PLAYER:
+                logger("[S] [REPORT_NICKNAME]");
+                break;
             default:
                 warnf("Unknown type: %d", mbuf.msg.type);
                 logger("[S] [UNKNOWN]");
@@ -226,6 +229,48 @@ void* process_client(connection_t *connection) {
 
                 free(payload);
 
+                break;
+            case MSG_MOVE_PLAYER:
+                /*
+                 * TODO implement speed and other stuff.
+                 * Perhaps move this to a separate function
+                 */
+                switch ((enum keyboard) *payload) {
+                    case K_MOVE_LEFT:
+                        players[id].x--;
+                        break;
+                    case K_MOVE_RIGHT:
+                        players[id].x++;
+                        break;
+                    case K_MOVE_UP:
+                        players[id].y--;
+                        break;
+                    case K_MOVE_DOWN:
+                        players[id].y++;
+                        break;
+                    case K_MOVE_LEFT_UP:
+                        players[id].y--;
+                        players[id].x--;
+                        break;
+                    case K_MOVE_RIGHT_UP:
+                        players[id].y--;
+                        players[id].x++;
+                        break;
+                    case K_MOVE_LEFT_DOWN:
+                        players[id].y++;
+                        players[id].x--;
+                        break;
+                    case K_MOVE_RIGHT_DOWN:
+                        players[id].y++;
+                        players[id].x++;
+                        break;
+                    default:
+                        panic("[S] invalid move received!");
+                }
+
+                for (size_t i = 0; i < players_len; i++) {
+                    s_players_send(players + i);
+                }
                 break;
             case MSG_REPORT_NICKNAME:
                 if (mbuf.msg.size >= PLAYER_NAME_MAXLEN) {

@@ -28,6 +28,7 @@ size_t player_init(enum colors color, char *nickname,
         connection_t *connection);
 void c_set_players(players_mbuf_t *mbuf);
 void s_players_send(player_t *player);
+void c_send_move(enum keyboard last_key);
 
 extern player_t players[];
 extern size_t players_len;

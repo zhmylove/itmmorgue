@@ -33,6 +33,7 @@ typedef struct msg {
         MSG_SUBSCRIBE_SYSMSG, // c2s sysmsg subscription mask
 
         MSG_PUT_PLAYERS,      // s2c players[] transmission
+        MSG_MOVE_PLAYER,      // c2s send player's move
 
         MSG_PUT_STATUS,       // s2c player status update
     } type;
@@ -77,6 +78,5 @@ void mqueue_put(mqueue_t *queue, mbuf_t mbuf);
 void mqueue_destroy(mqueue_t *queue);
 
 int send_mbuf(int socket, mbuf_t *mbuf);
-
 
 #endif /* PROTOCOL_H */

@@ -40,6 +40,7 @@ enum colors {
 #define PLAYER_NAME_MAXLEN 32
 
 #include "config.h"
+#include "keyboard.h"
 #include "protocol.h"
 #include "connection.h"
 #include "player.h"
