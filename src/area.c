@@ -114,11 +114,18 @@ void draw_area() {
                 S[curr[size].top] | color2attr(curr[size].color));
     }
 
+    /* Draw debug variables */
     mvwprintw(W(W_AREA), 3, 1, "%s %d", _("Key:"), last_key);
     mvwprintw(W(W_AREA), 4, 1, "%s %d", _("Connection:"), server_connected);
     mvwprintw(W(W_AREA), 5, 1, "%s %s", _("Server address:"), server_address);
     mvwprintw(W(W_AREA), 6, 1, "%s %s", _("Nikname:"), nickname);
     mvwprintw(W(W_AREA), 7, 1, "%s %d", _("Protocol:"), PROTOCOL_VERSION);
+
+    /* Draw the player */
+    for (size_t i = 0; i < players_len; i++) {
+        mvwaddch(W(W_AREA), players[i].y, players[i].x,
+                S[S_PLAYER] | color2attr(players[i].color));
+    }
 
     return;
 }

@@ -101,6 +101,9 @@ void* worker() {
             case MSG_PUT_AREA:
                 logger("[C] [PUT_AREA]");
                 break;
+            case MSG_PUT_PLAYERS:
+                logger("[C] [PUT_PLAYERS]");
+                break;
             case MSG_PUT_LEVEL:
                 logger("[C] [PUT_LEVEL]");
                 break;
@@ -142,6 +145,12 @@ void* worker() {
                 break;
             case MSG_PUT_AREA:
                 c_area_update(1, (tileblock_t *)payload);
+
+                free(payload);
+
+                break;
+            case MSG_PUT_PLAYERS:
+                c_set_players((players_mbuf_t *)payload);
 
                 free(payload);
 

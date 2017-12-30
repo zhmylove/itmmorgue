@@ -104,6 +104,7 @@ void* process_client(connection_t *connection) {
     // TODO make this periodically
     s_level_send(0, players + id);
     s_area_send(0, players + id);
+    s_players_send(players + id);
 
     struct timeval timeout;
     timeout.tv_sec  = 0;

@@ -32,6 +32,8 @@ typedef struct msg {
         MSG_PUT_SYSMSG,       // s2c sysmsg history update
         MSG_SUBSCRIBE_SYSMSG, // c2s sysmsg subscription mask
 
+        MSG_PUT_PLAYERS,      // s2c players[] transmission
+
         MSG_PUT_STATUS,       // s2c player status update
     } type;
     int version;              // Protocol version, generated during compilation
