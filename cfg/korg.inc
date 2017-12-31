@@ -4,8 +4,8 @@ player_color = 9
 player_camera = 2
 
 # Server definitions
-level_height = 60
-level_width = 220
+level_height = 256
+level_width = 256
 
 # Keybindings
 key_exit = q
