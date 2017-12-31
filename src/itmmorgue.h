@@ -5,12 +5,10 @@
 #include <unistd.h>
 #if defined(__FreeBSD__) || defined(__linux__)
 #include <ncurses.h>
+#include <sys/uio.h>
 #else
 #include <ncurses/ncurses.h>
 #endif /* __FreeBSD__ || __linux__ */
-#if defined(__FreeBSD__)
-#include <sys/uio.h>
-#endif /* __FreeBSD__ */
 #include <stdlib.h>
 #include <string.h>
 #include <ctype.h>

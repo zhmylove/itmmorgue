@@ -130,6 +130,7 @@ if ls lib/trie/Makefile >/dev/null 2>&1 ;then
     echo OK
 else
     echo FAIL
+    echo '    git submodule update --init'
     exit 1
 fi
 
@@ -149,6 +150,9 @@ run: run_client
 
 test: all
 	@echo "Your test not passed! "
+
+headless: $EXECUTABLE
+	$EXECUTABLE --server-only
 
 run_client: $EXECUTABLE
 	$VARS_CLIENT $EXECUTABLE
