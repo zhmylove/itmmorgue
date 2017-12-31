@@ -2,8 +2,8 @@
 player_nickname = KorG
 
 # Server definitions
-level_height = 60
-level_width = 220
+level_height = 256
+level_width = 256
 
 # Keybindings
 key_exit = q

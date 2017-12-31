@@ -5,7 +5,7 @@
 #define MAX_LEVEL_NAME 32
 
 #define WIDTH 256
-#define HEIGHT 64
+#define HEIGHT 256
 
 #define GEN_SH "scripts/Gen.sh -w%d -h%d"
 #define GEN_MAX 128
