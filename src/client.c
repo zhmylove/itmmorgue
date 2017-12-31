@@ -150,7 +150,7 @@ void* worker() {
 
                 break;
             case MSG_PUT_PLAYERS:
-                c_set_players((players_mbuf_t *)payload);
+                c_receive_players((players_mbuf_t *)payload);
 
                 free(payload);
 

@@ -104,7 +104,7 @@ void* process_client(connection_t *connection) {
     // TODO make this periodically
     s_level_send(0, players + id);
     s_area_send(0, players + id);
-    s_players_send(players + id);
+    s_send_players(players + id);
 
     struct timeval timeout;
     timeout.tv_sec  = 0;
@@ -268,8 +268,9 @@ void* process_client(connection_t *connection) {
                         panic("[S] invalid move received!");
                 }
 
+                /* TODO perhaps move this to the end of the tick */
                 for (size_t i = 0; i < players_len; i++) {
-                    s_players_send(players + i);
+                    s_send_players(players + i);
                 }
                 break;
             case MSG_REPORT_NICKNAME:

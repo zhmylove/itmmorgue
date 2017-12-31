@@ -120,6 +120,7 @@ void draw_area() {
     mvwprintw(W(W_AREA), 5, 1, "%s %s", _("Server address:"), server_address);
     mvwprintw(W(W_AREA), 6, 1, "%s %s", _("Nikname:"), nickname);
     mvwprintw(W(W_AREA), 7, 1, "%s %d", _("Protocol:"), PROTOCOL_VERSION);
+    mvwprintw(W(W_AREA), 8, 1, "%s %d", _("Player ID:"), player_self);
 
     /* Draw the player */
     for (size_t i = 0; i < players_len; i++) {
