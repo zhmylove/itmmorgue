@@ -95,13 +95,18 @@ void* process_client(connection_t *connection) {
         panic("Error detaching processor pthread!");
     }
 
-    // TODO move this section under obtaining color + nickname
+    /*
+     * TODO move this section under obtaining color + nickname (really?)
+     * s_send_players() requires this id.
+     * The best solution is to fill this values here and change them
+     * after reception of the actual ones.
+     */
     size_t id = player_init(L_YELLOW, "bsi", connection);
 
     mqueue_t *s2c_queue = connection->mqueueptr;
     mqueue_init(s2c_queue);
 
-    // TODO make this periodically
+    // TODO make this periodically (at the end of every tick)
     s_level_send(0, players + id);
     s_area_send(0, players + id);
     s_send_players(players + id);
@@ -232,8 +237,8 @@ void* process_client(connection_t *connection) {
                 break;
             case MSG_MOVE_PLAYER:
                 /*
-                 * TODO implement speed and other stuff.
-                 * Perhaps move this to a separate function
+                 * TODO implement speed and handle other stuff.
+                 * Move this to a separate function in player.c
                  */
                 switch ((enum keyboard) *payload) {
                     case K_MOVE_LEFT:
@@ -268,7 +273,7 @@ void* process_client(connection_t *connection) {
                         panic("[S] invalid move received!");
                 }
 
-                /* TODO perhaps move this to the end of the tick */
+                /* TODO move this to the end of the tick */
                 for (size_t i = 0; i < players_len; i++) {
                     s_send_players(players + i);
                 }

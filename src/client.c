@@ -238,18 +238,18 @@ int client() {
             c_chat_open();
         } else if (K[K_SYSMSG_LARGE] == last_key) {
             c_sysmsg_open();
-#define CHECK_MOVE(move) \
+#define HANDLE_MOVE(move) \
         } else if (K[move] == last_key) { \
             c_send_move(move)
-            CHECK_MOVE(K_MOVE_LEFT);
-            CHECK_MOVE(K_MOVE_RIGHT);
-            CHECK_MOVE(K_MOVE_UP);
-            CHECK_MOVE(K_MOVE_DOWN);
-            CHECK_MOVE(K_MOVE_LEFT_UP);
-            CHECK_MOVE(K_MOVE_RIGHT_UP);
-            CHECK_MOVE(K_MOVE_LEFT_DOWN);
-            CHECK_MOVE(K_MOVE_RIGHT_DOWN);
-#undef CHECK_MOVE
+            HANDLE_MOVE(K_MOVE_LEFT);
+            HANDLE_MOVE(K_MOVE_RIGHT);
+            HANDLE_MOVE(K_MOVE_UP);
+            HANDLE_MOVE(K_MOVE_DOWN);
+            HANDLE_MOVE(K_MOVE_LEFT_UP);
+            HANDLE_MOVE(K_MOVE_RIGHT_UP);
+            HANDLE_MOVE(K_MOVE_LEFT_DOWN);
+            HANDLE_MOVE(K_MOVE_RIGHT_DOWN);
+#undef HANDLE_MOVE
         } else if (K[K_INVENTORY_LARGE] == last_key) {
             c_inventory_open();
         } else if (K[K_EXIT] == last_key) {
