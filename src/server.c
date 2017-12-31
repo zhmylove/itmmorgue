@@ -95,15 +95,21 @@ void* process_client(connection_t *connection) {
         panic("Error detaching processor pthread!");
     }
 
-    // TODO move this section under obtaining color + nickname
+    /*
+     * TODO move this section under obtaining color + nickname (really?)
+     * s_send_players() requires this id.
+     * The best solution is to fill this values here and change them
+     * after reception of the actual ones.
+     */
     size_t id = player_init(L_YELLOW, "bsi", connection);
 
     mqueue_t *s2c_queue = connection->mqueueptr;
     mqueue_init(s2c_queue);
 
-    // TODO make this periodically
+    // TODO make this periodically (at the end of every tick)
     s_level_send(0, players + id);
     s_area_send(0, players + id);
+    s_send_players(players + id);
 
     struct timeval timeout;
     timeout.tv_sec  = 0;
@@ -159,6 +165,9 @@ void* process_client(connection_t *connection) {
                 logger("[S] [GET_CHAT]");
                 break;
             case MSG_REPORT_NICKNAME:
+                logger("[S] [REPORT_NICKNAME]");
+                break;
+            case MSG_MOVE_PLAYER:
                 logger("[S] [REPORT_NICKNAME]");
                 break;
             default:
@@ -225,6 +234,49 @@ void* process_client(connection_t *connection) {
 
                 free(payload);
 
+                break;
+            case MSG_MOVE_PLAYER:
+                /*
+                 * TODO implement speed and handle other stuff.
+                 * Move this to a separate function in player.c
+                 */
+                switch ((enum keyboard) *payload) {
+                    case K_MOVE_LEFT:
+                        players[id].x--;
+                        break;
+                    case K_MOVE_RIGHT:
+                        players[id].x++;
+                        break;
+                    case K_MOVE_UP:
+                        players[id].y--;
+                        break;
+                    case K_MOVE_DOWN:
+                        players[id].y++;
+                        break;
+                    case K_MOVE_LEFT_UP:
+                        players[id].y--;
+                        players[id].x--;
+                        break;
+                    case K_MOVE_RIGHT_UP:
+                        players[id].y--;
+                        players[id].x++;
+                        break;
+                    case K_MOVE_LEFT_DOWN:
+                        players[id].y++;
+                        players[id].x--;
+                        break;
+                    case K_MOVE_RIGHT_DOWN:
+                        players[id].y++;
+                        players[id].x++;
+                        break;
+                    default:
+                        panic("[S] invalid move received!");
+                }
+
+                /* TODO move this to the end of the tick */
+                for (size_t i = 0; i < players_len; i++) {
+                    s_send_players(players + i);
+                }
                 break;
             case MSG_REPORT_NICKNAME:
                 if (mbuf.msg.size >= PLAYER_NAME_MAXLEN) {

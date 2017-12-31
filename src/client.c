@@ -101,6 +101,9 @@ void* worker() {
             case MSG_PUT_AREA:
                 logger("[C] [PUT_AREA]");
                 break;
+            case MSG_PUT_PLAYERS:
+                logger("[C] [PUT_PLAYERS]");
+                break;
             case MSG_PUT_LEVEL:
                 logger("[C] [PUT_LEVEL]");
                 break;
@@ -142,6 +145,12 @@ void* worker() {
                 break;
             case MSG_PUT_AREA:
                 c_area_update(1, (tileblock_t *)payload);
+
+                free(payload);
+
+                break;
+            case MSG_PUT_PLAYERS:
+                c_receive_players((players_mbuf_t *)payload);
 
                 free(payload);
 
@@ -229,6 +238,18 @@ int client() {
             c_chat_open();
         } else if (K[K_SYSMSG_LARGE] == last_key) {
             c_sysmsg_open();
+#define HANDLE_MOVE(move) \
+        } else if (K[move] == last_key) { \
+            c_send_move(move)
+            HANDLE_MOVE(K_MOVE_LEFT);
+            HANDLE_MOVE(K_MOVE_RIGHT);
+            HANDLE_MOVE(K_MOVE_UP);
+            HANDLE_MOVE(K_MOVE_DOWN);
+            HANDLE_MOVE(K_MOVE_LEFT_UP);
+            HANDLE_MOVE(K_MOVE_RIGHT_UP);
+            HANDLE_MOVE(K_MOVE_LEFT_DOWN);
+            HANDLE_MOVE(K_MOVE_RIGHT_DOWN);
+#undef HANDLE_MOVE
         } else if (K[K_INVENTORY_LARGE] == last_key) {
             c_inventory_open();
         } else if (K[K_EXIT] == last_key) {

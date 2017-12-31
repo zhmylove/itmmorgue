@@ -19,10 +19,24 @@ typedef struct player {
     /* skills_t */
 } player_t;
 
+typedef struct players_mbuf {
+    struct c_player {
+        enum colors color;
+        uint16_t y;
+        uint16_t x;
+    } players[MAX_PLAYERS];
+    char self;
+    size_t players_len;
+} players_mbuf_t;
+
 size_t player_init(enum colors color, char *nickname,
         connection_t *connection);
+void c_receive_players(players_mbuf_t *mbuf);
+void s_send_players(player_t *player);
+void c_send_move(enum keyboard last_key);
 
 extern player_t players[];
 extern size_t players_len;
+extern size_t player_self;
 
 #endif /* PLAYER_H */
