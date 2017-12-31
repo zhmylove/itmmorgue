@@ -12,6 +12,11 @@ pusk() {
 
 [ -z "$1" ] && set -- -w512 -h256
 
+if [ "xSunOS" = "x`uname -s`" ] ;then
+   cat SunOS.level
+   exit 0
+fi
+
 pusk "surface creation"       gen_surface.pl "$@"                      |
 pusk "fields normalization"   gen_fields.pl                            |
 pusk "fields correction"      gen_fields.pl -f                         |
