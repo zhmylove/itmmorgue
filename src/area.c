@@ -104,6 +104,16 @@ void c_area_update(size_t ngroups, tileblock_t *tileblock) {
 }
 
 void draw_area() {
+    if (levels_count == 0) { /* Before START_GAME */
+        mvwprintw(W(W_AREA), 1, 1, "%s", _("Connected players:"));
+        for (size_t i = 0; i < players_len; i++) {
+            mvwaddch(W(W_AREA), 2 + i, 1, players[i].ready ? '+' : '-');
+            mvwprintw(W(W_AREA), 2 + i, 3, "%s", players[i].nickname);
+            mvwprintw(W(W_AREA), windows[W_AREA].max_y - 2, 1, "%s",
+                    _("Write !start or !s to chat to begin"));
+        }
+    }
+
     if (c_curr == NULL) {
         return;
     }
