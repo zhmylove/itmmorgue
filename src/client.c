@@ -78,7 +78,6 @@ void* worker() {
             continue;
         }
 
-
         if ((rc = readall(sock, &mbuf.msg, sizeof(mbuf.msg))) == 0) {
             server_connected = 0;
             // TODO implement dialog with this message:
@@ -100,6 +99,9 @@ void* worker() {
                 break;
             case MSG_PUT_AREA:
                 logger("[C] [PUT_AREA]");
+                break;
+            case MSG_PUT_PLAYERS_FULL:
+                logger("[C] [PUT_PLAYERS_FULL]");
                 break;
             case MSG_PUT_PLAYERS:
                 logger("[C] [PUT_PLAYERS]");
@@ -145,6 +147,12 @@ void* worker() {
                 break;
             case MSG_PUT_AREA:
                 c_area_update(1, (tileblock_t *)payload);
+
+                free(payload);
+
+                break;
+            case MSG_PUT_PLAYERS_FULL:
+                c_receive_players_full((players_full_mbuf_t *)payload);
 
                 free(payload);
 

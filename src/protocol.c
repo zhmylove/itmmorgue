@@ -23,7 +23,7 @@ void mqueue_put(mqueue_t *queue, mbuf_t mbuf) {
         if (EDEADLK == rc) {
             panic("Message queue: deadlock!");
         }
-        panic("Message queue: failure during mutex locking");
+        panic("[put] Message queue: failure during mutex locking");
     }
 
     size_t pos = queue->start_position;
@@ -56,7 +56,7 @@ int mqueue_get(mqueue_t *queue, mbuf_t *mbuf) {
         if (EDEADLK == rc) {
             panic("Message queue: deadlock!");
         }
-        panic("Message queue: failure during mutex locking");
+        panic("[get] Message queue: failure during mutex locking");
     }
 
     if (queue->size == 0) {

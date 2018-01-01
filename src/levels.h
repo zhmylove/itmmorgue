@@ -23,4 +23,6 @@ void s_levels_init();
 void s_level_send(size_t level, player_t *player);
 void s_area_send(size_t level, player_t *player);
 
+extern size_t levels_count;
+
 #endif /* LEVELS_H */
