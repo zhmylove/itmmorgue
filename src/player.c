@@ -32,9 +32,8 @@ void c_receive_players_full(players_full_mbuf_t *mbuf) {
 
     player_self = mbuf->self;
 
+    /* Maybe we shouldn't send connection, etc. */
     for (players_len = 0; players_len < mbuf->players_len; players_len++) {
-        players[players_len] = mbuf->players[players_len];
-        players[players_len] = mbuf->players[players_len];
         players[players_len] = mbuf->players[players_len];
     }
 }

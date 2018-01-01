@@ -10,6 +10,22 @@ void player_connected_off(size_t id) {
     players[id].connected = 0;
     players[id].color ^= L_BLACK;
     if (players_total > 0) players_total--;
+
+    if (players_total == 0) {
+        // TODO make smth ?
+        exit (0);
+    }
+
+    char join_msg[PLAYER_NAME_MAXLEN * 4];
+    sprintf(join_msg,
+            "Player %s has fallen out of the world!\n",
+            players[id].nickname);
+    for (size_t i = 0; i < players_len; i++) {
+        if (! players[i].connected) continue;
+
+        send_sysmsg(players[i].connection, SM_PLAYER_LEFT, join_msg);
+        s_send_players_full(players + i);
+    }
 }
 
 void server() {
@@ -202,9 +218,10 @@ void* process_client(connection_t *connection) {
             case MSG_MOVE_PLAYER:
                 logger("[S] [MOVE_PLAYER]");
                 break;
-            case MSG_START_GAME:
-                logger("[S] [START_GAME]");
-                break;
+                /* Decide if we wanna use smth besides chat "!s" */
+            // case MSG_START_GAME:
+            //     logger("[S] [START_GAME]");
+            //     break;
             default:
                 warnf("Unknown type: %d", mbuf.msg.type);
                 logger("[S] [UNKNOWN]");
@@ -262,6 +279,7 @@ void* process_client(connection_t *connection) {
                     // TODO eliminate races (safely remove players[id])
                     memset(players[id].nickname, 0, PLAYER_NAME_MAXLEN);
                     players_len--;
+                    players_total = players_len;
 
                     // Finally replace the id's
                     id = i;
@@ -349,6 +367,10 @@ void* process_client(connection_t *connection) {
                 players_total = players_len;
             }
 
+            continue;
+        }
+
+        if (players_len != players_total) { /* Skip any in-game actions */
             continue;
         }
 
