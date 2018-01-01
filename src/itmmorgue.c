@@ -3,6 +3,8 @@
 #include "server.h"
 #include "client.h"
 
+int server_only = 0;
+
 void warn(char *msg) {
     if (msg) {
         fprintf(stderr, "%s\n", msg);
@@ -149,6 +151,12 @@ void logger(char *str) {
     if (write(log_fd, buf, len) < 0) {
         panic("Unable to write log output!");
     }
+
+    if (server_only == 1) {
+        if (write(2, buf, len) < 0) {
+            panic("Unable to write log to stderr!");
+        }
+    }
 }
 
 unsigned long long systime() {
@@ -173,8 +181,6 @@ unsigned long long sysutime() {
 
 int main(int argc, char *argv[]) {
     // TODO parse argv and run server / client
-
-    int server_only = 0;
 
     server_started = 0;
     server_connected = 0;

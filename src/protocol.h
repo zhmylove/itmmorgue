@@ -22,7 +22,7 @@ typedef struct msg {
         MSG_REPORT_NICKNAME,  // c2s user nickname notification
         MSG_ERROR_NICKNAME,   // s2c incorrect nickname provided
 
-        MSG_START_GAME,       // c2s let the battle begin
+        //MSG_START_GAME,       // c2s let the battle begin (see server.c)
 
         MSG_PUT_LEVEL,        // s2c level transmission
         MSG_PUT_AREA,         // s2c area transmission
@@ -61,6 +61,7 @@ typedef struct msg {
 enum msg_sysmsg_type {
     SM_CHAT_NEW_MESSAGE = 0x01,    // New message in chat
     SM_PLAYER_JOINED    = 0x02,    // New player joined to the ITMMORGUE
+    SM_PLAYER_LEFT      = 0x03,    // Some player left the ITMMORGUE
 };
 
 typedef struct mbuf {
