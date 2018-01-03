@@ -88,6 +88,8 @@ size_t anystrlen(char *str);
 size_t anystrnlen(char *str, size_t maxlen);
 size_t anystrnplen(char *str, size_t maxlen, char ** endp);
 size_t anystrunplen(char *str, size_t maxlen, char ** endp);
+unsigned long long systime();
+unsigned long long sysutime();
 #ifdef __sun
 size_t strnlen(const char *str, size_t maxlen);
 #endif /* __sun */
