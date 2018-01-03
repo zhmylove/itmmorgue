@@ -13,7 +13,8 @@ void player_connected_off(size_t id) {
 
     if (players_total == 0) {
         // TODO make smth ?
-        exit (0);
+        logger("[S] No players left in. Server terminated successfully!");
+        exit(EXIT_SUCCESS);
     }
 
     char join_msg[PLAYER_NAME_MAXLEN * 4];
@@ -480,7 +481,8 @@ void server_fork_start() {
 
         server();
 
-        exit(0);
+        // Never reaches due to server() has infinite loop
+        exit(EXIT_FAILURE);
     }
 
     // client code

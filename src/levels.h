@@ -7,7 +7,7 @@
 #define WIDTH 256
 #define HEIGHT 64
 
-#define GEN_SH "scripts/Gen.sh -w%d -h%d"
+#define GEN_SH "./scripts/Gen.sh -w%d -h%d"
 #define GEN_MAX 128
 
 typedef struct level {
