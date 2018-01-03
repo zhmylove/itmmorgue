@@ -1,5 +1,6 @@
-# KorG's nickname
+# KorG's identification
 player_nickname = KorG
+player_color = 9
 
 # Server definitions
 level_height = 128

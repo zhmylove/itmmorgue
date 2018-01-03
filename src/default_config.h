@@ -204,11 +204,13 @@ struct t_conf_default {
     C_CHR("stuff_wand", '/'),
 
     C_STR("player_nickname", ""),
+    C_INT("player_color", 10),
     C_STR("file_locale", ""),
     C_STR("file_server_log", "itmmorgue.log")
 };
 #undef C_STR
 #undef C_INT
+#undef C_CHR
 
 size_t t_conf_default_size = sizeof(t_conf_default)
     / sizeof(struct t_conf_default);

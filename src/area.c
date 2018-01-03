@@ -137,7 +137,7 @@ void draw_area() {
     tile_t *curr = c_curr;
     for (register ssize_t y = 0; y < AREA.max_y; y++) {
         register size_t pos = tilepos(y + top_y, top_x);
-        for (register ssize_t x = 0; x < AREA.max_x; x++, _b++) {
+        for (register ssize_t x = 0; x < AREA.max_x; x++, pos++) {
             mvwaddch(W(W_AREA), y, x,
                     S[curr[pos].top] | color2attr(curr[pos].color));
         }
