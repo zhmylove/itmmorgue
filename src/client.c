@@ -46,11 +46,14 @@ void* worker() {
     // Send nickname
     mbuf_t mbuf;
     mbuf.msg.type = MSG_REPORT_NICKNAME;
-    mbuf.msg.size = strlen(CONF_SVAL("player_nickname")) + 1;
+    mbuf.msg.size = strlen(CONF_SVAL("player_nickname")) + 2;
     if (NULL == (mbuf.payload = (char*)malloc(mbuf.msg.size))) {
         panic("[C] Cannot allocate nickname payload buffer");
     }
-    strcpy(mbuf.payload, CONF_SVAL("player_nickname"));
+    char color[2] = "0";
+    color[0] = '0' + CONF_IVAL("player_color");
+    strcpy(mbuf.payload, color);
+    strcat(mbuf.payload, CONF_SVAL("player_nickname"));
     mqueue_put(&c2s_queue, mbuf);
 
     do {

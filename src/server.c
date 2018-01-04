@@ -7,13 +7,18 @@ connection_t *last_connection;
 char start = 0;
 
 void player_connected_off(size_t id) {
+    if (start) {
     players[id].connected = 0;
     players[id].color ^= L_BLACK;
     if (players_total > 0) players_total--;
+    } else {
+        // TODO remove player[id]
+    }
 
-    if (players_total == 0) {
-        // TODO make smth ?
-        exit (0);
+    if (players_total == 0 && start) {
+        // TODO make smth else (?)
+        logger("[S] No players left in. Server terminated successfully!");
+        exit(EXIT_SUCCESS);
     }
 
     char join_msg[PLAYER_NAME_MAXLEN * 4];
@@ -251,7 +256,7 @@ void* process_client(connection_t *connection) {
         switch (mbuf.msg.type) {
             // TODO MSG_REPORT_COLOR
             case MSG_REPORT_NICKNAME:
-                if (mbuf.msg.size >= PLAYER_NAME_MAXLEN) {
+                if (mbuf.msg.size >= PLAYER_NAME_MAXLEN + 1) {
                     logger("[S] Long nickname received");
                     s2c_mbuf.msg.type = MSG_ERROR_NICKNAME;
                     s2c_mbuf.msg.size = strlen("Nickname is too long") + 1;
@@ -266,6 +271,9 @@ void* process_client(connection_t *connection) {
                     close_connection(connection);
                     pthread_exit(NULL);
                 }
+                /* Get the color */
+                unsigned char color = ((char *)payload++)[0];
+                players[id].color = color - '0';
                 /* Handle reconnects */
                 for (size_t i = 0; start == 3 && i < players_len; i++) {
                     if (players[i].connected) continue;
@@ -480,7 +488,8 @@ void server_fork_start() {
 
         server();
 
-        exit(0);
+        // Never reaches due to server() has infinite loop
+        exit(EXIT_FAILURE);
     }
 
     // client code
