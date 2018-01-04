@@ -54,7 +54,15 @@ do {
    gen->overlay_somehow($building, {@args});
 } for (1..$city_factor);
 
-#TODO fix buildings number
+# Place some grass/trees inside the city
+my $CITY = gen->get_level_ref(1);
+for (@$CITY) {
+   for (grep /,/, @$_) {
+      if (rand(1) >= 0.92) {
+         $_ = rand(2) >= 1.5 ? ' ' : '^';
+      }
+   }
+}
 
 # Switch back to the main level
 gen->level(0);
@@ -63,7 +71,7 @@ gen->level(0);
 gen->free_regex();
 
 # Overlay generated city over it
-gen->overlay_somehow(gen->get_level_ref(1), {rotate => [$city_angle]});
+gen->overlay_somehow($CITY, {rotate => [$city_angle]});
 
 # Print the level
 gen->print_level(0);
