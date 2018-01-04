@@ -4,13 +4,14 @@
 connection_t *first_connection;
 connection_t *last_connection;
 
+// TODO get rid of this shit
 char start = 0;
 
 void player_connected_off(size_t id) {
     if (start) {
-    players[id].connected = 0;
-    players[id].color ^= L_BLACK;
-    if (players_total > 0) players_total--;
+        players[id].connected = 0;
+        players[id].color ^= L_BLACK;
+        if (players_total > 0) players_total--;
     } else {
         // TODO remove player[id]
     }
@@ -43,7 +44,10 @@ void server() {
         panic("Server is already running!");
     }
 
+    // TODO do this asynchronously
     s_levels_init();
+    // Start event loop thread
+    event_init();
 
     server_started = 1;
 
@@ -164,12 +168,13 @@ void* process_client(connection_t *connection) {
         mbuf_t mbuf;
 
         /* Handle start state (see server.h) */
-        if (start == 1 || start == 4) {
-            // TODO make this periodically (at the end of every tick)
+        if (start == 1 || (start > 0 && players[id].start == 1)) {
+            // TODO make some of this periodically (at the end of every tick)
             s_level_send(0, players + id);
             s_area_send(0, players + id);
             s_send_players_full(players + id);
 
+            players[id].start = 0;
             start = 2;
         }
 
@@ -223,10 +228,6 @@ void* process_client(connection_t *connection) {
             case MSG_MOVE_PLAYER:
                 logger("[S] [MOVE_PLAYER]");
                 break;
-                /* Decide if we wanna use smth besides chat "!s" */
-            // case MSG_START_GAME:
-            //     logger("[S] [START_GAME]");
-            //     break;
             default:
                 warnf("Unknown type: %d", mbuf.msg.type);
                 logger("[S] [UNKNOWN]");
@@ -291,7 +292,7 @@ void* process_client(connection_t *connection) {
 
                     // Finally replace the id's
                     id = i;
-                    start = 4;
+                    players[id].start = 1;
                 }
                 strncpy(players[id].nickname, payload, mbuf.msg.size);
 
@@ -372,6 +373,9 @@ void* process_client(connection_t *connection) {
 
             if (! wait) {
                 start = 1;
+                for (size_t i = 0; i < players_len; i++) {
+                    players[i].start = 1;
+                }
                 players_total = players_len;
             }
 
@@ -384,48 +388,32 @@ void* process_client(connection_t *connection) {
 
         // Normal messages routine
         // TODO do smth with message
+
+        // If MSG_MOVE_PLAYER
+        player_move_t *move;
+
         switch (mbuf.msg.type) {
             case MSG_MOVE_PLAYER:
-                /*
-                 * TODO implement speed and handle other stuff.
-                 * Move this to a separate function in player.c
-                 */
                 switch ((enum keyboard) *payload) {
                     case K_MOVE_LEFT:
-                        players[id].x--;
-                        break;
                     case K_MOVE_RIGHT:
-                        players[id].x++;
-                        break;
                     case K_MOVE_UP:
-                        players[id].y--;
-                        break;
                     case K_MOVE_DOWN:
-                        players[id].y++;
-                        break;
                     case K_MOVE_LEFT_UP:
-                        players[id].y--;
-                        players[id].x--;
-                        break;
                     case K_MOVE_RIGHT_UP:
-                        players[id].y--;
-                        players[id].x++;
-                        break;
                     case K_MOVE_LEFT_DOWN:
-                        players[id].y++;
-                        players[id].x--;
-                        break;
                     case K_MOVE_RIGHT_DOWN:
-                        players[id].y++;
-                        players[id].x++;
+                        // Will be freed during event handle
+                        if ((move = (player_move_t *)malloc(
+                                        sizeof(player_move_t))) == NULL) {
+                            panic("[S] Error allocating player_move_t!");
+                        }
+                        move->player_id = id;
+                        move->direction = (enum keyboard) *payload;
+                        event_player_add(id, EV_MOVE, move);
                         break;
                     default:
                         panic("[S] invalid move received!");
-                }
-
-                /* TODO move this to the end of the tick */
-                for (size_t i = 0; i < players_len; i++) {
-                    s_send_players(players + i);
                 }
                 break;
             case MSG_GET_CHAT: /* Already handled */
@@ -489,7 +477,7 @@ void server_fork_start() {
         server();
 
         // Never reaches due to server() has infinite loop
-        exit(EXIT_FAILURE);
+        panic("[S] Server has done infinite loop for the first time!");
     }
 
     // client code

@@ -8,12 +8,57 @@ size_t players_len = 0;
 size_t player_self = 0;
 size_t players_total = 0;
 
+/*
+ * TODO implement speed, area_check, npc_check and handle other stuff.
+ */
+void player_move(player_move_t *move) {
+    size_t id = move->player_id;
+
+    switch (move->direction) {
+        case K_MOVE_LEFT:
+            players[id].x--;
+            break;
+        case K_MOVE_RIGHT:
+            players[id].x++;
+            break;
+        case K_MOVE_UP:
+            players[id].y--;
+            break;
+        case K_MOVE_DOWN:
+            players[id].y++;
+            break;
+        case K_MOVE_LEFT_UP:
+            players[id].y--;
+            players[id].x--;
+            break;
+        case K_MOVE_RIGHT_UP:
+            players[id].y--;
+            players[id].x++;
+            break;
+        case K_MOVE_LEFT_DOWN:
+            players[id].y++;
+            players[id].x--;
+            break;
+        case K_MOVE_RIGHT_DOWN:
+            players[id].y++;
+            players[id].x++;
+            break;
+        default:
+            panic("[S] invalid move direction!");
+    }
+}
+
 size_t player_init(enum colors color, char *nickname,
         connection_t *connection) {
     players[players_len].connection = connection;
     players[players_len].color = color;
     strncpy(players[players_len].nickname, nickname, CHAT_NICK_MAXLEN);
     players[players_len].ready = 0;
+    players[players_len].start = 0;
+    if (0 != pthread_mutex_init(&players[players_len].ev_queue.event_mutex,
+                NULL)) {
+        panic("Cannot initialize event queue mutex!");
+    }
 
     if (start != 3) {
         /* 

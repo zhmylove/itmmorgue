@@ -39,6 +39,7 @@ enum colors {
 
 #include "config.h"
 #include "keyboard.h"
+#include "event.h"
 #include "protocol.h"
 #include "connection.h"
 #include "player.h"
@@ -90,6 +91,7 @@ size_t anystrnplen(char *str, size_t maxlen, char ** endp);
 size_t anystrunplen(char *str, size_t maxlen, char ** endp);
 unsigned long long systime();
 unsigned long long sysutime();
+void player_move(player_move_t *move);
 #ifdef __sun
 size_t strnlen(const char *str, size_t maxlen);
 #endif /* __sun */

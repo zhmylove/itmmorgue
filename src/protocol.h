@@ -22,8 +22,6 @@ typedef struct msg {
         MSG_REPORT_NICKNAME,  // c2s user nickname notification
         MSG_ERROR_NICKNAME,   // s2c incorrect nickname provided
 
-        //MSG_START_GAME,       // c2s let the battle begin (see server.c)
-
         MSG_PUT_LEVEL,        // s2c level transmission
         MSG_PUT_AREA,         // s2c area transmission
 

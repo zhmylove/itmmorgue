@@ -10,10 +10,10 @@ LIBDIR='lib'
 WORKDIR='bin'
 SRC='itmmorgue.c client.c config.c splash.c locale.c menu.c stuff.c'
 SRC="$SRC windows.c area.c chat.c keyboard.c server.c protocol.c sysmsg.c"
-SRC="$SRC connection.c levels.c tiles.c player.c"
+SRC="$SRC connection.c levels.c tiles.c player.c event.c"
 HDR='itmmorgue.h client.h config.h default_config.h stuff.h windows.h'
 HDR="$HDR area.h chat.h keyboard.h server.h protocol.h sysmsg.h"
-HDR="$HDR connection.h levels.h tiles.h player.h"
+HDR="$HDR connection.h levels.h tiles.h player.h event.h"
 LIB='trie/trie.o'
 DEBUG=1
 ####################################################################
