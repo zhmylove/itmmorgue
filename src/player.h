@@ -11,8 +11,10 @@ typedef struct player {
     uint16_t y;                 // absolute Y
     uint16_t x;                 // absolute X
     char nickname[PLAYER_NAME_MAXLEN];
-    uint8_t ready;
-    uint8_t connected;
+    uint8_t ready;              // ready for the game
+    uint8_t connected;          // connected to the server
+    // I hate that global variable, but I don't have time to fix it
+    uint8_t start;              // needs data renewal
     connection_t *connection;
     event_queue_t ev_queue;
     /* inventory_t */

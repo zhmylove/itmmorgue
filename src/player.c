@@ -54,6 +54,11 @@ size_t player_init(enum colors color, char *nickname,
     players[players_len].color = color;
     strncpy(players[players_len].nickname, nickname, CHAT_NICK_MAXLEN);
     players[players_len].ready = 0;
+    players[players_len].start = 0;
+    if (0 != pthread_mutex_init(&players[players_len].ev_queue.event_mutex,
+                NULL)) {
+        panic("Cannot initialize event queue mutex!");
+    }
 
     if (start != 3) {
         /* 

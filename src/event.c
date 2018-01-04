@@ -128,12 +128,6 @@ void* event_thread(void *args) {
 
 // Create thread for event_loop
 void event_init() {
-    for (size_t player_id = 0; player_id < players_len; player_id++) {
-        if (0 != pthread_mutex_init(&P_EV_QUEUE.event_mutex, NULL)) {
-            panic("Cannot initialize event queue mutex!");
-        }
-    }
-
     if (pthread_create(&ev_thread, NULL, &event_thread, NULL) != 0) {
         panic("Error creating even_loop thread!");
     }

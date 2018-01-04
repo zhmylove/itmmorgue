@@ -4,13 +4,14 @@
 connection_t *first_connection;
 connection_t *last_connection;
 
+// TODO get rid of this shit
 char start = 0;
 
 void player_connected_off(size_t id) {
     if (start) {
-    players[id].connected = 0;
-    players[id].color ^= L_BLACK;
-    if (players_total > 0) players_total--;
+        players[id].connected = 0;
+        players[id].color ^= L_BLACK;
+        if (players_total > 0) players_total--;
     } else {
         // TODO remove player[id]
     }
@@ -167,12 +168,13 @@ void* process_client(connection_t *connection) {
         mbuf_t mbuf;
 
         /* Handle start state (see server.h) */
-        if (start == 1 || start == 4) {
-            // TODO make this periodically (at the end of every tick)
+        if (start == 1 || (start > 0 && players[id].start == 1)) {
+            // TODO make some of this periodically (at the end of every tick)
             s_level_send(0, players + id);
             s_area_send(0, players + id);
             s_send_players_full(players + id);
 
+            players[id].start = 0;
             start = 2;
         }
 
@@ -290,7 +292,7 @@ void* process_client(connection_t *connection) {
 
                     // Finally replace the id's
                     id = i;
-                    start = 4;
+                    players[id].start = 1;
                 }
                 strncpy(players[id].nickname, payload, mbuf.msg.size);
 
@@ -371,6 +373,9 @@ void* process_client(connection_t *connection) {
 
             if (! wait) {
                 start = 1;
+                for (size_t i = 0; i < players_len; i++) {
+                    players[i].start = 1;
+                }
                 players_total = players_len;
             }
 
