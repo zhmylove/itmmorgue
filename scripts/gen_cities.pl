@@ -23,8 +23,8 @@ gen->level(1);
 my $city_angle = int rand 4;
 
 # Create a new level for city
-my $city_factor = 100;
-my $size = 1.5 * $city_factor + rand($city_factor);
+my $city_factor = 6;
+my $size = 24 * $city_factor + rand($city_factor);
 my ($city_h, $city_w) = (0.4 * $size, 0.6 * $size);
 gen->recreate_level_unsafe(
    $city_angle % 2 ? ($city_w, $city_h) : ($city_h, $city_w)
@@ -36,17 +36,25 @@ gen->generate_blurred_area(1, ',', 0.45);
 # Use ',' as free space too
 gen->free_regex('[.,"^]');
 
+my @TYPES = (split //, "STEHG");
 do {
    my $building;
+   my @args;
 
    $building = rand(2) >= 1 ?  build::get_building(rand(8)+5, rand(8)+5) :
-      house->build();
+      house->build({TYPE => shift @TYPES});
+
+   # Deny rotation of wide buildings
+   my $bh = @{$building};
+   my $bw = @{$building->[0]};
+   ($bw, $bh) = ($bh, $bw) if $bw > $bh;
+   @args = (rotate => [rand(2) >= 1 ? 0 : 2]) if $bh / $bw >= 2;
 
    # Overlay the building with rotation
-   gen->overlay_somehow($building);
-} for (1..6);
+   gen->overlay_somehow($building, {@args});
+} for (1..$city_factor);
 
-#TODO Make a loop to build multiple buildings. use eval or die
+#TODO fix buildings number
 
 # Switch back to the main level
 gen->level(0);

@@ -35,7 +35,12 @@ S_SIZE          ---    ---     ---         // used as enum size
 -=- Needs to be set by the game itself right after level import 
 A-Z -- building types and spawned inside mobs:
 - C -- castle (expensive loot and spawn special aggressive mobs)
+- E -- school and trainer (for trainers)
 - F -- fortress (spawn peaceful mobs and probably expensive loot)
+- G -- guild and guildmaster (or church and priest)
+- H -- headquarters house and the head (for main NPC in the city)
+- S -- store and shoopkeeper
+- T -- tavern
 
 t   -- trap
 l   -- loot
