@@ -472,7 +472,7 @@ void server_fork_start() {
         server();
 
         // Never reaches due to server() has infinite loop
-        exit(EXIT_FAILURE);
+        panic("[S] Server has done infinite loop for the first time!");
     }
 
     // client code

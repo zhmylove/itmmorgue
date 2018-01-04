@@ -14,8 +14,7 @@ typedef struct player {
     uint8_t ready;
     uint8_t connected;
     connection_t *connection;
-    event_t event;
-    void * event_args;
+    event_queue_t ev_queue;
     /* inventory_t */
     /* common creatures stats_t */
     /* player specific stats ?? */

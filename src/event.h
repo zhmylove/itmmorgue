@@ -19,6 +19,12 @@ typedef enum event {
     EV_SIZE
 } event_t;
 
+typedef struct event_queue_1 {
+    event_t event;  // Only one event
+    void * event_args;
+    pthread_mutex_t event_mutex;
+} event_queue_t;
+
 void event_player_add(size_t player_id, event_t event,
         struct player_move *move);
 void event_init();
