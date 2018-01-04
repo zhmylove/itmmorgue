@@ -14,142 +14,169 @@ srand;
 my @HOUSE;
 my ($W, $H)   = (0, 0); # Width and Height
 my ($bx, $by) = (0, 0); # Builder bot's coordinates
-
-#TODO
-#s/./ /
-#s/X/_/
+my $TYPE = undef;
 
 # Replace all undefs with spaces and fix the whole width
-sub normalize_house {
-   for (my $i = 0; $i < $H; $i++) {
-      for (my $j = 0; $j < $W; $j++) {
-         my $count = 0;
-         for my $updown (map { $i + $_ } (-1..1)) {
-            for (-1..1) {
-               $count++ if not defined $HOUSE[$updown][$j + $_];
-            }
-         }
+sub _normalize_house {
+   # Remove all undefs
+   for (@HOUSE) {
+      $_ = [] unless defined $_;
+   }
 
-         if (defined $HOUSE[$i][$j] && $HOUSE[$i][$j] eq 'X' && $count) {
-            $HOUSE[$i][$j] = '#';
-         }
+   # Lookup for max and min defined Y
+   my ($max_y, $min_y) = (0, ~0);
+   for my $x (0..@HOUSE-1) {
+      for my $y (0..@{$HOUSE[$x]}-1) {
+         $min_y = $y if $y < $min_y && defined $HOUSE[$x][$y];
+         $max_y = $y if $y > $max_y && defined $HOUSE[$x][$y];
       }
    }
 
+   # Move the array
+   for my $x (0..@HOUSE-1) {
+      shift @{$HOUSE[$x]} for (0..$min_y-1);
+   }
+
+   # Fill the undefs with S_NONE
    for my $i (0..@HOUSE-1) {
-      for (my $j = 0; $j < $W; $j++) {
-         $HOUSE[$i][$j] = '.' unless defined $HOUSE[$i][$j];
+      for (my $j = 0; $j <= $max_y - $min_y; $j++) {
+         $HOUSE[$i][$j] = ' ' unless defined $HOUSE[$i][$j];
       }
    }
 }
 
 # Print the hosue to stdout
 sub stdout {
-   normalize_house();
-
    print @$_, "\n" for @HOUSE;
 }
 
-# Check if area is free
-# arg1: area X position
-# arg2: area Y position
-# arg3: area height
-# arg4: area width
-sub check_area_is_free {
-   my ($self, $x, $y, $h, $w) = @_;
-   die "Wrong number of arguments " unless @_ == 5;
-
-   while ($h-- > 0) {
-      return 0 if grep {defined} @{$HOUSE[$x++]}[$y..$y+$w-1];
-   }
-
-   return 1;
-}
-
-# (internal, unsafe) Fill specified area with char
-sub _fill_area_with_char {
-   die "Wrong number of arguments " unless @_ == 5;
-   my ($x, $y, $h, $w, $pchar) = @_;
+# (internal, unsafe) Fill specified area with chamber
+sub _chamber {
+   die "Wrong number of arguments " unless @_ == 4;
+   my ($x, $y, $h, $w) = @_;
 
    $H = $x + $h if $H < $x + $h;
    $W = $y + $w if $W < $y + $w;
 
-   while ($h-- > 0) {
-      @{$HOUSE[$x++]}[$y..$y+$w-1] = split //, $pchar x $w;
+   my @line;
+   my $i;
+
+   @line = split//, '#' x $w;
+   $i = 0;
+   for (@{$HOUSE[$x++]}[$y..$y+$w-1]) {
+      $_ = $line[$i] unless defined $_;
+      $i++;
    }
-}
-
-sub move_builder {
-   my $direction = $_[0];
-
-   sub _step {
-      my $rand = rand(3) - 1;
-      if ($_[0] == 1) {
-         if (defined $HOUSE[$bx + 1][$by + $rand] &&
-            defined $HOUSE[$bx + 1][$by + 2 * $rand] &&
-            $HOUSE[$bx + 1][$by + $rand] =~ /[X+]/ &&
-            $HOUSE[$bx + 1][$by + 2 * $rand] =~ /[X+]/) {
-            $bx++, $by += $rand;
-            return 1;
-         } elsif (defined $HOUSE[$bx + 1][$by + 1] &&
-            $HOUSE[$bx + 1][$by + 1] =~ /[X+.]/) {
-            $bx++, $by++;
-            return 1;
-         } else {
-            return 0;
-         }
+   $h--;
+   while ($h-- > 1) {
+      @line = ('#', (split//, '_' x ($w - 2), $w-2), '#');
+      $i = 0;
+      for (@{$HOUSE[$x++]}[$y..$y+$w-1]) {
+         $_ = $line[$i] unless defined $_;
+         $i++;
       }
    }
-
-   while (_step($direction)) {};
+   @line = split//, '#' x $w;
+   $i = 0;
+   for (@{$HOUSE[$x++]}[$y..$y+$w-1]) {
+      $_ = $line[$i] unless defined $_;
+      $i++;
+   }
 }
 
+# Build the building
+# arg: hashref
+#  - : TYPE => type of the building
+#  - : ROOMS => number of rooms (not strict)
+#  - : width => width (not strict)
+#  - : height => height (not strict)
+#  - : xfactor and yfactor => room size multiplier
+#  - : xmin and ymin => min size of rooms (strict)
 sub build {
-   my $width = 18;
-   my $height = 9;
-   my $xfactor = 2;
-   my $yfactor = 2;
-   my $xmin = 5;
-   my $ymin = 5;
+   my %c = %{$_[1] // {}};
+   $TYPE       = $c{TYPE}           ;
+   my $ROOMS   = $c{ROOMS}   // 2   ;
+   my $width   = $c{width}   // 10  ;
+   my $height  = $c{height}  // 9   ;
+   my $xfactor = $c{xfactor} // 2   ;
+   my $yfactor = $c{yfactor} // 1.5 ;
+   my $xmin    = $c{xmin}    // 4   ;
+   my $ymin    = $c{ymin}    // 4   ;
+
+   # Initialize
+   @HOUSE = ();
+   ($W, $H)   = (0, 0);
+   ($bx, $by) = (0, 0);
 
    # Select entrance position and put the entrance
    $bx = 0;
-   $by = 1 + int rand($width - 1);
+   $by = 2 + int rand($width - 1);
    $HOUSE[$bx++][$by] = '1';
+   $HOUSE[$bx+1][$by] = $TYPE if defined $TYPE;
    $H++;
-
-   my $rwidth = $xmin + rand($width + 1) / $xfactor;
-   my $rheight = $ymin + rand($height + 1) / $yfactor;
 
    # grow directions: 0 -- left, 1 -- down, 2 -- right
    my $direction = 1;
 
-   # Attach new room to the building
-   if ($direction == 1) {
+   my $rooms = 0;
+   do {
+      # room size
+      my $rwidth = $ymin + int(rand($width + 1) / $yfactor);
+      my $rheight = $xmin + int(rand($height + 1) / $xfactor);
+
+      # Place the door on the previous coordinates
+      $HOUSE[$bx][$by] = '+';
+
+      # Attach new room to the building
       my $top_y;
-      do {
-         $top_y = $by - 1 - rand($rwidth / 2.5);
-         $top_y = 1 if $by <= 2;
-      } while ($top_y < 1);
+      my $top_x;
+      if ($direction == 1) {
+         $top_x = $bx;
+         do {
+            $top_y = $by - 1 - int rand($rwidth / 1.5);
+            $top_y = 1 if $by <= 2;
+         } while ($top_y < 1);
 
-      if (check_area_is_free(undef, $bx, $top_y, $rheight, $rwidth)) {
-         _fill_area_with_char($bx, $top_y, $rheight, $rwidth, 'X');
+         $rwidth += 2 if int abs $top_y - $by >= $rwidth - 1;
+
+         _chamber($top_x, $top_y, $rheight, $rwidth);
+      } elsif ($direction == 2) {
+         $top_y = $by;
+         do {
+            $top_x = $bx - 1 - int rand($rheight / 2.5);
+            $top_x = 1 if $bx <= 2;
+         } while ($top_x < 1);
+         $rheight += 2 if int abs $top_x - $bx >= $rheight - 1;
+
+         _chamber($top_x, $top_y, $rheight, $rwidth);
       }
-   }
 
-   # Place the door on the previous coordinates
-   $HOUSE[$bx][$by] = '+';
+      # Choose a direction
+      if ($direction == 1) {
+         $direction = rand(2) >= 0.9 ? 2 : 1; # TODO s/1/0/ (really ???)
+      } elsif ($direction == 2) {
+         $direction = rand(2) >= 0.9 ? 1 : 2;
+      } else {
+         $direction = rand(2) >= 0.9 ? 1 : 2;
+      }
 
-   # Choose a direction
-   $direction = 1;
+      # Move the builder to new location
+      if ($direction == 1) {
+         $bx = $top_x + $rheight - 1;
+         $by = $top_y + int rand($rwidth) - 2;
+         $by = $top_y + 1 if $by <= $top_y;
+      } elsif ($direction == 2) {
+         $by = $top_y + $rwidth - 1;
+         $bx = $top_x + int rand($rheight) - 2;
+         $bx = $top_x + 1 if $bx <= $top_x;
+      }
+   } while (rand($ROOMS + 1) > $rooms++);
 
-   # Move the builder to new location
-   move_builder($direction);
-
-   $HOUSE[$bx][$by] = '+';
+   # Fix all necessary things
+   _normalize_house();
 
    # Return the house
-   @HOUSE;
+   \@HOUSE;
 }
 
 1;

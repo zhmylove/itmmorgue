@@ -11,6 +11,7 @@ use lib '.';
 
 use gen;
 use build;
+use house;
 
 # Read zero (main) level into memory from STDIN
 gen->read_level();
@@ -22,7 +23,8 @@ gen->level(1);
 my $city_angle = int rand 4;
 
 # Create a new level for city
-my $size = 10 * 6 + rand(2 * 10 * 6);
+my $city_factor = 100;
+my $size = 1.5 * $city_factor + rand($city_factor);
 my ($city_h, $city_w) = (0.4 * $size, 0.6 * $size);
 gen->recreate_level_unsafe(
    $city_angle % 2 ? ($city_w, $city_h) : ($city_h, $city_w)
@@ -35,15 +37,10 @@ gen->generate_blurred_area(1, ',', 0.45);
 gen->free_regex('[.,"^]');
 
 do {
-   my $building = build::get_building(rand(8)+5, rand(8)+5);
-# $building = [ map { [ split // ] } (
-#       "  1  ",
-#       "##+##",
-#       "#___#",
-#       "#___#",
-#       "#####",
-#    )
-# ];
+   my $building;
+
+   $building = rand(2) >= 1 ?  build::get_building(rand(8)+5, rand(8)+5) :
+      house->build();
 
    # Overlay the building with rotation
    gen->overlay_somehow($building);
