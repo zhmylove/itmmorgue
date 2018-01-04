@@ -43,7 +43,10 @@ void server() {
         panic("Server is already running!");
     }
 
+    // TODO do this asynchronously
     s_levels_init();
+    // Start event loop thread
+    event_init();
 
     server_started = 1;
 
@@ -223,10 +226,6 @@ void* process_client(connection_t *connection) {
             case MSG_MOVE_PLAYER:
                 logger("[S] [MOVE_PLAYER]");
                 break;
-                /* Decide if we wanna use smth besides chat "!s" */
-            // case MSG_START_GAME:
-            //     logger("[S] [START_GAME]");
-            //     break;
             default:
                 warnf("Unknown type: %d", mbuf.msg.type);
                 logger("[S] [UNKNOWN]");
@@ -384,48 +383,32 @@ void* process_client(connection_t *connection) {
 
         // Normal messages routine
         // TODO do smth with message
+
+        // If MSG_MOVE_PLAYER
+        player_move_t *move;
+
         switch (mbuf.msg.type) {
             case MSG_MOVE_PLAYER:
-                /*
-                 * TODO implement speed and handle other stuff.
-                 * Move this to a separate function in player.c
-                 */
                 switch ((enum keyboard) *payload) {
                     case K_MOVE_LEFT:
-                        players[id].x--;
-                        break;
                     case K_MOVE_RIGHT:
-                        players[id].x++;
-                        break;
                     case K_MOVE_UP:
-                        players[id].y--;
-                        break;
                     case K_MOVE_DOWN:
-                        players[id].y++;
-                        break;
                     case K_MOVE_LEFT_UP:
-                        players[id].y--;
-                        players[id].x--;
-                        break;
                     case K_MOVE_RIGHT_UP:
-                        players[id].y--;
-                        players[id].x++;
-                        break;
                     case K_MOVE_LEFT_DOWN:
-                        players[id].y++;
-                        players[id].x--;
-                        break;
                     case K_MOVE_RIGHT_DOWN:
-                        players[id].y++;
-                        players[id].x++;
+                        // Will be freed during event handle
+                        if ((move = (player_move_t *)malloc(
+                                        sizeof(player_move_t))) == NULL) {
+                            panic("[S] Error allocating player_move_t!");
+                        }
+                        move->player_id = id;
+                        move->direction = (enum keyboard) *payload;
+                        event_player_add(id, EV_MOVE, move);
                         break;
                     default:
                         panic("[S] invalid move received!");
-                }
-
-                /* TODO move this to the end of the tick */
-                for (size_t i = 0; i < players_len; i++) {
-                    s_send_players(players + i);
                 }
                 break;
             case MSG_GET_CHAT: /* Already handled */

@@ -14,6 +14,8 @@ typedef struct player {
     uint8_t ready;
     uint8_t connected;
     connection_t *connection;
+    event_t event;
+    void * event_args;
     /* inventory_t */
     /* common creatures stats_t */
     /* player specific stats ?? */
@@ -36,6 +38,11 @@ typedef struct players_mbuf {
     uint8_t self;
     size_t players_len;
 } players_mbuf_t;
+
+typedef struct player_move {
+    enum keyboard direction;
+    size_t player_id;
+} player_move_t;
 
 size_t player_init(enum colors color, char *nickname,
         connection_t *connection);
