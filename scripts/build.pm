@@ -49,6 +49,31 @@ s/S_([^ ]+) *\[(.)\]/$stuff{lc$1} = $2/e for <$stuff>;
 close $stuff;
 
 
+# Places 1 near main door.
+sub _decorate {
+  my ($edx, $edy, $w, $h) = @_;
+  my @bldg = @{$_[4]};
+  my $sx = $edx == 0;
+  my $sy = $edy == 0;
+  my @nbldg = ();
+  for my $i (0..$h-1) {
+    for my $j (0..$w-1) {
+      $nbldg[$i+$sy][$j+$sx] = $bldg[$i][$j];
+    }
+  }
+  if ($edy == 0 || $edy == $h-1) { 
+    $nbldg[$edy][$_] = ' ' for 0..$w-1;
+    $nbldg[$edy == 0 ? 0 : $h][$edx] = '1';
+  }
+  if ($edx == 0 || $edx == $w-1) {
+    $nbldg[$_][$edx] = ' ' for 0..$h-1;
+    $nbldg[$edy][$edx == 0 ? 0 : $w] = '1';
+  }
+
+  \@bldg;
+}
+
+
 # Get new two-dimensional array with building.
 #
 # arg0 : width  (optional)
@@ -57,6 +82,7 @@ close $stuff;
 sub get_building {
   my $w = $_[0] // 20;
   my $h = $_[1] // 20;
+  $w = int $w; $h = int $h;
   die "Building width and height must be at least 5 tails"
   unless $w >= 5 && $h >= 5;
 
@@ -69,7 +95,7 @@ sub get_building {
     my @bldg = @{$_[2]};
     for my $i (0..$h-1) {
       for my $j (0..$w-1) {
-      $bldg[$i][$j] = $stuff{door} if wallp($bldg[$i][$j]) && rand() < 0.03;
+        $bldg[$i][$j] = $stuff{door} if wallp($bldg[$i][$j]) && rand() < 0.03;
       }
     }
   }
@@ -244,10 +270,12 @@ sub get_building {
 
   # Plant some doors
   place_doors $w, $h, \@bldg;
-  return \@bldg if everything_is_reachable $edy, $edx, $w, $h, \@bldg;
+  return _decorate $edx, $edy, $w, $h, \@bldg
+  if everything_is_reachable $edy, $edx, $w, $h, \@bldg;
   # Try one more time
   place_doors $w, $h, \@bldg;
-  return \@bldg if everything_is_reachable $edy, $edx, $w, $h, \@bldg;
+  return _decorate $edx, $edy, $w, $h, \@bldg
+  if everything_is_reachable $edy, $edx, $w, $h, \@bldg;
 
   # Sometime we'll be lucky
   get_building(@_);
