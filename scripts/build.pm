@@ -98,6 +98,18 @@ sub get_building {
         $bldg[$i][$j] = $stuff{door} if wallp($bldg[$i][$j]) && rand() < 0.03;
       }
     }
+    for my $i (0..$h-1) {
+      for my $j (0..$w-1) {
+        if ($bldg[$i][$j] eq $stuff{door}) {
+          my $cnt = 0;
+          $cnt += (
+            grep {$_ eq $stuff{door}}
+            @{$bldg[$_]}[$j-($j-1<0?0:1)..$j+($j<$w-1?1:0)]
+          ) // 0 for ($i-($i > 0 ? 1 : 0)..$i+($i < $h-1 ? 1 : 0));
+          $bldg[$i][$j] = $stuff{wall} if 1 != $cnt;
+        }
+      }
+    }
   }
 
   # Check reachability
@@ -266,7 +278,7 @@ sub get_building {
     $edx = int(rand() * ($w-3)) + 1;
     $edy = rand() > 0.5 ? 0 : $h-1;
   }
-  $bldg[$edy][$edx] = $stuff{door};
+  $bldg[$edy][$edx] = '+';
 
   # Plant some doors
   place_doors $w, $h, \@bldg;
