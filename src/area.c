@@ -119,19 +119,34 @@ void draw_area() {
     }
 
     /* Calculate top_y and top_x for area */
-    ssize_t top_y = 0, top_x = 0;
+    // TODO do we really need to check conf() every tick?
+    ssize_t top_y = 0, top_x = 0, camera = conf("player_camera").ival;
     if (players_len > 0) {
 #define AREA (windows[W_AREA])
 #define ME (players[player_self])
-        top_y = ME.y - AREA.max_y / 2;
-        top_x = ME.x - AREA.max_x / 2;
+        if (camera == 1) {
+            // Centre view
+            top_y = ME.y - AREA.max_y / 2;
+            top_x = ME.x - AREA.max_x / 2;
+        } else if (camera == 2) {
+            // Part-screen movement
+            top_y = ((ME.y - (AREA.max_y / 8)) / (AREA.max_y * 6 / 8)) *
+                (AREA.max_y * 6 / 8);
+            top_x = ((ME.x - (AREA.max_x / 8)) / (AREA.max_x * 6 / 8)) *
+                (AREA.max_x * 6 / 8);
+        } else {
+            // Another view
+        }
 
+        // Corrections
         if (top_y <  0) top_y = 0;
         if (top_x <  0) top_x = 0;
-        if (top_y >= HEIGHT - AREA.max_y) top_y =
-            HEIGHT - AREA.max_y;
-        if (top_x >= WIDTH - AREA.max_x) top_x =
-            WIDTH - AREA.max_x;
+        // TODO do all of our levels has such big size?
+        // TODO change c_levels to current_level_pointer
+        if (top_y >= c_levels->max_y - AREA.max_y) top_y =
+            c_levels->max_y - AREA.max_y;
+        if (top_x >= c_levels->max_x - AREA.max_x) top_x =
+            c_levels->max_x - AREA.max_x;
     }
 
     tile_t *curr = c_curr;

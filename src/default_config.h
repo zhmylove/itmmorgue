@@ -205,6 +205,7 @@ struct t_conf_default {
 
     C_STR("player_nickname", ""),
     C_INT("player_color", 10),
+    C_INT("player_camera", 1),
     C_STR("file_locale", ""),
     C_STR("file_server_log", "itmmorgue.log")
 };
