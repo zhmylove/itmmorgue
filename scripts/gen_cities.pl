@@ -48,7 +48,7 @@ do {
    my $bh = @{$building};
    my $bw = @{$building->[0]};
    ($bw, $bh) = ($bh, $bw) if $bw > $bh;
-   @args = (rotate => [rand(2) >= 1 ? 0 : 2]) if $bh / $bw >= 2;
+   @args = (rotate => [rand(2) >= 1 ? 0 : 2]) if $bh / $bw >= 1.5;
 
    # Overlay the building with rotation
    gen->overlay_somehow($building, {@args});
