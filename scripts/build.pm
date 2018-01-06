@@ -76,7 +76,7 @@ sub _decorate {
 }
 
 
-# Get new two-dimensional array with building.
+# Returns new two-dimensional array with building.
 #
 # arg0 : width  (optional)
 # arg1 : height (optional)
@@ -109,16 +109,29 @@ sub get_building {
             grep {$_ eq $stuff{door}}
             @{$bldg[$_]}[$j-($j-1<0?0:1)..$j+($j<$w-1?1:0)]
           ) // 0 for ($i-($i > 0 ? 1 : 0)..$i+($i < $h-1 ? 1 : 0));
-          $bldg[$i][$j] = $stuff{wall} if 1 != $cnt;
+          $bldg[$i][$j] = $stuff{wall}, next if 1 != $cnt;
+          # Door angleness
+          next if 2 == ($cnt =
+            ($i == 0    || $bldg[$i-1][$j] eq $stuff{floor}) +
+            ($i == $h-1 || $bldg[$i+1][$j] eq $stuff{floor})
+          );
+          $bldg[$i][$j] = $stuff{wall}, next if 1 == $cnt;
+          next if 2 == (
+            ($j == 0    || $bldg[$i][$j-1] eq $stuff{floor}) +
+            ($j == $w-1 || $bldg[$i][$j+1] eq $stuff{floor})
+          );
+          $bldg[$i][$j] = $stuff{wall};
         }
       }
     }
   }
 
-  # Check reachability
+  # Checks reachability of each non-wall point
   sub everything_is_reachable {
     my ($edy, $edx, $w, $h) = @_;
     my @bldg = @{$_[4]};
+
+    return undef unless $bldg[$edy][$edx] eq $stuff{door};
 
     my @visited = (); # Map of visited points
     my @q       = (); # Queue for start points
