@@ -183,23 +183,27 @@ sub get_building {
   while ($tries-- > 0 && $wall_deleted) {
     $wall_deleted = undef;
     for my $i (1..$h-2) {
-      next unless wallp $bldg[$i][1];
-      # Next line is wall or previous line is wall. And this line is wall.
-      if (wallp($bldg[$i][2]) &&
-        (wallp($bldg[$i-1][1]) && wallp($bldg[$i-1][2]) ||
-          (wallp($bldg[$i+1][1]) && wallp($bldg[$i+1][2])))) {
-        $bldg[$i][$_] = $stuff{floor} for 1..$w-2;
-        $wall_deleted = 1;
+      for my $j (1..$w-3) {
+        next unless wallp $bldg[$i][1];
+        # Next line is wall or previous line is wall. And this line is wall.
+        if (wallp($bldg[$i][$j+1]) &&
+          (wallp($bldg[$i-1][$j]) && wallp($bldg[$i-1][$j+1]) ||
+            (wallp($bldg[$i+1][$j]) && wallp($bldg[$i+1][$j+1])))) {
+          $bldg[$i][$_] = $stuff{floor} for 1..$w-2;
+          $wall_deleted = 1;
+        }
       }
     }
 
     for my $i (1..$w-2) {
-      next unless wallp $bldg[1][$i];
-      # Next line is wall or previous line is wall. And this line is wall.
-      if (wallp($bldg[2][$i]) &&
-        (wallp($bldg[1][$i-1]) && wallp($bldg[2][$i-1]) ||
-          (wallp($bldg[1][$i+1]) && wallp($bldg[2][$i+1])))) {
-        $bldg[$_][$i] = $stuff{floor} for 1..$h-2;
+      for my $j (1..$h-3) {
+        next unless wallp $bldg[1][$i];
+        # Next line is wall or previous line is wall. And this line is wall.
+        if (wallp($bldg[$j+1][$i]) &&
+          (wallp($bldg[$j][$i-1]) && wallp($bldg[$j+1][$i-1]) ||
+            (wallp($bldg[$j][$i+1]) && wallp($bldg[$j+1][$i+1])))) {
+          $bldg[$_][$i] = $stuff{floor} for 1..$h-2;
+        }
       }
     }
 
