@@ -104,6 +104,7 @@ sub get_building {
       for my $j (0..$w-1) {
         if ($bldg[$i][$j] eq $stuff{door}) {
           my $cnt = 0;
+          # Doors count
           $cnt += (
             grep {$_ eq $stuff{door}}
             @{$bldg[$_]}[$j-($j-1<0?0:1)..$j+($j<$w-1?1:0)]
@@ -179,9 +180,9 @@ sub get_building {
   }
 
   # Get rid of fat walls
-  my ($tries, $wall_deleted) = ($w*$h, 1);
-  while ($tries-- > 0 && $wall_deleted) {
-    $wall_deleted = undef;
+  my ($tries, $wall_fixed) = ($w*$h, 1);
+  while ($tries-- > 0 && $wall_fixed) {
+    $wall_fixed = undef;
     for my $i (1..$h-2) {
       for my $j (1..$w-3) {
         next unless wallp $bldg[$i][1];
@@ -190,7 +191,7 @@ sub get_building {
           (wallp($bldg[$i-1][$j]) && wallp($bldg[$i-1][$j+1]) ||
             (wallp($bldg[$i+1][$j]) && wallp($bldg[$i+1][$j+1])))) {
           $bldg[$i][$_] = $stuff{floor} for 1..$w-2;
-          $wall_deleted = 1;
+          $wall_fixed = 1;
         }
       }
     }
@@ -221,7 +222,7 @@ sub get_building {
             if (defined $wpos) {
               # Conduct to the left
               $bldg[$i][$_] = $stuff{wall} for $wpos..$j-1;
-              $wall_deleted = 1;
+              $wall_fixed = 1;
               next;
             }
 
@@ -232,12 +233,12 @@ sub get_building {
             if (defined $wpos) {
               # Conduct to the right
               $bldg[$i][$_] = $stuff{wall} for $j+1..$wpos;
-              $wall_deleted = 1;
+              $wall_fixed = 1;
               next;
             }
 
             # Haven't found, make full vertical line
-            $wall_deleted = 1;
+            $wall_fixed = 1;
             $bldg[$_][$j] = $stuff{wall} for 0..$h-1;
             next;
           }
@@ -252,7 +253,7 @@ sub get_building {
             if (defined $wpos) {
               # Conduct to the top
               $bldg[$_][$j] = $stuff{wall} for $wpos..$i-1;
-              $wall_deleted = 1;
+              $wall_fixed = 1;
               next;
             }
 
@@ -263,12 +264,12 @@ sub get_building {
             if (defined $wpos) {
               # Conduct to the bottom
               $bldg[$_][$j] = $stuff{wall} for $i+1..$wpos;
-              $wall_deleted = 1;
+              $wall_fixed = 1;
               next;
             }
 
             # Haven't found, make full horizontal line
-            $wall_deleted = 1;
+            $wall_fixed = 1;
             $bldg[$i][$_] = $stuff{wall} for 0..$w-1;
           }
         }
