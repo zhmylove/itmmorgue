@@ -62,15 +62,17 @@ sub _decorate {
     }
   }
   if ($edy == 0 || $edy == $h-1) { 
+    $edy = $h if $edy == $h-1;
     $nbldg[$edy][$_] = ' ' for 0..$w-1;
     $nbldg[$edy == 0 ? 0 : $h][$edx] = '1';
   }
   if ($edx == 0 || $edx == $w-1) {
+    $edx = $w if $edx == $w-1;
     $nbldg[$_][$edx] = ' ' for 0..$h-1;
     $nbldg[$edy][$edx == 0 ? 0 : $w] = '1';
   }
 
-  \@bldg;
+  \@nbldg;
 }
 
 
@@ -278,7 +280,7 @@ sub get_building {
     $edx = int(rand() * ($w-3)) + 1;
     $edy = rand() > 0.5 ? 0 : $h-1;
   }
-  $bldg[$edy][$edx] = '+';
+  $bldg[$edy][$edx] = $stuff{door};
 
   # Plant some doors
   place_doors $w, $h, \@bldg;
