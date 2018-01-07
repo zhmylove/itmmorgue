@@ -42,13 +42,6 @@ package build;
 use strict;
 use warnings FATAL => 'all';
 
-# Load stuff
-our %stuff = ();
-open my $stuff, '<', 'stuff';
-s/S_([^ ]+) *\[(.)\]/$stuff{lc$1} = $2/e for <$stuff>;
-close $stuff;
-
-
 # Places 1 near main door.
 sub _decorate {
   my ($edx, $edy, $w, $h) = @_;
@@ -88,39 +81,36 @@ sub get_building {
   die "Building width and height must be at least 5 tails"
   unless $w >= 5 && $h >= 5;
 
-  # Checks that arg is wall
-  sub wallp { '#' eq $_[0]; }
-
   # Adds some doors to building
   sub place_doors {
     my ($w, $h) = @_;
     my @bldg = @{$_[2]};
     for my $i (0..$h-1) {
       for my $j (0..$w-1) {
-        $bldg[$i][$j] = $stuff{door} if wallp($bldg[$i][$j]) && rand() < 0.03;
+        $bldg[$i][$j] = '+' if $bldg[$i][$j] eq '#' && rand() < 0.03;
       }
     }
     for my $i (0..$h-1) {
       for my $j (0..$w-1) {
-        if ($bldg[$i][$j] eq $stuff{door}) {
+        if ($bldg[$i][$j] eq '+') {
           my $cnt = 0;
           # Doors count
           $cnt += (
-            grep {$_ eq $stuff{door}}
+            grep {$_ eq '+'}
             @{$bldg[$_]}[$j-($j-1<0?0:1)..$j+($j<$w-1?1:0)]
           ) // 0 for ($i-($i > 0 ? 1 : 0)..$i+($i < $h-1 ? 1 : 0));
-          $bldg[$i][$j] = $stuff{wall}, next if 1 != $cnt;
+          $bldg[$i][$j] = '#', next if 1 != $cnt;
           # Door angleness
           next if 2 == ($cnt =
-            ($i == 0    || $bldg[$i-1][$j] eq $stuff{floor}) +
-            ($i == $h-1 || $bldg[$i+1][$j] eq $stuff{floor})
+            ($i == 0    || $bldg[$i-1][$j] eq '_') +
+            ($i == $h-1 || $bldg[$i+1][$j] eq '_')
           );
-          $bldg[$i][$j] = $stuff{wall}, next if 1 == $cnt;
+          $bldg[$i][$j] = '#', next if 1 == $cnt;
           next if 2 == (
-            ($j == 0    || $bldg[$i][$j-1] eq $stuff{floor}) +
-            ($j == $w-1 || $bldg[$i][$j+1] eq $stuff{floor})
+            ($j == 0    || $bldg[$i][$j-1] eq '_') +
+            ($j == $w-1 || $bldg[$i][$j+1] eq '_')
           );
-          $bldg[$i][$j] = $stuff{wall};
+          $bldg[$i][$j] = '#';
         }
       }
     }
@@ -131,7 +121,7 @@ sub get_building {
     my ($edy, $edx, $w, $h) = @_;
     my @bldg = @{$_[4]};
 
-    return undef unless $bldg[$edy][$edx] eq $stuff{door};
+    return undef unless $bldg[$edy][$edx] eq '+';
 
     my @visited = (); # Map of visited points
     my @q       = (); # Queue for start points
@@ -149,9 +139,9 @@ sub get_building {
           # Now we have to check that we are looking onto door. It means that
           # should check reachability without diagonal tiles.
           next if (
-            $stuff{door} eq $bldg[$i][$j] || $stuff{door} eq $bldg[$y][$x]
+            '+' eq $bldg[$i][$j] || '+' eq $bldg[$y][$x]
           ) && (abs($x-$j)+abs($y-$i) != 1);
-          unless ($visited[$i][$j] || wallp($bldg[$i][$j])) {
+          unless ($visited[$i][$j] || $bldg[$i][$j] eq '#') {
             push @q, [$i, $j];
             $visited[$i][$j] = 1;
           }
@@ -161,7 +151,7 @@ sub get_building {
 
     for my $i (0..$h-1) {
       for my $j (0..$w-1) {
-        return undef unless wallp($bldg[$i][$j]) || $visited[$i][$j];
+        return undef unless $bldg[$i][$j] eq '#' || $visited[$i][$j];
       }
     }
 
@@ -173,23 +163,23 @@ sub get_building {
   # Initial floor using S_FLOOR
   for my $i (1..$h-2) {
     for my $j (1..$w-2) {
-      $bldg[$i][$j] = $stuff{floor};
+      $bldg[$i][$j] = '_';
     }
   }
 
   # Main walls using S_WALL
-  ($bldg[$_][0], $bldg[$_][$w-1]) = ($stuff{wall}, $stuff{wall}) for 0..$h-1;
-  ($bldg[0][$_], $bldg[$h-1][$_]) = ($stuff{wall}, $stuff{wall}) for 0..$w-1;
+  ($bldg[$_][0], $bldg[$_][$w-1]) = ('#', '#') for 0..$h-1;
+  ($bldg[0][$_], $bldg[$h-1][$_]) = ('#', '#') for 0..$w-1;
 
   # Rooms
   for (0..$h*0.11) {
     my $y = int rand $h;
-    $bldg[$y][$_] = $stuff{wall} for 0..$w-1;
+    $bldg[$y][$_] = '#' for 0..$w-1;
   }
 
   for (0..$w*0.11) {
     my $x = int rand $w;
-    $bldg[$_][$x] = $stuff{wall} for 0..$h-1;
+    $bldg[$_][$x] = '#' for 0..$h-1;
   }
 
   # Get rid of fat walls
@@ -198,12 +188,12 @@ sub get_building {
     $wall_fixed = undef;
     for my $i (1..$h-2) {
       for my $j (1..$w-3) {
-        next unless wallp $bldg[$i][1];
+        next unless '#' eq $bldg[$i][1];
         # Next line is wall or previous line is wall. And this line is wall.
-        if (wallp($bldg[$i][$j+1]) &&
-          (wallp($bldg[$i-1][$j]) && wallp($bldg[$i-1][$j+1]) ||
-            (wallp($bldg[$i+1][$j]) && wallp($bldg[$i+1][$j+1])))) {
-          $bldg[$i][$_] = $stuff{floor} for 1..$w-2;
+        if ('#' eq $bldg[$i][$j+1] &&
+          ('#' eq $bldg[$i-1][$j] && '#' eq $bldg[$i-1][$j+1] ||
+            ('#' eq $bldg[$i+1][$j] && '#' eq $bldg[$i+1][$j+1]))) {
+          $bldg[$i][$_] = '_' for 1..$w-2;
           $wall_fixed = 1;
         }
       }
@@ -211,12 +201,12 @@ sub get_building {
 
     for my $i (1..$w-2) {
       for my $j (1..$h-3) {
-        next unless wallp $bldg[1][$i];
+        next unless '#' eq $bldg[1][$i];
         # Next line is wall or previous line is wall. And this line is wall.
-        if (wallp($bldg[$j+1][$i]) &&
-          (wallp($bldg[$j][$i-1]) && wallp($bldg[$j+1][$i-1]) ||
-            (wallp($bldg[$j][$i+1]) && wallp($bldg[$j+1][$i+1])))) {
-          $bldg[$_][$i] = $stuff{floor} for 1..$h-2;
+        if ('#' eq $bldg[$j+1][$i] &&
+          ('#' eq $bldg[$j][$i-1] && '#' eq $bldg[$j+1][$i-1] ||
+            ('#' eq $bldg[$j][$i+1] && '#' eq $bldg[$j+1][$i+1]))) {
+          $bldg[$_][$i] = '_' for 1..$h-2;
         }
       }
     }
@@ -224,66 +214,66 @@ sub get_building {
     # Fix leaky walls
     for my $i (1..$h-2) {
       for my $j (1..$w-2) {
-        if (wallp $bldg[$i][$j]) {
-          if (1 == wallp($bldg[$i-1][$j]) + wallp($bldg[$i+1][$j])) {
+        if ('#' eq $bldg[$i][$j]) {
+          if (1 == ('#' eq $bldg[$i-1][$j]) + ('#' eq $bldg[$i+1][$j])) {
             # Try to fix broken vertical line
             # Find closest wall on the left
             my $wpos;
             for (reverse 1..$j-1) {
-              $wpos = $_ and last if wallp $bldg[$i][$_];
+              $wpos = $_ and last if '#' eq $bldg[$i][$_];
             }
             if (defined $wpos) {
               # Conduct to the left
-              $bldg[$i][$_] = $stuff{wall} for $wpos..$j-1;
+              $bldg[$i][$_] = '#' for $wpos..$j-1;
               $wall_fixed = 1;
               next;
             }
 
             # Find closest wall on the right
             for ($j+1..$w-2) {
-              $wpos = $_ and last if wallp $bldg[$i][$_];
+              $wpos = $_ and last if '#' eq $bldg[$i][$_];
             }
             if (defined $wpos) {
               # Conduct to the right
-              $bldg[$i][$_] = $stuff{wall} for $j+1..$wpos;
+              $bldg[$i][$_] = '#' for $j+1..$wpos;
               $wall_fixed = 1;
               next;
             }
 
             # Haven't found, make full vertical line
             $wall_fixed = 1;
-            $bldg[$_][$j] = $stuff{wall} for 0..$h-1;
+            $bldg[$_][$j] = '#' for 0..$h-1;
             next;
           }
 
-          if (1 == wallp($bldg[$i][$j-1]) + wallp($bldg[$i][$j+1])) {
+          if (1 == ('#' eq $bldg[$i][$j-1]) + ('#' eq $bldg[$i][$j+1])) {
             # Try to fix broken horizontal line
             # Find closest wall on the top
             my $wpos;
             for (reverse 1..$i-1) {
-              $wpos = $_ and last if wallp $bldg[$_][$j];
+              $wpos = $_ and last if '#' eq $bldg[$_][$j];
             }
             if (defined $wpos) {
               # Conduct to the top
-              $bldg[$_][$j] = $stuff{wall} for $wpos..$i-1;
+              $bldg[$_][$j] = '#' for $wpos..$i-1;
               $wall_fixed = 1;
               next;
             }
 
             # Find closest wall on the bottom
             for ($i+1..$h-2) {
-              $wpos = $_ and last if wallp $bldg[$_][$j];
+              $wpos = $_ and last if '#' eq $bldg[$_][$j];
             }
             if (defined $wpos) {
               # Conduct to the bottom
-              $bldg[$_][$j] = $stuff{wall} for $i+1..$wpos;
+              $bldg[$_][$j] = '#' for $i+1..$wpos;
               $wall_fixed = 1;
               next;
             }
 
             # Haven't found, make full horizontal line
             $wall_fixed = 1;
-            $bldg[$i][$_] = $stuff{wall} for 0..$w-1;
+            $bldg[$i][$_] = '#' for 0..$w-1;
           }
         }
       }
@@ -298,7 +288,7 @@ sub get_building {
     $edx = int(rand() * ($w-3)) + 1;
     $edy = rand() > 0.5 ? 0 : $h-1;
   }
-  $bldg[$edy][$edx] = $stuff{door};
+  $bldg[$edy][$edx] = '+';
 
   # Plant some doors
   place_doors $w, $h, \@bldg;
