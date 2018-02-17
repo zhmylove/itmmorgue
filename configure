@@ -47,16 +47,19 @@ case $OS in
         LDFLAGS="$LDFLAGS -L /opt/csw/lib/ -lncursesw -lpthread -lnsl -lsocket"
         CFLAGS="$CFLAGS -L /opt/csw/lib/ -I /opt/sfw/include/"
         VARS_CLIENT='TERM=screen'
+        PROTO_SETTER=":sh = $PROTO_CALC_RUNNER"
         ;;
     FreeBSD)
         LDFLAGS="$LDFLAGS -L /usr/local/lib/ -lncursesw -ltinfow"
         CFLAGS="$CFLAGS -pthread"
+        PROTO_SETTER=":sh = $PROTO_CALC_RUNNER"
         ;;
     Linux)
         CFLAGS="$CFLAGS -lncursesw -pthread -I /usr/include/ncursesw"
 #       need to be linked after object files that uses this library
 #       see '3.14 Options for Linking' in latest gcc manual
         CFLAGS_END="-lncursesw"
+        PROTO_SETTER=":= \$(shell $PROTO_CALC_RUNNER)"
         ;;
     *)
         echo Unsupported platform!
@@ -148,14 +151,10 @@ CFLAGS  = $CFLAGS
 OBJECTS = $OBJECTS
 HEADERS = $HEADERS
 LIBS    = $LIBS
+PROTO $PROTO_SETTER
 
 all: $EXECUTABLE
 	@echo "Run 'make run' now to start the game! "
-
-env:
-	@echo "[env] setting environment variable"
-	\$(eval PROTO := \$(shell $PROTO_CALC_RUNNER))
-	@echo "[env] PROTOCOL_VERSION = \$(PROTO)"
 
 run: run_client
 	@echo "Running the game..."
@@ -179,7 +178,7 @@ debug: $EXECUTABLE
 $WORKDIR:
 	mkdir $WORKDIR
 
-$EXECUTABLE: env bin \$(OBJECTS) \$(LIBS)
+$EXECUTABLE: bin \$(OBJECTS) \$(LIBS)
 	\$(CC) \$(LDFLAGS) \$(CFLAGS) \$(OBJECTS) \$(LIBS) -o $EXECUTABLE $CFLAGS_END
 
 EOF
