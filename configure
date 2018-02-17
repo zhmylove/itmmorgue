@@ -40,18 +40,20 @@ LDFLAGS=''
 
 # Calculate protocol version
 # Get contents of all sources files sum each symbol and file's lines count
-PROTO_CALC_RUNNER="perl -lne '\$\$a += \$\$_ + \$\$. for split//; END{print \$\$a}' src/*"
+# perl -lne '$a += $_ + $. for split//; END{print $a}' src/*
 
 case $OS in
     SunOS) 
         LDFLAGS="$LDFLAGS -L /opt/csw/lib/ -lncursesw -lpthread -lnsl -lsocket"
         CFLAGS="$CFLAGS -L /opt/csw/lib/ -I /opt/sfw/include/"
         VARS_CLIENT='TERM=screen'
+        PROTO_CALC_RUNNER="perl -lne '\$a += \$_ + \$. for split//; END{print \$a}' src/*"
         PROTO_SETTER=":sh = $PROTO_CALC_RUNNER"
         ;;
     FreeBSD)
         LDFLAGS="$LDFLAGS -L /usr/local/lib/ -lncursesw -ltinfow"
         CFLAGS="$CFLAGS -pthread"
+        PROTO_CALC_RUNNER="perl -lne '\$a += \$_ + \$. for split//; END{print \$a}' src/*"
         PROTO_SETTER=":sh = $PROTO_CALC_RUNNER"
         ;;
     Linux)
@@ -59,6 +61,7 @@ case $OS in
 #       need to be linked after object files that uses this library
 #       see '3.14 Options for Linking' in latest gcc manual
         CFLAGS_END="-lncursesw"
+        PROTO_CALC_RUNNER="perl -lne '\$\$a += \$\$_ + \$\$. for split//; END{print \$\$a}' src/*"
         PROTO_SETTER=":= \$(shell $PROTO_CALC_RUNNER)"
         ;;
     *)
