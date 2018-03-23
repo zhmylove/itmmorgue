@@ -9,6 +9,7 @@
 char input[CHAT_MSG_MAXLEN + 2];
 size_t inputpos;
 size_t scrolloff = 0;
+size_t visible_top = 0;
 
 void c_chat_init() {
     if ((chat = malloc(CHAT_MSG_MAXLEN + 1)) == NULL) {
@@ -17,7 +18,6 @@ void c_chat_init() {
     
     chat[0] = '\0';
     input[0] = '\0';
-    chat_num_lines = 0;
     strncpy(nickname, CONF_SVAL("player_nickname"), sizeof(nickname));
 
     mbuf_t mbuf;
@@ -27,7 +27,7 @@ void c_chat_init() {
 }
 
 void draw_chat() {
-    // This function is full of black magic. Do hesitate read it.
+    // This function is full of dark magic. Do hesitate even read it.
     if (chat == NULL) {
         return;
     }
@@ -72,6 +72,8 @@ void draw_chat() {
         square -= msglen;
         chatptr = nextptr;
     }
+
+    visible_top = (chatptr == chat);
 
     if (*chatptr == '\n') {
         chatptr++;
@@ -122,12 +124,6 @@ void c_chat_add(char *str) {
     }
 
     strcat(chat, str);
-
-    while (*str) {
-        if (*str++ == '\n') {
-            chat_num_lines++;
-        }
-    }
 }
 
 void c_chat_open() {
@@ -150,7 +146,7 @@ void c_chat_open() {
             break;
         } else if (last_key == K[K_SCROLL_UP]) {
             // TODO what can we do with elastic windows scrolloff ?
-            if (scrolloff <= chat_num_lines - WIN(CHAT, max_y)) {
+            if (! visible_top) {
                 scrolloff++;
             }
         } else if (last_key == K[K_SCROLL_DOWN]) {
