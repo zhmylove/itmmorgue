@@ -15,35 +15,45 @@ void c_sysmsg_init() {
 }
 
 void draw_sysmsg() {
+    // This function is full of dark magic. Do hesitate even read it.
     if (sysmsg == NULL) {
         return;
     }
 
     int square = WIN(SYSMSG, max_x) * WIN(SYSMSG, max_y);
     size_t len = strlen(sysmsg);
-    char *sysmsgptr = sysmsg + len - 2;
+    char *sysmsgptr = sysmsg + len - 1;
 
     if (len < 2) {
         return;
     }
 
-    int curr = 0;
-    while (sysmsgptr > sysmsg && curr < square) {
-        switch (*sysmsg) {
-            case '\n':
-                curr += WIN(SYSMSG, max_x)
-                    - curr % WIN(SYSMSG, max_x);
-                break;
-            default:
-                if ((*sysmsgptr & 0xC0) != 0x80) {
-                    curr++;
-                }
+    // skip 'square' characters
+    while (sysmsgptr > sysmsg && square > 0) {
+        int msglen = 0;
+        char *msgptr = sysmsgptr;
+        while (--msgptr > sysmsg && *msgptr != '\n');
+        char *nextptr = msgptr++;
+        while (msgptr < sysmsgptr) {
+            if ((*++msgptr & 0xC0) != 0x80) {
+                msglen++;
+            }
         }
-        sysmsgptr--;
+        square -= WIN(SYSMSG, max_x) - msglen % WIN(SYSMSG, max_x);
+        if (msglen > square) {
+            while (square) {
+                if ((*--sysmsgptr & 0xC0) != 0x80) {
+                    --square;
+                }
+            }
+            break;
+        }
+        square -= msglen;
+        sysmsgptr = nextptr;
     }
 
-    if (sysmsgptr != sysmsg && *(sysmsgptr - 1) != '\n') {
-        while (*sysmsgptr++ != '\n');
+    if (*sysmsgptr == '\n') {
+        sysmsgptr++;
     }
 
     MVW(W_SYSMSG, 0, 0, "%s", sysmsgptr);
