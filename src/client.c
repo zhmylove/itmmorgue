@@ -70,6 +70,8 @@ void* worker() {
         }
 
         do {
+            timeout.tv_sec  = 0;
+            timeout.tv_usec = 50000;
             rc = select(sock + 1, &fds, NULL, NULL, &timeout);
         } while (rc < 0 && errno == EINTR);
 

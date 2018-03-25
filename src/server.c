@@ -186,6 +186,8 @@ void* process_client(connection_t *connection) {
         }
 
         do {
+            timeout.tv_sec  = 0;
+            timeout.tv_usec = 50000;
             rc = select(cs + 1, &fds, NULL, NULL, &timeout);
         } while (rc < 0 && errno == EINTR);
 
