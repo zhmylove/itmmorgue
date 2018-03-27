@@ -185,9 +185,18 @@ done
 
 # libs
 for L in $LIBS ;do
+    case $L in
+        /*)
+            _ABS=""
+            ;;
+        *)
+            _ABS=./
+            ;;
+    esac
+
 cat >>Makefile <<EOF
 $L:
-	( cd `dirname "$L"` && \$(MAKE) "CC=$CC" "CFLAGS=$CFLAGS" ) 
+	( cd $_ABS`dirname "$L"` && \$(MAKE) "CC=$CC" "CFLAGS=$CFLAGS" ) 
 EOF
 done
 
