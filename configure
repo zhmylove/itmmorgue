@@ -39,22 +39,30 @@ CFLAGS="--std=gnu99 -pedantic -Wall -Wextra -Werror -ggdb3 -I$LIBDIR"
 LDFLAGS=''
 
 # Calculate protocol version
-PROTO="-DPROTOCOL_VERSION="'`perl -lne '"'\
-"'$$a+=$$_+$$. for split//;END{print$$a}'"'"' src/*`'
+# Get contents of all sources files sum each symbol and file's lines count
+# perl -lne '$a += $_ + $. for split//; END{print $a}' src/*
 
 case $OS in
     SunOS) 
         LDFLAGS="$LDFLAGS -L /opt/csw/lib/ -lncursesw -lpthread -lnsl -lsocket"
         CFLAGS="$CFLAGS -L /opt/csw/lib/ -I /opt/sfw/include/"
         VARS_CLIENT='TERM=screen'
+        PROTO_CALC_RUNNER="perl -lne '\$a += \$_ + \$. for split//; END{print \$a}' src/*"
+        PROTO_SETTER=":sh = $PROTO_CALC_RUNNER"
         ;;
     FreeBSD)
         LDFLAGS="$LDFLAGS -L /usr/local/lib/ -lncursesw -ltinfow"
         CFLAGS="$CFLAGS -pthread"
+        PROTO_CALC_RUNNER="perl -lne '\$a += \$_ + \$. for split//; END{print \$a}' src/*"
+        PROTO_SETTER=":sh = $PROTO_CALC_RUNNER"
         ;;
     Linux)
         CFLAGS="$CFLAGS -lncursesw -pthread -I /usr/include/ncursesw"
+#       need to be linked after object files that uses this library
+#       see '3.14 Options for Linking' in latest gcc manual
         CFLAGS_END="-lncursesw"
+        PROTO_CALC_RUNNER="perl -lne '\$\$a += \$\$_ + \$\$. for split//; END{print \$\$a}' src/*"
+        PROTO_SETTER=":= \$(shell $PROTO_CALC_RUNNER)"
         ;;
     *)
         echo Unsupported platform!
@@ -139,8 +147,14 @@ rm -f bin/style.o bin/ncursesw.c bin/ncursesw
 
 cat >Makefile <<EOF
 # Makefile for ITMMORGUE
-CC=$CC
-SOURCES=$SRC
+CC      = $CC
+SOURCES = $SRC
+LDFLAGS = $LDFLAGS
+CFLAGS  = $CFLAGS
+OBJECTS = $OBJECTS
+HEADERS = $HEADERS
+LIBS    = $LIBS
+PROTO $PROTO_SETTER
 
 all: $EXECUTABLE
 	@echo "Run 'make run' now to start the game! "
@@ -167,19 +181,19 @@ debug: $EXECUTABLE
 $WORKDIR:
 	mkdir $WORKDIR
 
-$EXECUTABLE: bin $OBJECTS $LIBS
-	\$(CC) $LDFLAGS $CFLAGS $OBJECTS $LIBS -o $EXECUTABLE $CFLAGS_END
+$EXECUTABLE: bin \$(OBJECTS) \$(LIBS)
+	\$(CC) \$(LDFLAGS) \$(CFLAGS) \$(OBJECTS) \$(LIBS) -o $EXECUTABLE $CFLAGS_END
 
 EOF
 
 # objects
 for C in $SRC ;do
-O=`echo "$C " | sed 's/\\.c /.o/g'`
-O="$WORKDIR/$O"
-cat >>Makefile <<EOF
-$O : $SRCDIR/$C $HEADERS
-	\$(CC) $CFLAGS $PROTO -c $SRCDIR/$C -o $O
+	O=`echo "$C " | sed 's/\\.c /.o/g'`
+	O="$WORKDIR/$O"
+	cat >>Makefile <<EOF
 
+$O : $SRCDIR/$C \$(HEADERS)
+	\$(CC) \$(CFLAGS) -DPROTOCOL_VERSION=\$(PROTO) -c $SRCDIR/$C -o $O
 EOF
 done
 
