@@ -49,51 +49,14 @@ enum colors {
 #include "stuff.h"
 #include "tiles.h"
 #include "levels.h"
+#include "config.h"
+#include "error.h"
+#include "ioutils.h"
+#include "strutils.h"
+#include "logger.h"
 
-int client(void);
-
-int log_fd;
-int client(void);
-void logger(char *str);
-int synchronized_readall(pthread_mutex_t *mutex, int fd, void *buf,
-        size_t size);
-int readall(int fd, void *buf, size_t size);
-
-// Panic related definitions
-void warn(char *msg);
-void panic(char *msg);
-#define warnf(fmt, ...)                             \
-    do {                                            \
-        char ___buf[BUFSIZ];                        \
-        snprintf(___buf, BUFSIZ, fmt, __VA_ARGS__); \
-        warn(___buf);                               \
-    } while(0)
-#define panicf(fmt, ...)                            \
-    do {                                            \
-        char ___buf[BUFSIZ];                        \
-        snprintf(___buf, BUFSIZ, fmt, __VA_ARGS__); \
-        panic(___buf);                              \
-    } while(0)
-#define loggerf(fmt, ...)                           \
-    do {                                            \
-        char ___buf[BUFSIZ];                        \
-        snprintf(___buf, BUFSIZ, fmt, __VA_ARGS__); \
-        logger(___buf);                             \
-    } while(0)
-
-// Wrapper for strtol(3) for int numbers
-int strtoi(const char *nptr, char **endptr, int base);
-
-// strlen() alternatives for UTF-8 strings
-size_t anystrlen(char *str);
-size_t anystrnlen(char *str, size_t maxlen);
-size_t anystrnplen(char *str, size_t maxlen, char ** endp);
-size_t anystrunplen(char *str, size_t maxlen, char ** endp);
-unsigned long long systime();
-unsigned long long sysutime();
+int server_only;
 void player_move(player_move_t *move);
-#ifdef __sun
-size_t strnlen(const char *str, size_t maxlen);
-#endif /* __sun */
+
 
 #endif /* ITMMORGUE_H */
