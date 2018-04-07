@@ -1,46 +1,55 @@
+// vim: et sw=4 ts=4 :
+
+#ifndef _BT_H_
+#define _BT_H_
+
 /* BEHAVIOUR TREE */
 
-enum node_status {
-    SUCCESS=0,
-    FAILURE,
-    RUNNING
+enum bt_node_status {
+    BT_SUCCESS=0,
+    BT_FAILURE,
+    BT_RUNNING
 };
 
-typedef struct node btnode_t;
-typedef enum node_status (*leaf_function_t)(entity_t* entity, void* context);
+typedef struct bt_node bt_node_t;
+typedef enum bt_node_status (*leaf_function_t)(entity_t* entity, void* context);
 
-struct composite;
-struct decorator;
-struct leaf;
+struct bt_composite;
+struct bt_decorator;
+struct bt_leaf;
 
-struct node {
+struct bt_root {
+    size_t bt_context_size;
+    bt_node_t* child;
+};
+
+struct bt_node {
 
     enum {
-        ROOT,
         COMPOSITE,
         DECORATOR,
         LEAF
     } type;
 
     union {
-        struct composite composite;
-        struct decorator decorator;
-        struct leaf leaf;
+        struct bt_composite composite;
+        struct bt_decorator decorator;
+        struct bt_leaf leaf;
     } u;
 
-    btnode_t* parent;
+    bt_node_t* parent;
 };
 
-struct composite {
+struct bt_composite {
     enum {
         SEQUENCE,       // ||
         SELECTOR        // && 
     } type;
 
-    btnode_t* children[];
+    bt_node_t* children[];
 };
 
-struct decorator {
+struct bt_decorator {
 
     enum {
         NOT,
@@ -49,9 +58,10 @@ struct decorator {
         EVENT_HANDLER
     } type;
 
+    bt_node_t* child;
 };
 
-struct leaf {
+struct bt_leaf {
     union {
         size_t context_size;    // set in code
         size_t offset;          // set in BT Initialization
@@ -60,4 +70,4 @@ struct leaf {
     leaf_function_t function;
 }
 
-
+#endif /* _BT_H_ */

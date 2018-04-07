@@ -1,3 +1,8 @@
+// vim: et sw=4 ts=4 :
+
+#ifndef _ENTITY_H_
+#define _ENTITY_H_
+
 typedef struct entity entity_t;
 
 struct player_context;
@@ -39,8 +44,8 @@ struct creature_context {
     /* spell_list_t */
     /* skills_t */
 
-    btnode_t* bt_root;
-    btnode_t* bt_current;
+    bt_node_t* bt_root;
+    bt_node_t* bt_current;
     void* bt_context;
 
     void* memory;
@@ -48,3 +53,6 @@ struct creature_context {
 
 // Defined for every type of object 
 // struct object_context {};
+
+
+#endif /* _ENTITY_H_ */
