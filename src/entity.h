@@ -3,9 +3,8 @@
 #ifndef _ENTITY_H_
 #define _ENTITY_H_
 
-typedef struct entity entity_t;
-
-struct player_context;
+#include "entity_decl.h"
+#include "bt.h"
 
 struct entity {
 
@@ -44,7 +43,7 @@ struct creature_context {
     /* spell_list_t */
     /* skills_t */
 
-    bt_node_t* bt_root;
+    bt_root_t* bt_root;
     bt_node_t* bt_current;
     void* bt_context;
 
