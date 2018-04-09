@@ -6,11 +6,17 @@
 
 #include <stddef.h>
 
+/*
+ * Traverse a behaviour tree (*root): calculate context_size and fill pointers
+ *
+ * root : root of a Behavior Tree
+ */
+
 int bt_init(bt_root_t* root){
     int stack[BT_MAX_NESTED_NODES] = {0};
-    int stack_idx=0;
+    int stack_idx = 0;
 
-    bt_node_t* current = root->child;
+    bt_node_t* current = root->child;   
     bt_node_t* child = NULL;
     size_t context_size=0;
 
@@ -23,11 +29,14 @@ int bt_init(bt_root_t* root){
         switch( current->type ){
             case _BT_COMPOSITE:
                 child = C_CHILD(current, stack[stack_idx]);
-                if( NULL == child ){            // child == NULL => traversed all childs - return to parent
+
+                // child == NULL => traversed all childs - return to parent
+                if( NULL == child ){            
                     UP();
                     break;
                 }
-                if( 0 == stack[stack_idx] ){     // Got in here the first time = allocate context for composite (int current_child)
+                // Got in here the first time = allocate context for composite (int current_child)
+                if( 0 == stack[stack_idx] ){     
                     current->u.composite.offset = context_size;
                     context_size += sizeof(struct bt_composite_context);
                 }
@@ -37,7 +46,8 @@ int bt_init(bt_root_t* root){
                 break;
 
             case _BT_DECORATOR:
-                if( stack[stack_idx] > 0 ){     // Decorator has only 1 child => if stack value > 0 - backtracking 
+                // Decorator has only 1 child => if stack value > 0 - backtracking 
+                if( stack[stack_idx] > 0 ){     
                     UP();
                     break;
                 }
@@ -52,8 +62,9 @@ int bt_init(bt_root_t* root){
                 UP();
                 break;
         }
-    }
-    while( stack_idx != -1 ); // Returned to the root.child after traversing the whole tree
+    // Returned to the root.child after traversing the whole tree
+    } while( stack_idx != -1 ); 
+
     #undef UP
     #undef DOWN
     #undef C_CHILD
