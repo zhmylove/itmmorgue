@@ -8,9 +8,9 @@
 /* BEHAVIOUR TREE */
 
 enum bt_node_status {
-    BT_BT_SUCCESS=0,
-    BT_BT_FAILURE,
-    BT_BT_RUNNING
+    BT_SUCCESS=0,
+    BT_FAILURE,
+    BT_RUNNING
 };
 
 typedef struct bt_root bt_root_t;
