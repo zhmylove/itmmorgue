@@ -6,6 +6,13 @@
 #include "entity_decl.h"
 #include "bt.h"
 
+#include "itmmorgue.h"
+#include "connection.h"
+#include "event.h"
+#include "stuff.h"
+
+#include <stdint.h>
+
 struct entity {
 
     enum {
