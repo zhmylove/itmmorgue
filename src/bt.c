@@ -6,6 +6,7 @@
 
 #include <stddef.h>
 
+
 /*
  * Traverse a behaviour tree (*root): calculate context_size and fill pointers
  *
@@ -20,8 +21,15 @@ int bt_init(bt_root_t* root){
     bt_node_t* child = NULL;
     size_t context_size=0;
 
-    #define UP()   do { current = current->parent; stack[stack_idx--] = 0; } while(0)
-    #define DOWN() do { child->parent = current; current = child; stack[stack_idx++]++; } while(0)
+    #define UP()    do {                           \
+                        current = current->parent; \
+                        stack[stack_idx--] = 0;    \
+                    } while(0)                     
+    #define DOWN()  do {                           \
+                        child->parent = current;   \
+                        current = child;           \
+                        stack[stack_idx++]++;      \
+                    } while(0)
     #define C_CHILD(c,i) (c)->u.composite.children[(i)]
     #define D_CHILD(c) (c)->u.decorator.child;
 
@@ -35,7 +43,7 @@ int bt_init(bt_root_t* root){
                     UP();
                     break;
                 }
-                // Got in here the first time = allocate context for composite (int current_child)
+                // Allocate context for composite if visit node first time 
                 if( 0 == stack[stack_idx] ){     
                     current->u.composite.offset = context_size;
                     context_size += sizeof(struct bt_composite_context);
@@ -46,7 +54,7 @@ int bt_init(bt_root_t* root){
                 break;
 
             case _BT_DECORATOR:
-                // Decorator has only 1 child => if stack value > 0 - backtracking 
+                // Decorator has only 1 child => stack value > 0 = backtracking
                 if( stack[stack_idx] > 0 ){     
                     UP();
                     break;
