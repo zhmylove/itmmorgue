@@ -10,9 +10,6 @@ int main(int argc, char *argv[]) {
 	int i, j, k, m, finalize = 0;
 	
 	char **f = (char**) malloc((H = H + 1) * sizeof(char*));
-
-	//for (i = 0; i < H; i++) 
-	//	f[i] = (char*) malloc((W + 2) * sizeof(char));
 	
 	size_t len = 0;
 	ssize_t nread;
@@ -23,16 +20,13 @@ int main(int argc, char *argv[]) {
 		i++;
 		if (i == H) {
 			f = (char**) realloc(f, (H = 2 * H - 1) * sizeof(char*));
-			//printf("realloc in cycle, new H=%d, next line=i=%d\n", H, i + 1);
 		}
 	}
 	
 	if (H + 1 > i) {
 		f = (char**) realloc(f, i * sizeof(char*));
-		//printf("realloc after cycle, W=%d, old H=%d, new H=i=%d\n", W, H, i);
 		H = i;
 	}
-	//printf("len=%zu\n", len);
 	
 	int **nf = (int**) malloc(H * sizeof(int*));
 	for (i = 0; i < H; i++) 

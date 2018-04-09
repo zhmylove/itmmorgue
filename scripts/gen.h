@@ -1,17 +1,17 @@
 #ifndef GEN_H
 #define GEN_H
 
-#define rand_double(x) ((double)rand() / RAND_MAX * x)
+#define rand_double(x) ((double)rand() / RAND_MAX * (x))
 
 extern int SIZE;
 
-typedef struct size {
+typedef struct psize_t {
 	int 	height;
 	int 	width;
 } psize_t;
 
-typedef struct array {
-	char** 			array;
+typedef struct array_t {
+	char** 		array;
 	psize_t 	size;
 } array_t;
 
@@ -28,7 +28,9 @@ void _cw(array_t *arr);
 void array_rotate(array_t *array, int direction);
 
 void print_array(array_t *arr);
-array_t copy_array(char* array, int H, int W);
+array_t* copy_array(char* array, int H, int W);
+array_t* create_array(int H, int W);
+void init_array(array_t* arr, int H, int W);
 void free_array(array_t *arr);
 
 void overlay_anywhere(array_t *array, int padding, char pchar);

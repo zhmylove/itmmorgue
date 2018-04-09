@@ -6,7 +6,7 @@
 
 #define qr_free(x) (x == '.' || x == '"' || x == '^')
 
-array_t *WORLD;
+array_t *WORLD = NULL;
 int SIZE = 0;
 int level = 0;
 
@@ -22,9 +22,8 @@ array_t* get_level_ref(int lvl) {
 	int curr = (lvl >= 0) ? lvl : level;
 	if (curr > SIZE - 1 || SIZE == 0) {
 		SIZE = curr + 1;
-		WORLD = realloc(WORLD, SIZE * sizeof(array_t*));
+		WORLD = (array_t*)realloc(WORLD, SIZE * sizeof(array_t));
 		//for (int i = SIZE; i < curr + 1; i++)
-		//	WORLD[i] = malloc()
 	}
 	return &WORLD[curr];
 }
@@ -33,7 +32,8 @@ array_t* get_level_ref(int lvl) {
 // arg: level number (current level if < 0)
 void print_level(int lvl) {
 	int curr = (lvl >= 0) ? lvl : level;
-	print_array(&WORLD[curr]);
+	if (WORLD != NULL)
+		print_array(&WORLD[curr]);
 }
 
 // Slurp the level from stdin
@@ -171,51 +171,73 @@ void print_array(array_t *arr) {
 	int H = arr->size.height, W = arr->size.width;
 	char** array = arr->array;
 	
-	printf("H=%d, W=%d\n", H, W);
+	//printf("array_pointer=%lu, H=%d, W=%d\n", (unsigned long)arr, H, W);
 	for (i = 0; i < H; i++) {
 		for (j = 0; j < W; j++) 
 			printf("%c", array[i][j]);
 		printf("\n");
 	}
-	printf("\n");
+	//printf("\n");
 }
 
-array_t copy_array(char* array, int H, int W) {
+array_t* copy_array(char* array, int H, int W) {
 	int i, j;
-	array_t copied;
-	copied.size.height = H;
-	copied.size.width = W;
-	copied.array = (char**)malloc(H * sizeof(char*));
+	array_t* copied = (array_t*) malloc(sizeof(array_t));
+	copied->size.height = H;
+	copied->size.width = W;
+	copied->array = (char**)malloc(H * sizeof(char*));
 	for (i = 0; i < H; i++)
-		copied.array[i] = (char*)malloc(W * sizeof(char));
+		copied->array[i] = (char*)malloc(W * sizeof(char));
 	
 	for (i = 0; i < H; i++)
 		for (j = 0; j < W; j++) 
-			copied.array[i][j] = *(array + i * W + j);
+			copied->array[i][j] = *(array + i * W + j);
 	
 	return copied;
 }
 
-// void init_array(array_t *arr) {
-	// int i;
-	// int H = arr->size.height;
-	// char** array = arr->array;	
+array_t* create_array(int H, int W) {
 	
-	// for (i = 0; i < H; i++)
-		// free(array[i]);
-	// free(array);
+	array_t* arr = (array_t*)malloc(sizeof(array_t));
+	if (arr == NULL) {
+		perror("could not allocate memory for array_t\n");
+		exit(1);
+	}
+	init_array(arr, H, W);
 	
-// }
+	return arr;
+}
+
+void init_array(array_t* arr, int H, int W) {
+	int i;
+	// arr = (array_t*)malloc(sizeof(array_t));
+	// if (arr == NULL) {
+		// perror("could not allocate memory for array_t\n");
+		// exit(1);
+	// }
+	arr->size.height = H;
+	arr->size.width = W;
+	arr->array = (char**)malloc(H * sizeof(char*));
+	if (arr->array == NULL) {
+		perror("could not allocate memory for array_t->array\n");
+		exit(1);
+	}
+	for (i = 0; i < H; i++) {
+		arr->array[i] = (char*)malloc(W * sizeof(char));
+		if (arr->array[i] == NULL) {
+			perror("could not allocate memory for array_t->array[%d]\n");
+			exit(1);
+		}
+	}
+	
+	// return arr;
+}
 
 void free_array(array_t *arr) {
 	int i;
-	int H = arr->size.height;
-	char** array = arr->array;	
-	
-	for (i = 0; i < H; i++)
-		free(array[i]);
-	free(array);
-	
+	for (i = 0; i < arr->size.height; i++)
+		free(arr->array[i]);
+	free(arr->array);
 }
 
 // Overlay arg1 array over current level on free space
@@ -224,10 +246,8 @@ void free_array(array_t *arr) {
 // arg3: padding character
 void overlay_anywhere(array_t *array, int padding, char pchar) {
 	
-	//printf("castle H=%d,W=%d\n", array->size.height, array->size.width);
 	psize_t size;
 	size = get_free_area(array->size.height, array->size.width, padding, pchar);
-	//printf("area H=%d,W=%d\n", size.height, size.width);
 	overlay_unsafe(size.height, size.width, array);
 }
 
@@ -260,7 +280,7 @@ psize_t get_free_area(int h, int w, int p, char pchar) {
 	if (p < 0) p = 0;
 
 	if (h < 0 || w < 0) {
-		fprintf(stderr, "Invalid height or width\n");
+		fprintf(stderr, "Invalid height or width of area\n");
 		exit(1);
 	}
 	
@@ -283,8 +303,8 @@ psize_t get_free_area(int h, int w, int p, char pchar) {
 	srand(time(NULL));
 
 	do {
-		ry = p + rand() % (H - 1 - h - 2 * p);
-		rx = p + rand() % (W - 1 - w - 2 * p);
+		ry = p + (int)rand_double(H - 1 - h - 2 * p);
+		rx = p + (int)rand_double(W - 1 - w - 2 * p);
 	} while (ttl-- > 0 && check_area_is_free(ry - p, rx - p, h + 2 * p, w + 2 * p) == 0);
 	
 	if (ttl <= 0) {
@@ -309,7 +329,9 @@ psize_t get_free_area(int h, int w, int p, char pchar) {
 // arg4: area width
 char check_area_is_free(int y, int x, int h, int w) {
 	if (x < 0 || y < 0 || h < 0 || w < 0) {
-		fprintf(stderr, "Wrong arguments\n");
+		fprintf(stderr, 
+			"Wrong arguments in check_area_is_free(int y = %d, int x = %d, int h = %d, int w = %d)\n",
+				y, x, h, w);
 		exit(1);
 	}
 	
@@ -332,7 +354,9 @@ char check_area_is_free(int y, int x, int h, int w) {
 // (internal, unsafe) Fill specified area with char
 void _fill_area_with_char(int y, int x, int h, int w, char pchar) {
 	if (x < 0 || y < 0 || h < 0 || w < 0 || pchar == '\0') {
-		fprintf(stderr, "Wrong arguments\n");
+		fprintf(stderr, 
+			"Wrong arguments in _fill_area_with_char(int y = %d, int x = %d, int h = %d, int w = %d, char pchar = %d)\n",
+				y, x, h, w, (int)pchar);
 		exit(1);
 	}
 	

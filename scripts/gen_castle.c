@@ -1,9 +1,5 @@
-#include <stdio.h>
 #include <stdlib.h>
-#include <time.h>
 #include "gen.h"
-
-//char qr_free[50] = "[.\"^]";
 
 char CASTLE_TOP[14][15] = {
 	"###############" ,
@@ -19,7 +15,7 @@ char CASTLE_TOP[14][15] = {
 	"     #___#     " ,
 	"^ ^ ^#___#^ ^ ^" ,
 	" ^ ^  #_#  ^ ^ " ,
-	"^ ^ ^ 123 ^ ^ ^" 
+	"^ ^ ^ 111 ^ ^ ^" 
 };
 
 char CASTLE_FRONT[23][74] = {
@@ -92,23 +88,26 @@ int main(int argc, char *argv[]) {
 	
 	array_t* T = read_level(-1);
 	
-	array_t castle_top = copy_array((char*)CASTLE_TOP, 14, 15);
-	array_t castle_front = copy_array((char*)CASTLE_FRONT, 23, 74);
-	array_t castle_wtf = copy_array((char*)CASTLE_WTF, 37, 65);
+	array_t* castle_top = copy_array((char*)CASTLE_TOP, 14, 15);
+	array_t* castle_front = copy_array((char*)CASTLE_FRONT, 23, 74);
+	array_t* castle_wtf = copy_array((char*)CASTLE_WTF, 37, 65);
 	
-	array_rotate(&castle_top, -1);
-	overlay_anywhere(&castle_top, 2, ',');
+	array_rotate(castle_top, -1);
+	overlay_anywhere(castle_top, 2, ',');
 	
-	overlay_anywhere(&castle_front, 0, 0);
+	overlay_anywhere(castle_front, 0, 0);
 	
-	array_rotate(&castle_wtf, rand_double(1) >= 0.5 ? 0 : 2);
-	overlay_anywhere(&castle_wtf, 0, 0);
+	array_rotate(castle_wtf, rand_double(1) >= 0.5 ? 0 : 2);
+	overlay_anywhere(castle_wtf, 0, 0);
 	
 	print_level(-1);
 	
-	free_array(&castle_top);
-	free_array(&castle_front);
-	free_array(&castle_wtf);
+	free_array(castle_top);
+	free_array(castle_front);
+	free_array(castle_wtf);
+	free(castle_top);
+	free(castle_front);
+	free(castle_wtf);
 	free_array(T);
 	free(_get_world_ref());
 	
