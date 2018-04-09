@@ -14,6 +14,7 @@ enum bt_node_status square_move(entity_t* e, void* context){
     #define SQ_LEN ctx->side_length
     #define DIR ctx->step_direction
 
+    int flag = 0;
     switch(ctx->direction){
         case ROT_CW:
             do{
@@ -38,7 +39,9 @@ enum bt_node_status square_move(entity_t* e, void* context){
                         Y--;
                         break;
                     }
-            } while(0);
+                flag = 1;
+            } while(!flag);
+            break;
 
         case ROT_CCW:
             do{
@@ -63,7 +66,9 @@ enum bt_node_status square_move(entity_t* e, void* context){
                         X--;
                         break;
                 }
-            } while(0);
+                flag = 1;
+            } while(!flag);
+            break;
     }
 
     #undef X
