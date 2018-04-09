@@ -5,7 +5,10 @@
 
 #include "entity_decl.h"
 
+#include <stdlib.h> 
 /* BEHAVIOUR TREE */
+
+#define BT_MAX_NESTED_NODES 100
 
 enum bt_node_status {
     BT_SUCCESS=0,
@@ -28,20 +31,26 @@ struct bt_root {
 
 struct bt_composite {
     enum {
-        BT_SEQUENCE,       // ||
-        BT_SELECTOR        // && 
+        _BT_SEQUENCE,       // ||
+        _BT_SELECTOR        // && 
     } type;
 
+    size_t offset;          // offset of composite's context (int current_child) in BT's global context | set in BT initialization
+
     bt_node_t** children;
+};
+
+struct bt_composite_context {
+    int current_child_idx;
 };
 
 struct bt_decorator {
 
     enum {
-        BT_NOT,            // Inversion of bt_node_status ( SUCCESS <-> FAILURE )
-        BT_UNTIL_FAILURE,  // Run child until FAILURE received
+        _BT_NOT,            // Inversion of bt_node_status ( SUCCESS <-> FAILURE )
+        _BT_UNTIL_FAILURE,  // Run child until FAILURE received
 
-        BT_EVENT_HANDLER   // Special Decorator for Event Handlers
+        _BT_EVENT_HANDLER   // Special Decorator for Event Handlers
     } type;
 
     bt_node_t* child;
@@ -58,10 +67,14 @@ struct bt_leaf {
 
 struct bt_node {
 
+    #ifdef _DEBUG
+        char* name; 
+    #endif
+
     enum {
-        BT_COMPOSITE,
-        BT_DECORATOR,
-        BT_LEAF
+        _BT_COMPOSITE,
+        _BT_DECORATOR,
+        _BT_LEAF
     } type;
 
     union {
