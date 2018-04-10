@@ -31,7 +31,7 @@ int bt_init(bt_root_t* root){
                         stack[stack_idx++]++;      \
                     } while(0)
     #define C_CHILD(c,i) (c)->u.composite.children[(i)]
-    #define D_CHILD(c) (c)->u.decorator.child;
+    #define D_CHILD(c) (c)->u.decorator.child
 
     do {
         switch( current->type ){
