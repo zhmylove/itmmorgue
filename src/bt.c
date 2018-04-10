@@ -4,8 +4,19 @@
 
 #include "entity.h"
 
+#include "npc.h"
+#define BT_ARRAY
+#include "npc.h"
+#undef BT_ARRAY
+
 #include <stddef.h>
 
+int bt_init_tree(bt_root_t*);
+
+int bt_init(){
+    for( bt_root_t** p = bt_trees; NULL != *p; ++p)
+        bt_init_tree(*p);
+}
 
 /*
  * Traverse a behaviour tree (*root): calculate context_size and fill pointers
@@ -13,7 +24,7 @@
  * root : root of a Behavior Tree
  */
 
-int bt_init(bt_root_t* root){
+int bt_init_tree(bt_root_t* root){
     int stack[BT_MAX_NESTED_NODES] = {0};
     int stack_idx = 0;
 
