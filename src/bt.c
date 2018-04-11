@@ -153,6 +153,7 @@ static inline int bt_execute_creature(entity_t* e){
 
 // 1. Walk up to the first node with unfinished execution
 stage_up:
+    // No check for BT_RUNNING - see stage 0 (rerun).
     do{
         switch( current->type ){
             case _BT_COMPOSITE:;
@@ -173,17 +174,20 @@ stage_up:
                             goto stage_down;
                         }
                         SET_STATUS(BT_FAILURE);
-                        UP();
-                        continue;
+                        break;
 
                     case _BT_SELECTOR:
                         // Found first successful child - return to parent
                         if( BT_SUCCESS == *last_status_p ){
-                            UP();
-                            continue;
+                            // SET_STATUS(BT_SUCCESS); // already set
+                            break;
                         }
                         goto stage_down;
                 };
+                // Clean up composite context
+                *child_idx_p = 0;
+                // Reached this line - composite is still in execution
+                UP();
                 continue;
 
             case _BT_DECORATOR:
@@ -196,8 +200,14 @@ stage_up:
                     case _BT_UNTIL_FAILURE:
                         if( BT_FAILURE != *last_status_p )
                             goto stage_down;
-                        SET_STATUS( BT_SUCCESS );
+                        // SET_STATUS( BT_SUCCESS );
+                        // UP();
+
+                    /* FALLTHRU */
+                    case _BT_SUCCEEDER:
+                        SET_STATUS(BT_SUCCESS);
                         UP();
+                        break;
 
                     // TODO: implement registration of event-handlers
                     // case _BT_EVENT_HANDLER:

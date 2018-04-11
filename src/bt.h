@@ -58,6 +58,8 @@ struct bt_decorator {
     enum {
         _BT_NOT,           // Inversion of bt_node_status (SUCCESS <-> FAILURE)
         _BT_UNTIL_FAILURE, // Run child until FAILURE received
+        _BT_SUCCEEDER,     // Returns SUCCESS even if child Fails
+                           // (as usual, stalls if BT_RUNNING is recieved)
 
         _BT_EVENT_HANDLER  // Special Decorator for Event Handlers
     } type;

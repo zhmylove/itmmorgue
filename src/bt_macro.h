@@ -8,9 +8,14 @@
 #ifdef _DEBUG
 #define BT_SETNAME(n) .name = (n),
 #else
-#define BT_SETNAME(n) 
+#define BT_SETNAME(n)
 #endif
 
+/* Composite node macro
+ * name : debug name of node
+ * t    : type of composite
+ * ...  : children
+ */
 #define BT_COMPOSITE(name, t, ...)                             \
 &(bt_node_t) {                                                 \
     BT_SETNAME(#name " | " #t )                                \
@@ -19,8 +24,13 @@
         .type=(t),                                             \
         .children = (bt_node_t*[]) {__VA_ARGS__, NULL }        \
     }                                                          \
-}                                                
+}
 
+/* Decorator node macro
+ * name : debug name of node
+ * t    : type of decorator
+ * c    : child
+ */
 #define BT_DECORATOR(name, t, c)            \
 &(bt_node_t) {                              \
     BT_SETNAME(#name " | " #t)              \
@@ -29,8 +39,14 @@
         .type=(t),                          \
         .child=(c)                          \
     }                                       \
-}                         
+}
 
+/* Leaf node macro
+ * name : debug name of node
+ * f    : pointer to function for execution
+ * c    : context type (primitive/structure).
+ *        Used with sizeof
+ */
 #define BT_LEAF(name, f, context)          \
 &(bt_node_t) {                             \
     BT_SETNAME(#name " | _BT_LEAF")        \
@@ -39,16 +55,18 @@
         .u.context_size = sizeof context,  \
         .function=(f)                      \
     }                                      \
-}                            
+}
 
+// Following macros are the same as the ones above
+// Except absence of type parameter
 #define BT_SEQUENCE(name, ...)    BT_COMPOSITE(name, _BT_SEQUENCE, __VA_ARGS__)
 #define BT_SELECTOR(name, ...)    BT_COMPOSITE(name, _BT_SELECTOR, __VA_ARGS__)
 
-#define BT_ACTION(name, f, context)      BT_LEAF(name, (f), (context))
-#define BT_CONDITION(name, f, context)   BT_LEAF(name, (f), (context))
-
 #define BT_NOT(name, c)              BT_DECORATOR(name, _BT_NOT, (c))
 #define BT_UNTIL_FAILURE(name, c)    BT_DECORATOR(name, _BT_UNTIL_FAILURE, (c))
+#define BT_SUCCEEDER(name, c)        BT_DECORATOR(name, _BT_SUCCEEDER, (c))
 
+#define BT_ACTION(name, f, context)      BT_LEAF(name, (f), (context))
+#define BT_CONDITION(name, f, context)   BT_LEAF(name, (f), (context))
 
 #endif /* _BT_MACRO_H_ */
