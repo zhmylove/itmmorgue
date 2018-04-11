@@ -3,26 +3,27 @@
 #define PLAYER_H
 
 #include "itmmorgue.h"
+#include "entity.h"
 
 #define MAX_PLAYERS 5
 
-typedef struct player {
-    enum colors color;          // server-specified attributes
-    uint16_t y;                 // absolute Y
-    uint16_t x;                 // absolute X
-    char nickname[PLAYER_NAME_MAXLEN];
-    uint8_t ready;              // ready for the game
-    uint8_t connected;          // connected to the server
-    // I hate that global variable, but I don't have time to fix it
-    uint8_t start;              // needs data renewal
-    connection_t *connection;
-    event_queue_t ev_queue;
-    /* inventory_t */
-    /* common creatures stats_t */
-    /* player specific stats ?? */
-    /* spell_list_t */
-    /* skills_t */
-} player_t;
+// typedef struct player {
+//     enum colors color;          // server-specified attributes
+//     uint16_t y;                 // absolute Y
+//     uint16_t x;                 // absolute X
+//     char nickname[PLAYER_NAME_MAXLEN];
+//     uint8_t ready;              // ready for the game
+//     uint8_t connected;          // connected to the server
+//     // I hate that global variable, but I don't have time to fix it
+//     uint8_t start;              // needs data renewal
+//     connection_t *connection;
+//     event_queue_t ev_queue;
+//     /* inventory_t */
+//     /* common creatures stats_t */
+//     /* player specific stats ?? */
+//     /* spell_list_t */
+//     /* skills_t */
+// } player_t;
 
 typedef struct players_full_mbuf {
     player_t players[MAX_PLAYERS];
@@ -53,7 +54,8 @@ void s_send_players_full(player_t *player);
 void s_send_players(player_t *player);
 void c_send_move(enum keyboard last_key);
 
-extern player_t players[];
+// extern player_t players[];
+extern entity_t* players2[];
 extern size_t players_len;
 extern size_t player_self;
 extern size_t players_total;

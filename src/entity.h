@@ -13,8 +13,11 @@
 
 #include <stdint.h>
 
-struct entity {
+#define MAX_ENTITIES (2 * 1048576)
+extern entity_t* entities[];
+extern uint32_t entities_len;
 
+struct entity {
     enum {
         PLAYER,
         CREATURE,
@@ -25,13 +28,14 @@ struct entity {
     uint16_t y;
 
     enum stuff stuff_type;
-    enum colors color;  
+    enum colors color;
 
     struct player_context* player_context;   // Player-specific data
-    void* context;      
+    void* context;
 };
 
 struct player_context {
+    char nickname[PLAYER_NAME_MAXLEN];
     uint8_t ready;              // ready for the game
     uint8_t connected;          // connected to the server
 
@@ -57,8 +61,19 @@ struct creature_context {
     void* memory;
 };
 
-// Defined for every type of object 
+// Defined for every type of object
 // struct object_context {};
 
+uint32_t entity_add(entity_t*);
+
+// CLIENT-SERVER
+typedef struct {
+    size_t count;   // number of entities
+    uint32_t self;  // index of player. 0 if array doesn't contain their entity
+    entity_t entities[];
+} entity_full_mbuf_t;
+
+void c_receive_entities_full(entity_full_mbuf_t* mbuf);
+void s_send_entities_full(entity_t* player);
 
 #endif /* _ENTITY_H_ */

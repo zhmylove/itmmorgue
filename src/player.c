@@ -2,8 +2,10 @@
 #include "itmmorgue.h"
 #include "server.h"
 #include "stuff.h"
+#include "entity.h"
 
-player_t players[MAX_PLAYERS];
+// player_t players[MAX_PLAYERS];
+entity_t* players2[MAX_PLAYERS];
 size_t players_len = 0;
 size_t player_self = 0;
 size_t players_total = 0;
@@ -16,32 +18,32 @@ void player_move(player_move_t *move) {
 
     switch (move->direction) {
         case K_MOVE_LEFT:
-            players[id].x--;
+            players2[id]->x--;
             break;
         case K_MOVE_RIGHT:
-            players[id].x++;
+            players2[id]->x++;
             break;
         case K_MOVE_UP:
-            players[id].y--;
+            players2[id]->y--;
             break;
         case K_MOVE_DOWN:
-            players[id].y++;
+            players2[id]->y++;
             break;
         case K_MOVE_LEFT_UP:
-            players[id].y--;
-            players[id].x--;
+            players2[id]->y--;
+            players2[id]->x--;
             break;
         case K_MOVE_RIGHT_UP:
-            players[id].y--;
-            players[id].x++;
+            players2[id]->y--;
+            players2[id]->x++;
             break;
         case K_MOVE_LEFT_DOWN:
-            players[id].y++;
-            players[id].x--;
+            players2[id]->y++;
+            players2[id]->x--;
             break;
         case K_MOVE_RIGHT_DOWN:
-            players[id].y++;
-            players[id].x++;
+            players2[id]->y++;
+            players2[id]->x++;
             break;
         default:
             panic("[S] invalid move direction!");
@@ -50,24 +52,47 @@ void player_move(player_move_t *move) {
 
 size_t player_init(enum colors color, char *nickname,
         connection_t *connection) {
-    players[players_len].connection = connection;
-    players[players_len].color = color;
-    strncpy(players[players_len].nickname, nickname, CHAT_NICK_MAXLEN);
-    players[players_len].ready = 0;
-    players[players_len].start = 0;
-    if (0 != pthread_mutex_init(&players[players_len].ev_queue.event_mutex,
+
+    entity_t* player = malloc(
+        sizeof( struct entity ) +
+        sizeof( struct creature_context) +
+        sizeof( struct player_context)
+    );
+    if( NULL == player ){
+        panic("Cannot allocate player!");
+    }
+    struct creature_context* creature_ctx = (struct creature_context*)(
+        (char*) player + sizeof(struct entity)
+    );
+    struct player_context* player_ctx = (struct player_context*) (
+        (char*)creature_ctx + sizeof(struct creature_context)
+    );
+
+    player->type = PLAYER;
+    player->stuff_type = S_PLAYER;
+    player->color = color;
+
+    player_ctx->connection = connection;
+    player_ctx->ready = 0;
+    player_ctx->start = 0;
+    if (0 != pthread_mutex_init(&player_ctx->ev_queue.event_mutex,
                 NULL)) {
         panic("Cannot initialize event queue mutex!");
     }
+    strncpy2(creature_ctx->nickname, nickname, CHAT_NICK_MAXLEN);
+    creature_ctx->bt_root = NULL;
+    creature_ctx->bt_current = NULL;
 
     if (start != 3) {
-        /* 
+        /*
          * We don't need to set y & x on dead players.
          * They'll be restored during NICKNAME reception.
          */
-        players[players_len].y = 8;
-        players[players_len].x = 48;
+        player->y = 8;
+        player->x = 48;
     }
+    players2[players_len++] = player;
+    entity_add(player);
 
     return players_len++;
 }
