@@ -25,10 +25,10 @@ struct entity {
     uint16_t y;
 
     enum stuff stuff_type;
-    enum colors color;  
+    enum colors color;
 
     struct player_context* player_context;   // Player-specific data
-    void* context;      
+    void* context;
 };
 
 struct player_context {
@@ -57,7 +57,7 @@ struct creature_context {
     void* memory;
 };
 
-// Defined for every type of object 
+// Defined for every type of object
 // struct object_context {};
 
 
