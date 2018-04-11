@@ -4,6 +4,21 @@
 
 #include "entity.h"
 
+#include "stdio.h"
+enum bt_node_status tell_current_node(entity_t* e, void* context){
+    #ifdef _DEBUG
+    printf("%s\n", ((struct creature_context*)e->context)->bt_current->name);
+    #endif
+    return BT_SUCCESS;
+}
+
+enum bt_node_status tell_current_node_fail(entity_t* e, void* context){
+    #ifdef _DEBUG
+    printf("%s\n", ((struct creature_context*)e->context)->bt_current->name);
+    #endif
+    return BT_FAILURE;
+}
+
 enum bt_node_status square_move(entity_t* e, void* context){
     struct square_move_context* ctx = (struct square_move_context*) context;
 

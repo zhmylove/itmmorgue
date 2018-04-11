@@ -18,6 +18,9 @@ struct square_move_context {
     enum direction step_direction;
 };
 
+enum bt_node_status tell_current_node(entity_t* e, void* context);
+enum bt_node_status tell_current_node_fail(entity_t* e, void* context);
+
 enum bt_node_status square_move(entity_t* e, void* context);
 
 #endif /* _BT_ACTIONS_H_ */

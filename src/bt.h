@@ -5,20 +5,20 @@
 
 #include "entity_decl.h"
 
-#include <stdlib.h> 
+#include <stdlib.h>
 /* BEHAVIOUR TREE */
 
 #define BT_MAX_NESTED_NODES 100
 
 enum bt_node_status {
     BT_SUCCESS=0,
-    BT_FAILURE,
+    BT_FAILURE=1,
     BT_RUNNING
 };
 
 typedef struct bt_root bt_root_t;
 typedef struct bt_node bt_node_t;
-typedef enum bt_node_status 
+typedef enum bt_node_status
     (*leaf_function_t)(entity_t* entity, void* context);
 
 struct bt_composite;
@@ -30,13 +30,19 @@ struct bt_root {
     bt_node_t* child;
 };
 
+#define BT_ROOT_CONTEXT_OFFSET 0
+
+struct bt_root_context {
+    enum bt_node_status last_status; // Status last execution of tree returned
+};
+
 struct bt_composite {
     enum {
         _BT_SEQUENCE,       // ||
-        _BT_SELECTOR        // && 
+        _BT_SELECTOR        // &&
     } type;
 
-    size_t offset;          // offset of composite's context 
+    size_t offset;          // offset of composite's context
                             // in BT's global context (in bytes)
                             //   set in BT initialization
 
@@ -44,7 +50,7 @@ struct bt_composite {
 };
 
 struct bt_composite_context {
-    int current_child_idx;
+    int next_child_idx;
 };
 
 struct bt_decorator {
@@ -52,6 +58,8 @@ struct bt_decorator {
     enum {
         _BT_NOT,           // Inversion of bt_node_status (SUCCESS <-> FAILURE)
         _BT_UNTIL_FAILURE, // Run child until FAILURE received
+        _BT_SUCCEEDER,     // Returns SUCCESS even if child Fails
+                           // (as usual, stalls if BT_RUNNING is recieved)
 
         _BT_EVENT_HANDLER  // Special Decorator for Event Handlers
     } type;
@@ -61,9 +69,9 @@ struct bt_decorator {
 
 struct bt_leaf {
     union {
-        size_t context_size; // size of context leaf needs (in bytes) 
+        size_t context_size; // size of context leaf needs (in bytes)
                              //   set in code
-        size_t offset;       // context offset (in bytes) 
+        size_t offset;       // context offset (in bytes)
                              //   set in BT Initialization
     } u;
 
@@ -73,7 +81,7 @@ struct bt_leaf {
 struct bt_node {
 
     #ifdef _DEBUG
-        char* name; 
+        char* name;
     #endif
 
     enum {
@@ -92,7 +100,7 @@ struct bt_node {
 };
 
 
-int bt_init(bt_root_t*);
+int bt_init();
 int bt_execute(entity_t*);
 
 #endif /* _BT_H_ */
