@@ -170,7 +170,9 @@ void draw_area() {
     mvwprintw(W(W_AREA), 9, 1, "%s %d x %d", _("Top YxX:"), top_y, top_x);
     mvwprintw(W(W_AREA), 10, 1, "%s %d x %d", _("Win YxX:"), 
             windows[W_AREA].max_y, windows[W_AREA].max_x);
-    mvwprintw(W(W_AREA), 11, 1, "%s %d x %d", _("My YxX:"), ME.y, ME.x);
+    if (players_len > 0) {
+        mvwprintw(W(W_AREA), 11, 1, "%s %d x %d", _("My YxX:"), ME.y, ME.x);
+    }
 #undef ME
 #undef AREA
 
