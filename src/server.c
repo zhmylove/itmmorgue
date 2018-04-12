@@ -4,13 +4,15 @@
 connection_t *first_connection;
 connection_t *last_connection;
 
+/// TODO re-implement connected players checks
+
 // TODO get rid of this shit
 char start = 0;
 
 void player_connected_off(size_t id) {
     if (start) {
-        players[id].connected = 0;
-        players[id].color ^= L_BLACK;
+        players2[id]->player_context->connected = 0;
+        players2[id]->color ^= L_BLACK;
         if (players_total > 0) players_total--;
     } else {
         // TODO remove player[id]
@@ -25,12 +27,13 @@ void player_connected_off(size_t id) {
     char join_msg[PLAYER_NAME_MAXLEN * 4];
     sprintf(join_msg,
             "Player %s has fallen out of the world!\n",
-            players[id].nickname);
+            players2[id]->player_context->nickname);
     for (size_t i = 0; i < players_len; i++) {
-        if (! players[i].connected) continue;
+        if (! players2[i]->player_context->connected) continue;
 
-        send_sysmsg(players[i].connection, SM_PLAYER_LEFT, join_msg);
-        s_send_players_full(players + i);
+        send_sysmsg(players2[i]->player_context->connection,
+                SM_PLAYER_LEFT, join_msg);
+///        s_send_players_full(players + i);
     }
 }
 
@@ -150,7 +153,7 @@ void* process_client(connection_t *connection) {
      * after reception of the actual ones.
      */
     size_t id = player_init(L_YELLOW, "bsi", connection);
-    players[id].connected = 1;
+    players2[id]->player_context->connected = 1;
 
     mqueue_t *s2c_queue = connection->mqueueptr;
     mqueue_init(s2c_queue);
@@ -168,13 +171,14 @@ void* process_client(connection_t *connection) {
         mbuf_t mbuf;
 
         /* Handle start state (see server.h) */
-        if (start == 1 || (start > 0 && players[id].start == 1)) {
+        if (start == 1 || (start > 0 &&
+                    players2[id]->player_context->start == 1)) {
             // TODO make some of this periodically (at the end of every tick)
-            s_level_send(0, players + id);
-            s_area_send(0, players + id);
-            s_send_players_full(players + id);
+            s_level_send(0, players2[id]);
+            s_area_send(-1, players2[id]);
+///            s_send_players_full(players2 + id);
 
-            players[id].start = 0;
+            players2[id]->player_context->start = 0;
             start = 2;
         }
 
@@ -276,39 +280,43 @@ void* process_client(connection_t *connection) {
                 }
                 /* Get the color */
                 unsigned char color = ((char *)payload++)[0];
-                players[id].color = color - '0';
+                players2[id]->color = color - '0';
                 /* Handle reconnects */
                 for (size_t i = 0; start == 3 && i < players_len; i++) {
-                    if (players[i].connected) continue;
-                    if (strcmp(players[i].nickname, payload) != 0) continue;
+                    if (players2[i]->player_context->connected) continue;
+                    if (strcmp(players2[i]->player_context->nickname,
+                                payload) != 0) continue;
 
                     // Resurrect necessary fields of old player
-                    players[i].connection = players[id].connection;
-                    players[i].connected = 1;
-                    players[i].color ^= L_BLACK;
+                    players2[i]->player_context->connection =
+                        players2[id]->player_context->connection;
+                    players2[i]->player_context->connected = 1;
+                    players2[i]->color ^= L_BLACK;
 
                     // TODO eliminate races (safely remove players[id])
-                    memset(players[id].nickname, 0, PLAYER_NAME_MAXLEN);
+                    memset(players2[id]->player_context->nickname, 0,
+                            PLAYER_NAME_MAXLEN);
                     players_len--;
                     players_total = players_len;
 
                     // Finally replace the id's
                     id = i;
-                    players[id].start = 1;
+                    players2[id]->player_context->start = 1;
                 }
-                strncpy(players[id].nickname, payload, mbuf.msg.size);
+                strncpy(players2[id]->player_context->nickname, payload,
+                        mbuf.msg.size);
 
                 char join_msg[PLAYER_NAME_MAXLEN * 4];
                 sprintf(join_msg,
                         "Player %s has found his place in the world!\n",
-                        players[id].nickname);
+                        players2[id]->player_context->nickname);
                 for (connection_t *curr = first_connection; curr;
                         curr = curr->next) {
                     send_sysmsg(curr, SM_PLAYER_JOINED, join_msg);
                 }
 
                 for (size_t i = 0; i < players_len; i++) {
-                    s_send_players_full(players + i);
+///                    s_send_players_full(players2 + i);
                 }
                 break;
             case MSG_GET_CHAT:
@@ -330,10 +338,10 @@ void* process_client(connection_t *connection) {
                             strstr(payload, "!start\n") != NULL ||
                             strstr(payload, "!s\n") != NULL
                             )) {
-                    players[id].ready = 1;
+                    players2[id]->player_context->ready = 1;
 
                     for (size_t i = 0; i < players_len; i++) {
-                        s_send_players_full(players + i);
+///                        s_send_players_full(players2 + i);
                     }
                     break;
                 }
@@ -368,7 +376,7 @@ void* process_client(connection_t *connection) {
             size_t wait = players_len;
 
             for (size_t i = 0; i < players_len; i++) {
-                if (players[i].ready) {
+                if (players2[i]->player_context->ready) {
                     wait--;
                 }
             }
@@ -376,7 +384,7 @@ void* process_client(connection_t *connection) {
             if (! wait) {
                 start = 1;
                 for (size_t i = 0; i < players_len; i++) {
-                    players[i].start = 1;
+                    players2[i]->player_context->start = 1;
                 }
                 players_total = players_len;
             }

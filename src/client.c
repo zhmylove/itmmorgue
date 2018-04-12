@@ -105,11 +105,14 @@ void* worker() {
             case MSG_PUT_AREA:
                 logger("[C] [PUT_AREA]");
                 break;
-            case MSG_PUT_PLAYERS_FULL:
-                logger("[C] [PUT_PLAYERS_FULL]");
-                break;
-            case MSG_PUT_PLAYERS:
-                logger("[C] [PUT_PLAYERS]");
+///            case MSG_PUT_PLAYERS_FULL:
+///                logger("[C] [PUT_PLAYERS_FULL]");
+///                break;
+///            case MSG_PUT_PLAYERS:
+///                logger("[C] [PUT_PLAYERS]");
+///                break;
+            case MSG_PUT_ENTITIES:
+                logger("[C] [PUT_ENTITIES]");
                 break;
             case MSG_PUT_LEVEL:
                 logger("[C] [PUT_LEVEL]");
@@ -156,18 +159,24 @@ void* worker() {
                 free(payload);
 
                 break;
-            case MSG_PUT_PLAYERS_FULL:
-                c_receive_players_full((players_full_mbuf_t *)payload);
+            case MSG_PUT_ENTITIES:
+                /// c_receive_players_full((players_full_mbuf_t *)payload);
 
                 free(payload);
 
                 break;
-            case MSG_PUT_PLAYERS:
-                c_receive_players((players_mbuf_t *)payload);
-
-                free(payload);
-
-                break;
+///            case MSG_PUT_PLAYERS_FULL:
+///                c_receive_players_full((players_full_mbuf_t *)payload);
+///
+///                free(payload);
+///
+///                break;
+///            case MSG_PUT_PLAYERS:
+///                c_receive_players((players_mbuf_t *)payload);
+///
+///                free(payload);
+///
+///                break;
             case MSG_PUT_LEVEL:
                 c_level_add((level_t *)payload);
 

@@ -4,7 +4,7 @@
 #include "stuff.h"
 #include "entity.h"
 
-// player_t players[MAX_PLAYERS];
+/// player_t players[MAX_PLAYERS];
 entity_t* players2[MAX_PLAYERS];
 size_t players_len = 0;
 size_t player_self = 0;
@@ -54,9 +54,9 @@ size_t player_init(enum colors color, char *nickname,
         connection_t *connection) {
 
     entity_t* player = malloc(
-        sizeof( struct entity ) +
-        sizeof( struct creature_context) +
-        sizeof( struct player_context)
+        sizeof(struct entity) +
+        sizeof(struct creature_context) +
+        sizeof(struct player_context)
     );
     if( NULL == player ){
         panic("Cannot allocate player!");
@@ -72,6 +72,9 @@ size_t player_init(enum colors color, char *nickname,
     player->stuff_type = S_PLAYER;
     player->color = color;
 
+    player->context = creature_ctx;
+    player->player_context = player_ctx;
+
     player_ctx->connection = connection;
     player_ctx->ready = 0;
     player_ctx->start = 0;
@@ -79,7 +82,7 @@ size_t player_init(enum colors color, char *nickname,
                 NULL)) {
         panic("Cannot initialize event queue mutex!");
     }
-    strncpy2(creature_ctx->nickname, nickname, CHAT_NICK_MAXLEN);
+    strncpy(player_ctx->nickname, nickname, CHAT_NICK_MAXLEN);
     creature_ctx->bt_root = NULL;
     creature_ctx->bt_current = NULL;
 
@@ -91,93 +94,93 @@ size_t player_init(enum colors color, char *nickname,
         player->y = 8;
         player->x = 48;
     }
-    players2[players_len++] = player;
+    players2[players_len] = player;
     entity_add(player);
 
     return players_len++;
 }
 
-void c_receive_players_full(players_full_mbuf_t *mbuf) {
-    if (!mbuf || mbuf->players_len >= MAX_PLAYERS) return;
-
-    player_self = mbuf->self;
-
-    /* Maybe we shouldn't send connection, etc. */
-    for (players_len = 0; players_len < mbuf->players_len; players_len++) {
-        players[players_len] = mbuf->players[players_len];
-    }
-}
-
-void c_receive_players(players_mbuf_t *mbuf) {
-    if (!mbuf || mbuf->players_len >= MAX_PLAYERS) return;
-
-    player_self = mbuf->self;
-
-    for (players_len = 0; players_len < mbuf->players_len; players_len++) {
-        players[players_len].color = mbuf->players[players_len].color ;
-        players[players_len].y     = mbuf->players[players_len].y     ;
-        players[players_len].x     = mbuf->players[players_len].x     ;
-    }
-}
-
-void s_send_players_full(player_t *player) {
-    players_full_mbuf_t* players_mbuf;
-
-    if (! player->connected) {
-        return;
-    }
-
-    if ((players_mbuf = (players_full_mbuf_t *)malloc(
-                    sizeof(players_full_mbuf_t)
-                    )) == NULL) {
-        panic("Error creating players_full_mbuf for send!");
-    }
-    for (size_t i = 0; i < players_len; i++) {
-        if (player->connection == players[i].connection) {
-            players_mbuf->self = i;
-        }
-        players_mbuf->players[i] = players[i];
-    }
-    players_mbuf->players_len = players_len;
-
-    mbuf_t s2c_mbuf;
-    s2c_mbuf.payload = (void *)players_mbuf;
-    s2c_mbuf.msg.type = MSG_PUT_PLAYERS_FULL;
-    s2c_mbuf.msg.size = sizeof(players_full_mbuf_t);
-
-    logger("[S] Sending players full");
-    mqueue_put(player->connection->mqueueptr, s2c_mbuf);
-}
-
-void s_send_players(player_t *player) {
-    players_mbuf_t* players_mbuf;
-
-    if (! player->connected) {
-        return;
-    }
-
-    if ((players_mbuf = (players_mbuf_t *)malloc(sizeof(players_mbuf_t))) ==
-            NULL) {
-        panic("Error creating players_mbuf for send!");
-    }
-    for (size_t i = 0; i < players_len; i++) {
-        if (player->connection == players[i].connection) {
-            players_mbuf->self = i;
-        }
-        players_mbuf->players[i].color = players[i].color;
-        players_mbuf->players[i].y     = players[i].y;
-        players_mbuf->players[i].x     = players[i].x;
-    }
-    players_mbuf->players_len = players_len;
-
-    mbuf_t s2c_mbuf;
-    s2c_mbuf.payload = (void *)players_mbuf;
-    s2c_mbuf.msg.type = MSG_PUT_PLAYERS;
-    s2c_mbuf.msg.size = sizeof(players_mbuf_t);
-
-    logger("[S] Sending players");
-    mqueue_put(player->connection->mqueueptr, s2c_mbuf);
-}
+/// void c_receive_players_full(players_full_mbuf_t *mbuf) {
+///     if (!mbuf || mbuf->players_len >= MAX_PLAYERS) return;
+/// 
+///     player_self = mbuf->self;
+/// 
+///     /* Maybe we shouldn't send connection, etc. */
+///     for (players_len = 0; players_len < mbuf->players_len; players_len++) {
+///         players[players_len] = mbuf->players[players_len];
+///     }
+/// }
+/// 
+/// void c_receive_players(players_mbuf_t *mbuf) {
+///     if (!mbuf || mbuf->players_len >= MAX_PLAYERS) return;
+/// 
+///     player_self = mbuf->self;
+/// 
+///     for (players_len = 0; players_len < mbuf->players_len; players_len++) {
+///         players[players_len].color = mbuf->players[players_len].color ;
+///         players[players_len].y     = mbuf->players[players_len].y     ;
+///         players[players_len].x     = mbuf->players[players_len].x     ;
+///     }
+/// }
+/// 
+/// void s_send_players_full(player_t *player) {
+///     players_full_mbuf_t* players_mbuf;
+/// 
+///     if (! player->connected) {
+///         return;
+///     }
+/// 
+///     if ((players_mbuf = (players_full_mbuf_t *)malloc(
+///                     sizeof(players_full_mbuf_t)
+///                     )) == NULL) {
+///         panic("Error creating players_full_mbuf for send!");
+///     }
+///     for (size_t i = 0; i < players_len; i++) {
+///         if (player->connection == players[i].connection) {
+///             players_mbuf->self = i;
+///         }
+///         players_mbuf->players[i] = players[i];
+///     }
+///     players_mbuf->players_len = players_len;
+/// 
+///     mbuf_t s2c_mbuf;
+///     s2c_mbuf.payload = (void *)players_mbuf;
+///     s2c_mbuf.msg.type = MSG_PUT_PLAYERS_FULL;
+///     s2c_mbuf.msg.size = sizeof(players_full_mbuf_t);
+/// 
+///     logger("[S] Sending players full");
+///     mqueue_put(player->connection->mqueueptr, s2c_mbuf);
+/// }
+/// 
+/// void s_send_players(player_t *player) {
+///     players_mbuf_t* players_mbuf;
+/// 
+///     if (! player->connected) {
+///         return;
+///     }
+/// 
+///     if ((players_mbuf = (players_mbuf_t *)malloc(sizeof(players_mbuf_t))) ==
+///             NULL) {
+///         panic("Error creating players_mbuf for send!");
+///     }
+///     for (size_t i = 0; i < players_len; i++) {
+///         if (player->connection == players[i].connection) {
+///             players_mbuf->self = i;
+///         }
+///         players_mbuf->players[i].color = players[i].color;
+///         players_mbuf->players[i].y     = players[i].y;
+///         players_mbuf->players[i].x     = players[i].x;
+///     }
+///     players_mbuf->players_len = players_len;
+/// 
+///     mbuf_t s2c_mbuf;
+///     s2c_mbuf.payload = (void *)players_mbuf;
+///     s2c_mbuf.msg.type = MSG_PUT_PLAYERS;
+///     s2c_mbuf.msg.size = sizeof(players_mbuf_t);
+/// 
+///     logger("[S] Sending players");
+///     mqueue_put(player->connection->mqueueptr, s2c_mbuf);
+/// }
 
 void c_send_move(enum keyboard last_key) {
     mbuf_t mbuf;

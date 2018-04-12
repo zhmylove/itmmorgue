@@ -17,8 +17,8 @@ typedef struct level {
 } level_t;
 
 void s_levels_init();
-void s_level_send(size_t level, player_t *player);
-void s_area_send(size_t level, player_t *player);
+void s_level_send(size_t level, entity_t *player);
+void s_area_send(size_t level, entity_t *player);
 
 extern size_t levels_count;
 
