@@ -1,0 +1,4 @@
+-[ ] implement entities receiver
+-[ ] check player movement functions (send/recv)
+-[ ] check all comments with '///' and remove stale ones
+-[ ] check all comments with '//' and remove stale ones
