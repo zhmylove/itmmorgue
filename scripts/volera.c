@@ -1,6 +1,7 @@
 #include <stdlib.h>
 #include <time.h>
-#include "gen.h"
+
+#include "array.h"
 #include "build.h"
 
 

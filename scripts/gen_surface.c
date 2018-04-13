@@ -4,12 +4,10 @@
 #include <limits.h>
 #include <float.h>
 #include <malloc.h>
-//#include <string.h>
 #include <math.h>
 
-#define rand_double(x) ((double)rand() / RAND_MAX * x)
-
-//#include "gen.h"
+#include "array.h"
+#include "gen.h"
 
 //use GD::Simple;
 

@@ -4,6 +4,8 @@
 #include <string.h>
 #include <malloc.h>
 #include <math.h>
+
+#include "array.h"
 #include "gen.h"
 #include "build.h"
 

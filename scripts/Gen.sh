@@ -7,7 +7,7 @@ cd "`dirname "$0"`"
 pusk() {
    # echo "Running: $1" >&2
    shift
-   perl "$@"
+   eval "./$@"
 }
 
 [ -z "$1" ] && set -- -w512 -h256
@@ -17,11 +17,11 @@ if [ "xSunOS" = "x`uname -s`" ] ;then
    exit 0
 fi
 
-pusk "surface creation"       gen_surface.pl "$@"                      |
-pusk "fields normalization"   gen_fields.pl                            |
-pusk "fields correction"      gen_fields.pl -f                         |
-pusk "castles creation"       gen_castle.pl                            |
-pusk "building buildings"     gen_buildings.pl                         |
-pusk "building buildings"     gen_cities.pl                            |
-pusk "final preparations"     gen_placeholders.pl                      |
+pusk "surface creation"       gen_surface "$@"                      |
+pusk "fields normalization"   gen_fields                            |
+pusk "fields correction"      gen_fields -f                         |
+#pusk "castles creation"       gen_castle                            |
+#pusk "building buildings"     gen_buildings                         |
+#pusk "building buildings"     gen_cities                            |
+#pusk "final preparations"     gen_placeholders                      |
 less -S

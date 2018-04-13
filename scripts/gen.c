@@ -1,17 +1,41 @@
 #include <stdlib.h>
+#include <string.h>
 #include <time.h>
 #include <malloc.h>
-#include <regex.h>
+
+#include "array.h"
 #include "gen.h"
 
-#define qr_free(x) (x == '.' || x == '"' || x == '^')
-
-array_t *WORLD = NULL;
+array_t **WORLD = NULL;
+char *qr_free = NULL;
 int SIZE = 0;
-int level = 0;
+int LEVEL = 0;
+
+// Get or set current level
+int level(int lvl) { 
+	int curr = (lvl >= 0) ? lvl : LEVEL;
+	if (curr > SIZE - 1 || SIZE == 0) {
+		WORLD = (array_t**)realloc(WORLD, (curr + 1) * sizeof(array_t*));
+		int i;
+		for (i = SIZE; i <= curr; i++)
+			WORLD[i] = (array_t*)calloc(1, sizeof(array_t));
+		SIZE = curr + 1;
+	}
+	LEVEL = curr;
+	return LEVEL;
+}
+
+// Get or set current free regex
+void free_regex(char* regex) {
+	if (regex == NULL) regex = ".\"^";
+	//size_t len = strlen(regex);
+	qr_free = (char*)realloc(qr_free, strlen(regex) * sizeof(char));
+	strcpy(qr_free, regex);
+}
+
 
 // (internal) Return a reference to the whole world
-array_t* _get_world_ref() {
+array_t** _get_world_ref() {
 	return WORLD; 
 }
 
@@ -19,30 +43,30 @@ array_t* _get_world_ref() {
 // arg: level number (current level if < 0)
 array_t* get_level_ref(int lvl) {
 	
-	int curr = (lvl >= 0) ? lvl : level;
-	if (curr > SIZE - 1 || SIZE == 0) {
-		SIZE = curr + 1;
-		WORLD = (array_t*)realloc(WORLD, SIZE * sizeof(array_t));
-		//for (int i = SIZE; i < curr + 1; i++)
-	}
-	return &WORLD[curr];
+	int curr = (lvl >= 0) ? lvl : LEVEL;
+	if (curr > SIZE - 1) 
+		return NULL;
+	return WORLD[curr];
 }
 
 // Print the level to stdout
 // arg: level number (current level if < 0)
 void print_level(int lvl) {
-	int curr = (lvl >= 0) ? lvl : level;
-	if (WORLD != NULL)
-		print_array(&WORLD[curr]);
+	int curr = (lvl >= 0) ? lvl : LEVEL;
+	if (WORLD[curr] != NULL)
+		print_array(WORLD[curr]);
 }
 
 // Slurp the level from stdin
 // arg: level number (current level if < 0)
 array_t* read_level(int lvl) {
    
-	int curr = (lvl >= 0) ? lvl : level;
+	int old_level = LEVEL;
+	int curr = (lvl >= 0) ? lvl : LEVEL;
 	int H = 24;
 	int W = 0;
+	
+	level(curr);
 	array_t* T = get_level_ref(curr);
 	
 	T->array = (char**)malloc((H = H + 1) * sizeof(char*));
@@ -67,18 +91,20 @@ array_t* read_level(int lvl) {
 	T->size.height = H;
 	T->size.width  = W - 1;
 
-   return T;
+	level(old_level);
+	
+	return T;
 }
 
 // Just return size[2] of the level
 // arg: level number (current level if < 0)
 psize_t get_size(int lvl) {
-	int curr = (lvl >= 0) ? lvl : level;
+	int curr = (lvl >= 0) ? lvl : LEVEL;
 
-	return WORLD[curr].size;
+	return WORLD[curr]->size;
 }
 
-void _reverse(array_t *arr) {
+static void _reverse(array_t *arr) {
 	int i, j;
 	char tmp;
 	int H = arr->size.height, W = arr->size.width;
@@ -92,7 +118,7 @@ void _reverse(array_t *arr) {
 		}
 }
 
-void _flip(array_t *arr) {
+static void _flip(array_t *arr) {
 	int i;
 	char* tmp;
 	int H = arr->size.height;
@@ -105,10 +131,9 @@ void _flip(array_t *arr) {
 	}
 }
 
-void _cw(array_t *arr) {
+static void _cw(array_t *arr) {
 	int i, j;
 	int H = arr->size.height, W = arr->size.width;
-	char** array = arr->array;
 	
 	char **tmp = (char**)malloc(W * sizeof(char*));
 	for (i = 0; i < W; i++)
@@ -116,26 +141,11 @@ void _cw(array_t *arr) {
 	
 	for (i = W - 1; i >= 0; i--) {
 		for (j = 0; j < H; j++) {
-			tmp[i][j] = array[j][i];
+			tmp[i][j] = arr->array[j][i];
 		}
 	}
 	
-	// if (W < H) {
-		// for (i = W; i < H; i++)
-			// free(array[i]);
-	// }
-	// array = (char**)realloc(array, W * sizeof(char*));
-	// for (i = 0; i < W; i++)
-		// array[i] = (char*)realloc(array[i], H * sizeof(char));
-	
-	// for (i = 0; i < W; i++) 
-		// for (j = 0; j < H; j++) 
-			// array[i][j] = tmp[i][j];
-	
-	
-	for (i = 0; i < H; i++)
-		free(array[i]); 
-	free(array);
+	free_array(arr);
 	
 	arr->array = tmp;
 	
@@ -146,10 +156,10 @@ void _cw(array_t *arr) {
 void array_rotate(array_t *array, int direction) {
 	
 	if (direction < 0 || direction > 3) {
-		srand(time(NULL));
+		//srand(time(NULL));
 		direction = rand() % 4;
 	}
-	if (!direction)
+	if (direction == 0)
 		return;
 	
 	if (direction == 1) {
@@ -166,78 +176,14 @@ void array_rotate(array_t *array, int direction) {
 	}
 }
 
-void print_array(array_t *arr) {
-	int i, j;
-	int H = arr->size.height, W = arr->size.width;
-	char** array = arr->array;
-	
-	//printf("array_pointer=%lu, H=%d, W=%d\n", (unsigned long)arr, H, W);
-	for (i = 0; i < H; i++) {
-		for (j = 0; j < W; j++) 
-			printf("%c", array[i][j]);
-		printf("\n");
-	}
-	//printf("\n");
-}
+// Overlay arg1 array over current level on free space with random rotation
+// arg1: array reference
+// arg2: rotate   => ARRAY (array_rotate)
+// arg3: overlay  => ARRAY (overlay_anywhere)
+void overlay_somehow(array_t* array, int rotate, int overlay) {
 
-array_t* copy_array(char* array, int H, int W) {
-	int i, j;
-	array_t* copied = (array_t*) malloc(sizeof(array_t));
-	copied->size.height = H;
-	copied->size.width = W;
-	copied->array = (char**)malloc(H * sizeof(char*));
-	for (i = 0; i < H; i++)
-		copied->array[i] = (char*)malloc(W * sizeof(char));
-	
-	for (i = 0; i < H; i++)
-		for (j = 0; j < W; j++) 
-			copied->array[i][j] = *(array + i * W + j);
-	
-	return copied;
-}
-
-array_t* create_array(int H, int W) {
-	
-	array_t* arr = (array_t*)malloc(sizeof(array_t));
-	if (arr == NULL) {
-		perror("could not allocate memory for array_t\n");
-		exit(1);
-	}
-	init_array(arr, H, W);
-	
-	return arr;
-}
-
-void init_array(array_t* arr, int H, int W) {
-	int i;
-	// arr = (array_t*)malloc(sizeof(array_t));
-	// if (arr == NULL) {
-		// perror("could not allocate memory for array_t\n");
-		// exit(1);
-	// }
-	arr->size.height = H;
-	arr->size.width = W;
-	arr->array = (char**)malloc(H * sizeof(char*));
-	if (arr->array == NULL) {
-		perror("could not allocate memory for array_t->array\n");
-		exit(1);
-	}
-	for (i = 0; i < H; i++) {
-		arr->array[i] = (char*)malloc(W * sizeof(char));
-		if (arr->array[i] == NULL) {
-			perror("could not allocate memory for array_t->array[%d]\n");
-			exit(1);
-		}
-	}
-	
-	// return arr;
-}
-
-void free_array(array_t *arr) {
-	int i;
-	for (i = 0; i < arr->size.height; i++)
-		free(arr->array[i]);
-	free(arr->array);
+	array_rotate(array, rotate);
+	overlay_anywhere(array, overlay, DEFAULT);
 }
 
 // Overlay arg1 array over current level on free space
@@ -256,9 +202,8 @@ void overlay_anywhere(array_t *array, int padding, char pchar) {
 // arg2: X
 // arg3: building being built (array ref)
 void overlay_unsafe(int y, int x,  array_t* building) {
-	//int h = building->size.height - 1;
 	
-	array_t *T = get_level_ref(-1);
+	array_t *T = get_level_ref(DEFAULT);
 	int i, j;
 	
 	for (i = 0; i < building->size.height; i++) {
@@ -287,7 +232,7 @@ psize_t get_free_area(int h, int w, int p, char pchar) {
 	psize_t size = get_size(-1);
 	int H = size.height, W = size.width;
 
-   if ((H < h + 2 * p) || (W < w + 2 * p)) {
+	if ((H < h + 2 * p) || (W < w + 2 * p)) {
 		fprintf(stderr, 
 			"Level (%d.%d) is too small for area (%d.%d) with padding %d!\n",
 				W, H, w, h, p);
@@ -314,12 +259,32 @@ psize_t get_free_area(int h, int w, int p, char pchar) {
 		
 	// fill padding area if character specified
 	// TODO fill only padding (be careful with S_NONE)
-	if (pchar != '\0')
+	if (pchar > 0)
 		_fill_area_with_char(ry - p, rx - p, h + 2 * p, w + 2 * p, pchar);
 
 	size.height = ry;
 	size.width = rx;
 	return size;
+}
+
+// Recreate level and fill it with specified character
+// arg1: 	Y size of the level
+// arg2: 	X size of the level
+// arg3: 	a character to fill the level with
+void recreate_level_unsafe(int y, int x, char pchar) {
+   
+	array_t* T = get_level_ref(DEFAULT);
+	if (pchar <= 0) pchar = ' ';
+
+	// Feast for garbage collector
+	free_array(T);
+	init_array(T, y, x);
+
+	int i, j;
+	// Fill entire level
+	for (i = 0; i < T->size.height; i++)
+		for (j = 0; j < T->size.width; j++)
+			T->array[i][j] = pchar;
 }
 
 // Check if area is free
@@ -335,15 +300,15 @@ char check_area_is_free(int y, int x, int h, int w) {
 		exit(1);
 	}
 	
-	array_t *T = get_level_ref(-1);
-
+	array_t *T = get_level_ref(DEFAULT);
+	
+	if (qr_free == NULL) free_regex(NULL);
+	
 	int i, j;
 	
 	for (i = y; i < y + h; i++) {
 		for (j = x; j < x + w; j++) {
-			if (qr_free(T->array[i][j]))
-				continue;
-			else
+			if (strchr(qr_free, T->array[i][j]) == NULL)
 				return 0;
 		}
 	}
@@ -353,7 +318,7 @@ char check_area_is_free(int y, int x, int h, int w) {
 
 // (internal, unsafe) Fill specified area with char
 void _fill_area_with_char(int y, int x, int h, int w, char pchar) {
-	if (x < 0 || y < 0 || h < 0 || w < 0 || pchar == '\0') {
+	if (x < 0 || y < 0 || h < 0 || w < 0 || pchar <= 0) {
 		fprintf(stderr, 
 			"Wrong arguments in _fill_area_with_char(int y = %d, int x = %d, int h = %d, int w = %d, char pchar = %d)\n",
 				y, x, h, w, (int)pchar);
@@ -361,11 +326,91 @@ void _fill_area_with_char(int y, int x, int h, int w, char pchar) {
 	}
 	
 	int i, j;
-	array_t *T = get_level_ref(-1);
+	array_t *T = get_level_ref(DEFAULT);
 	
 	for (i = y; i < y + h; i++) {
 		for (j = x; j < x + w; j++) {
 			T->array[i][j] = pchar;
 		}
 	}
+}
+
+// Generate smooth random line y(0) = 0 and y($) = 0
+// arg1: length
+// arg2: start_solid
+// arg3: stop_solid
+// arg4: char
+static char* _get_line(char* L, int length, int start_solid, int stop_solid, char pchar) {
+	
+	memset(L, ' ', length);
+	int ptr = 0;
+	
+	double curr = 0;
+
+	int magic_constant = 3;
+
+	// Left side (before solid block)
+	while (ptr < start_solid) {
+		L[ptr++] = (curr >= magic_constant) ? pchar : ' ';
+		curr += rand_double(start_solid) / start_solid;
+	}
+
+	// Solid block
+	while (ptr < stop_solid) {
+		L[ptr++] = pchar; 
+	}
+
+	curr = 2 * magic_constant;
+
+	// Right side (after solid block)
+	while (ptr < length) {
+		L[ptr++] = (curr >= magic_constant) ? pchar : ' ';
+		curr -= rand_double(start_solid) / start_solid;
+	}
+
+	return L;
+}
+
+array_t* generate_blurred_area(int level, char pchar, double factor) {
+
+	if (level >= SIZE || array_is_free(WORLD[level])) {
+		fprintf(stderr, "Level %d does not exist\n", level);
+		exit(1);
+	}
+	
+	if (factor < 0 || factor > 1) {
+		fprintf(stderr, "Invalid factor = %.2f <> (0..1)\n", factor);
+		exit(1);
+	}
+	   
+	psize_t size = get_size(level);
+	int h = size.height, w = size.width;
+
+	double sy = 0.5 * (1 - factor) * h;
+	double sx = 0.5 * (1 - factor) * w;
+
+	array_t* T = get_level_ref(DEFAULT);
+
+	array_rotate(T, 1);
+	
+	int x, y;
+	char *L = (char*)malloc(h * sizeof(char));
+	
+	for (x = sx / 2; x < w - sx / 2; x++) {
+		_get_line(L, h, sy, h - sy, pchar);
+		memcpy(T->array[x], L, h);
+	}
+
+	array_rotate(T, 3);
+
+	L = (char*)realloc(L, w * sizeof(char));
+	
+	for (y = sy; y < h - sy; y++) {
+		_get_line(L, w, sx, w - sx, pchar);
+		memcpy(T->array[y], L, w);
+	}
+	
+	free(L);
+
+	return T;
 }

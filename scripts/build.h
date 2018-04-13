@@ -1,7 +1,7 @@
 #ifndef BUILD_H
 #define BUILD_H
 
-#include "gen.h"
+#include "array.h"
 
 array_t* get_building(int w, int h);
 

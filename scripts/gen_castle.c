@@ -1,4 +1,6 @@
 #include <stdlib.h>
+
+#include "array.h"
 #include "gen.h"
 
 char CASTLE_TOP[14][15] = {
@@ -86,13 +88,13 @@ char CASTLE_WTF[37][65] = {
 
 int main(int argc, char *argv[]) {
 	
-	array_t* T = read_level(-1);
+	array_t* T = read_level(DEFAULT);
 	
 	array_t* castle_top = copy_array((char*)CASTLE_TOP, 14, 15);
 	array_t* castle_front = copy_array((char*)CASTLE_FRONT, 23, 74);
 	array_t* castle_wtf = copy_array((char*)CASTLE_WTF, 37, 65);
 	
-	array_rotate(castle_top, -1);
+	array_rotate(castle_top, DEFAULT);
 	overlay_anywhere(castle_top, 2, ',');
 	
 	overlay_anywhere(castle_front, 0, 0);
@@ -100,7 +102,7 @@ int main(int argc, char *argv[]) {
 	array_rotate(castle_wtf, rand_double(1) >= 0.5 ? 0 : 2);
 	overlay_anywhere(castle_wtf, 0, 0);
 	
-	print_level(-1);
+	print_level(DEFAULT);
 	
 	free_array(castle_top);
 	free_array(castle_front);
