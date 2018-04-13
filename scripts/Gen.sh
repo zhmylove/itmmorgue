@@ -20,8 +20,8 @@ fi
 pusk "surface creation"       gen_surface "$@"                      |
 pusk "fields normalization"   gen_fields                            |
 pusk "fields correction"      gen_fields -f                         |
-#pusk "castles creation"       gen_castle                            |
-#pusk "building buildings"     gen_buildings                         |
-#pusk "building buildings"     gen_cities                            |
-#pusk "final preparations"     gen_placeholders                      |
+pusk "castles creation"       gen_castle                            |
+pusk "building buildings"     gen_buildings                         |
+pusk "building buildings"     gen_cities                            |
+pusk "final preparations"     gen_placeholders                      |
 less -S
