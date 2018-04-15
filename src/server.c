@@ -4,8 +4,7 @@
 connection_t *first_connection;
 connection_t *last_connection;
 
-/// TODO re-implement connected players checks
-
+// TODO check / re-implement connected players checks
 // TODO get rid of this shit
 char start = 0;
 

@@ -62,12 +62,12 @@ struct creature_context {
     void* memory;
 };
 
-// Defined for every type of object
+// Defined for every type of object therefore left as a helpful comment
 // struct object_context {};
 
 uint32_t entity_add(entity_t*);
 
-// CLIENT-SERVER
+// c2s mbuf structure
 typedef struct {
     size_t ecount;  // number of entities
     size_t pcount;  // number of players
@@ -75,7 +75,6 @@ typedef struct {
     entity_t entities[];
 } entities_mbuf_t;
 
-///void c_receive_entities_full(entity_full_mbuf_t* mbuf);
 void s_send_entities_unsafe(entity_t*, size_t, size_t, uint32_t*);
 void s_send_entities_full(entity_t* player);
 void c_receive_entities(entities_mbuf_t* mbuf);

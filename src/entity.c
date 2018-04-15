@@ -10,13 +10,6 @@ uint32_t entity_add(entity_t* e) {
     return entities_len++;
 }
 
-/// void entity_destruct(size_t id) {
-///     if (id >= entities_len) return;
-/// 
-///     entities[id]->player_context
-///     entities[id]->context
-/// }
-
 void c_receive_entities(entities_mbuf_t* mbuf) {
     if (! mbuf) return;
 
@@ -101,21 +94,9 @@ void c_receive_entities(entities_mbuf_t* mbuf) {
 #undef OLD_PLAYER
 }
 
-/// void c_receive_entities_full(entity_full_mbuf_t* mbuf){
-///     if (!mbuf || mbuf->players_len >= MAX_PLAYERS) return;
-/// 
-///     player_self = mbuf->self;
-/// 
-///     /* Maybe we shouldn't send connection, etc. */
-///     for (players_len = 0; players_len < mbuf->players_len; players_len++) {
-///         players[players_len] = mbuf->players[players_len];
-///     }
-/// }
-
-
 /* 
  * Send ecount entities to the player. ids[] contains pcount of players.
- * ids: array of entities[] id to transmit.
+ * ids: array of entities[] id to transmit, terminated with NULL.
  * Unsafe: performance in a loss of reliability
  */
 void s_send_entities_unsafe(entity_t* player, size_t ecount, size_t pcount, 
