@@ -48,7 +48,7 @@ void c_receive_entities(entities_mbuf_t* mbuf) {
                         sizeof(struct creature_context)
                         );
 
-                players2[players_len] = entity;
+                players[players_len] = entity;
                 if (mbuf->self == 0) {
                     player_self = players_len;
                 }

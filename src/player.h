@@ -17,8 +17,8 @@ size_t player_init(enum colors color, char *nickname,
 void c_send_move(enum keyboard last_key);
 void s_send_players_full(entity_t* player);
 
-extern entity_t* players2[];
-extern size_t players2_id[];
+extern entity_t* players[];
+extern size_t players_id[];
 extern size_t players_len;
 extern size_t player_self;
 extern size_t players_total;

@@ -4,8 +4,8 @@
 #include "stuff.h"
 #include "entity.h"
 
-entity_t* players2[MAX_PLAYERS];
-size_t players2_id[MAX_PLAYERS];
+entity_t* players[MAX_PLAYERS];
+size_t players_id[MAX_PLAYERS];
 size_t players_len = 0;
 size_t player_self = 0;
 size_t players_total = 0;
@@ -19,32 +19,32 @@ void player_move(player_move_t *move) {
 
     switch (move->direction) {
         case K_MOVE_LEFT:
-            players2[id]->x--;
+            players[id]->x--;
             break;
         case K_MOVE_RIGHT:
-            players2[id]->x++;
+            players[id]->x++;
             break;
         case K_MOVE_UP:
-            players2[id]->y--;
+            players[id]->y--;
             break;
         case K_MOVE_DOWN:
-            players2[id]->y++;
+            players[id]->y++;
             break;
         case K_MOVE_LEFT_UP:
-            players2[id]->y--;
-            players2[id]->x--;
+            players[id]->y--;
+            players[id]->x--;
             break;
         case K_MOVE_RIGHT_UP:
-            players2[id]->y--;
-            players2[id]->x++;
+            players[id]->y--;
+            players[id]->x++;
             break;
         case K_MOVE_LEFT_DOWN:
-            players2[id]->y++;
-            players2[id]->x--;
+            players[id]->y++;
+            players[id]->x--;
             break;
         case K_MOVE_RIGHT_DOWN:
-            players2[id]->y++;
-            players2[id]->x++;
+            players[id]->y++;
+            players[id]->x++;
             break;
         default:
             panic("[S] invalid move direction!");
@@ -95,8 +95,8 @@ size_t player_init(enum colors color, char *nickname,
         player->y = 8;
         player->x = 48;
     }
-    players2[players_len] = player;
-    players2_id[players_len] = entity_add(player);
+    players[players_len] = player;
+    players_id[players_len] = entity_add(player);
 
     return players_len++;
 }
@@ -108,7 +108,7 @@ void s_send_players_full(entity_t* player) {
     }
 
     for (uint32_t i = 0; i < players_len; i++) {
-        ids[i] = players2_id[i];
+        ids[i] = players_id[i];
     }
     ids[players_len] = 0;
 

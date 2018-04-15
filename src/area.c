@@ -108,9 +108,9 @@ void draw_area() {
         mvwprintw(W(W_AREA), 1, 1, "%s", _("Connected players:"));
         for (size_t i = 0; i < players_len; i++) {
             mvwaddch(W(W_AREA), 2 + i, 1,
-                    players2[i]->player_context->ready ? '+' : '-');
+                    players[i]->player_context->ready ? '+' : '-');
             mvwprintw(W(W_AREA), 2 + i, 3, "%s",
-                    players2[i]->player_context->nickname);
+                    players[i]->player_context->nickname);
             mvwprintw(W(W_AREA), windows[W_AREA].max_y - 2, 1, "%s",
                     _("Write !start or !s to chat to begin"));
         }
@@ -125,7 +125,7 @@ void draw_area() {
     ssize_t top_y = 0, top_x = 0, camera = conf("player_camera").ival;
     if (players_len > 0) {
 #define AREA (windows[W_AREA])
-#define ME (*(players2[player_self]))
+#define ME (*(players[player_self]))
         if (camera == 1) {
             // Centre view
             top_y = ME.y - AREA.max_y / 2;
@@ -178,8 +178,8 @@ void draw_area() {
 
     /* Draw the players */
     for (size_t i = 0; i < players_len; i++) {
-        mvwaddch(W(W_AREA), players2[i]->y - top_y, players2[i]->x - top_x,
-                S[S_PLAYER] | color2attr(players2[i]->color));
+        mvwaddch(W(W_AREA), players[i]->y - top_y, players[i]->x - top_x,
+                S[S_PLAYER] | color2attr(players[i]->color));
     }
 
     return;

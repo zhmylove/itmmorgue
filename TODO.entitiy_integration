@@ -1,5 +1,0 @@
--[+] implement entities receiver
--[+] check player movement functions (send/recv)
--[+] check all comments with '///' and remove stale ones
--[ ] refactor players2 -> players
--[ ] check all comments with '//' and remove stale ones
