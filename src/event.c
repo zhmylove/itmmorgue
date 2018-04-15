@@ -5,7 +5,7 @@
 pthread_t ev_thread;
 
 // File-only defines for event queue access
-#define P_EV_QUEUE (players[player_id].ev_queue)
+#define P_EV_QUEUE (players[player_id]->player_context->ev_queue)
 #define P_EV_LOCK do {                                              \
     int rc;                                                         \
     if (0 != (rc = pthread_mutex_lock(&P_EV_QUEUE.event_mutex))) {  \
@@ -118,7 +118,7 @@ static inline void event_loop() {
 
     // 7. Send new state to the players
     for (size_t id = 0; id < players_len; id++) {
-        s_send_players_full(players + id);
+        s_send_players_full(players[id]);
     }
 }
 
