@@ -33,7 +33,7 @@ void player_connected_off(size_t id) {
 
         send_sysmsg(players2[i]->player_context->connection,
                 SM_PLAYER_LEFT, join_msg);
-///        s_send_players_full(players + i);
+        s_send_players_full(players2[i]);
     }
 }
 
@@ -176,7 +176,7 @@ void* process_client(connection_t *connection) {
             // TODO make some of this periodically (at the end of every tick)
             s_level_send(0, players2[id]);
             s_area_send(0, players2[id]);
-///            s_send_players_full(players2 + id);
+            s_send_players_full(players2[id]);
 
             players2[id]->player_context->start = 0;
             start = 2;
@@ -316,7 +316,7 @@ void* process_client(connection_t *connection) {
                 }
 
                 for (size_t i = 0; i < players_len; i++) {
-///                    s_send_players_full(players2 + i);
+                    s_send_players_full(players2[i]);
                 }
                 break;
             case MSG_GET_CHAT:
@@ -341,7 +341,7 @@ void* process_client(connection_t *connection) {
                     players2[id]->player_context->ready = 1;
 
                     for (size_t i = 0; i < players_len; i++) {
-///                        s_send_players_full(players2 + i);
+                        s_send_players_full(players2[i]);
                     }
                     break;
                 }

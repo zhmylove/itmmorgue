@@ -160,7 +160,7 @@ void* worker() {
 
                 break;
             case MSG_PUT_ENTITIES:
-                /// c_receive_players_full((players_full_mbuf_t *)payload);
+                c_receive_entities((entities_mbuf_t*)payload);
 
                 free(payload);
 

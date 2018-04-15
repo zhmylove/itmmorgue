@@ -6,6 +6,7 @@
 
 /// player_t players[MAX_PLAYERS];
 entity_t* players2[MAX_PLAYERS];
+size_t players2_id[MAX_PLAYERS];
 size_t players_len = 0;
 size_t player_self = 0;
 size_t players_total = 0;
@@ -53,7 +54,7 @@ void player_move(player_move_t *move) {
 size_t player_init(enum colors color, char *nickname,
         connection_t *connection) {
 
-    entity_t* player = malloc(
+    entity_t* player = (entity_t *)malloc(
         sizeof(struct entity) +
         sizeof(struct creature_context) +
         sizeof(struct player_context)
@@ -95,7 +96,7 @@ size_t player_init(enum colors color, char *nickname,
         player->x = 48;
     }
     players2[players_len] = player;
-    entity_add(player);
+    players2_id[players_len] = entity_add(player);
 
     return players_len++;
 }
@@ -123,6 +124,22 @@ size_t player_init(enum colors color, char *nickname,
 ///     }
 /// }
 /// 
+void s_send_players_full(entity_t* player) {
+    uint32_t* ids = (uint32_t*)malloc(sizeof(uint32_t) * players_len + 1);
+    if (ids == NULL) {
+        panic("[S] Error allocating ids[]!");
+    }
+
+    for (uint32_t i = 0; i < players_len; i++) {
+        ids[i] = players2_id[i];
+    }
+    ids[players_len] = 0;
+
+    s_send_entities_unsafe(player, players_len, players_len, ids);
+
+    free(ids);
+}
+
 /// void s_send_players_full(player_t *player) {
 ///     players_full_mbuf_t* players_mbuf;
 /// 

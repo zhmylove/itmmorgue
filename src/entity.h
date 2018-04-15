@@ -19,6 +19,7 @@ extern uint32_t entities_len;
 
 struct entity {
     enum {
+        NONE,
         PLAYER,
         CREATURE,
         OBJECT
@@ -70,12 +71,13 @@ uint32_t entity_add(entity_t*);
 typedef struct {
     size_t ecount;  // number of entities
     size_t pcount;  // number of players
-    uint32_t self;  // index of player. 0 if array doesn't contain their entity
+    int32_t self;   // index of player (-1 otherwise)
     entity_t entities[];
 } entities_mbuf_t;
 
-//void c_receive_entities_full(entity_full_mbuf_t* mbuf);
+///void c_receive_entities_full(entity_full_mbuf_t* mbuf);
 void s_send_entities_unsafe(entity_t*, size_t, size_t, uint32_t*);
 void s_send_entities_full(entity_t* player);
+void c_receive_entities(entities_mbuf_t* mbuf);
 
 #endif /* _ENTITY_H_ */

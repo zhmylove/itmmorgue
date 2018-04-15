@@ -5,9 +5,100 @@
 entity_t* entities[MAX_ENTITIES];
 uint32_t entities_len = 1;
 
-uint32_t entity_add(entity_t* e){
+uint32_t entity_add(entity_t* e) {
     entities[entities_len] = e;
     return entities_len++;
+}
+
+/// void entity_destruct(size_t id) {
+///     if (id >= entities_len) return;
+/// 
+///     entities[id]->player_context
+///     entities[id]->context
+/// }
+
+void c_receive_entities(entities_mbuf_t* mbuf) {
+    if (! mbuf) return;
+
+    char *buffer = (char *)(mbuf->entities);
+
+#define NEW_ENTITY ((entity_t *)buffer)
+#define OLD_ENTITY (entities[curr])
+#define NEW_PLAYER ((struct player_context *)(buffer + sizeof(entity_t)))
+#define OLD_PLAYER (OLD_ENTITY->player_context)
+
+    while (mbuf->ecount) {
+        size_t curr = (size_t)NEW_ENTITY->context;
+        if (curr >= entities_len) entities_len = curr;
+
+        if (! OLD_ENTITY) {
+            entity_t* entity = (entity_t *)malloc(
+                    sizeof(struct entity) +
+                    sizeof(struct creature_context) +
+                    (
+                     NEW_ENTITY->type == PLAYER ?
+                     sizeof(struct player_context) : 0
+                    )
+                    );
+
+            if (entity == NULL) {
+                panic("[C] Error allocating entity for receive!");
+            }
+
+            entity->context = (struct creature_context *)(
+                    (char *)entity + sizeof(struct entity)
+                    );
+
+            if (NEW_ENTITY->type == PLAYER) {
+                entity->player_context = (struct player_context *) (
+                        (char *)entity->context +
+                        sizeof(struct creature_context)
+                        );
+
+                players2[players_len] = entity;
+                if (mbuf->self == 0) {
+                    player_self = players_len;
+                }
+                players_len++;
+            } else {
+                entity->player_context = NULL;
+            }
+
+            OLD_ENTITY = entity;
+        }
+
+        OLD_ENTITY->type       = NEW_ENTITY->type;
+        OLD_ENTITY->x          = NEW_ENTITY->x;
+        OLD_ENTITY->y          = NEW_ENTITY->y;
+        OLD_ENTITY->stuff_type = NEW_ENTITY->stuff_type;
+        OLD_ENTITY->color      = NEW_ENTITY->color;
+
+        if (NEW_ENTITY->type == PLAYER) {
+            if (! OLD_ENTITY->player_context) {
+                panic("[C] There is no player_context for entity!");
+            }
+
+            OLD_PLAYER->ready     = NEW_PLAYER->ready;
+            OLD_PLAYER->connected = NEW_PLAYER->connected;
+            OLD_PLAYER->start     = NEW_PLAYER->start;
+            memcpy(OLD_PLAYER->nickname, NEW_PLAYER->nickname,
+                    PLAYER_NAME_MAXLEN);
+
+            buffer += sizeof(struct player_context);
+            mbuf->pcount--;
+        }
+
+        buffer += sizeof(entity_t);
+        mbuf->ecount--;
+        if (mbuf->self >= 0) {
+            mbuf->self--;
+        }
+    }
+
+#undef NEW_ENTITY
+#undef OLD_ENTITY
+#undef NEW_PLAYER
+#undef OLD_PLAYER
 }
 
 /// void c_receive_entities_full(entity_full_mbuf_t* mbuf){
@@ -24,6 +115,7 @@ uint32_t entity_add(entity_t* e){
 
 /* 
  * Send ecount entities to the player. ids[] contains pcount of players.
+ * ids: array of entities[] id to transmit.
  * Unsafe: performance in a loss of reliability
  */
 void s_send_entities_unsafe(entity_t* player, size_t ecount, size_t pcount, 
@@ -36,8 +128,8 @@ void s_send_entities_unsafe(entity_t* player, size_t ecount, size_t pcount,
         return;
     }
 
-    size_t size = sizeof(entities_mbuf_t) - sizeof(entity_t *) +
-        sizeof(entity_t) * ecount + sizeof(struct player_context) * pcount;
+    size_t size = sizeof(entities_mbuf_t) + sizeof(entity_t) * ecount +
+        sizeof(struct player_context) * pcount;
     entities_mbuf_t* msg = (entities_mbuf_t *)malloc(size);
     if (msg == NULL) {
         panic("Error allocating buffer in s_send_entities_unsafe()!");
@@ -45,8 +137,9 @@ void s_send_entities_unsafe(entity_t* player, size_t ecount, size_t pcount,
 
     msg->ecount = ecount;
     msg->pcount = pcount;
+    msg->self = -1;
 
-    char *buffer = (char *)msg + sizeof(entities_mbuf_t) - sizeof(entity_t *);
+    char *buffer = (char *)(msg->entities);
 
     size_t i = 0;
     while (*(ids + i)) {
@@ -55,6 +148,10 @@ void s_send_entities_unsafe(entity_t* player, size_t ecount, size_t pcount,
         }
 
         memcpy(buffer, entities[*(ids + i)], sizeof(entity_t));
+
+        // pseudo-union for id transfer. Due to we don't need to send context
+        ((entity_t *)buffer)->context = (void *)i;
+
         buffer += sizeof(entity_t);
         ecount--;
 
@@ -71,6 +168,10 @@ void s_send_entities_unsafe(entity_t* player, size_t ecount, size_t pcount,
         }
 
         i++;
+
+        if (ecount == 0) {
+            break;
+        }
     }
 
     if (ecount || pcount) {
@@ -87,7 +188,7 @@ void s_send_entities_unsafe(entity_t* player, size_t ecount, size_t pcount,
 }
 
 void s_send_entities_full(entity_t* player) {
-    uint32_t* ids = (uint32_t*)malloc(sizeof(uint32_t) * entities_len);
+    uint32_t* ids = (uint32_t*)malloc(sizeof(uint32_t) * entities_len + 1);
     if (ids == NULL) {
         panic("Error allocating ids[]!");
     }
@@ -95,6 +196,8 @@ void s_send_entities_full(entity_t* player) {
     for (uint32_t i = 0; i < entities_len; i++) {
         ids[i] = i;
     }
+    ids[entities_len] = 0;
+
     s_send_entities_unsafe(player, entities_len, players_len, ids);
 
     free(ids);

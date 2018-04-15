@@ -117,9 +117,9 @@ static inline void event_loop() {
     }
 
     // 7. Send new state to the players
-///    for (size_t id = 0; id < players_len; id++) {
-///        s_send_players_full(players + id);
-///    }
+    for (size_t id = 0; id < players_len; id++) {
+        s_send_players_full(players2[id]);
+    }
 }
 
 void* event_thread(void *args) {
