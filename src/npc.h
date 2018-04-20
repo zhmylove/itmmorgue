@@ -30,7 +30,7 @@
 BT_ARRAY_BEGIN
 
     BEHAVIOUR( guard_behaviour )
-    BEHAVIOUR( test_behaviour )
+    // BEHAVIOUR( test_behaviour )
 
 BT_ARRAY_END
 

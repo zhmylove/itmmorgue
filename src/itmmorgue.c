@@ -9,6 +9,10 @@ void warn(char *msg) {
     if (msg) {
         fprintf(stderr, "%s\n", msg);
     }
+
+    if (_LOG_PANIC) {
+        logger(msg);
+    }
 }
 
 void panic(char *msg) {

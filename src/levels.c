@@ -2,6 +2,7 @@
 #include "itmmorgue.h"
 #include "server.h"
 #include "stuff.h"
+#include "npc.h"
 
 level_t *levels;
 size_t levels_count = 0;
@@ -89,8 +90,10 @@ void s_levels_init() {
     entity->context = creature_ctx;
     entity->player_context = NULL;
 
-    creature_ctx->bt_root = NULL;
-    creature_ctx->bt_current = NULL;
+    // TODO fix initialization !!!
+    creature_ctx->bt_root = &guard_behaviour;
+    creature_ctx->bt_current = creature_ctx->bt_root->child;
+    // TODO fix: creature_ctx->bt_context = calloc(1048576, sizeof(char));
 
     entity->id = entity_add(entity);
 

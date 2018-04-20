@@ -47,6 +47,7 @@ void server() {
     }
 
     // TODO do this asynchronously
+    s_bt_init();
     s_levels_init();
     // Start event loop thread
     event_init();

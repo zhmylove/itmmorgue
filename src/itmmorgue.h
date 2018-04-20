@@ -2,6 +2,9 @@
 #ifndef ITMMORGUE_H
 #define ITMMORGUE_H
 
+// Must be defined as 0 (false) or 1 (true)
+#define _LOG_PANIC 1
+
 #include <unistd.h>
 #if defined(__FreeBSD__) || defined(__linux__)
 #include <ncurses.h>

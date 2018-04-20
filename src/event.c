@@ -116,6 +116,11 @@ static inline void event_loop() {
         P_EV_UNLOCK;
     }
 
+    // 5. Calculate new NPC actions and apply them
+    for (size_t id = 1; id < entities_len; id++) {
+        bt_execute(entities[id]);
+    }
+
     // 7. Send new state to the players
     for (size_t id = 0; id < players_len; id++) {
         s_send_entities_full(players[id]);

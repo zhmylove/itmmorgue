@@ -100,7 +100,7 @@ struct bt_node {
 };
 
 
-int bt_init();
+void s_bt_init();
 int bt_execute(entity_t*);
 
 #endif /* _BT_H_ */

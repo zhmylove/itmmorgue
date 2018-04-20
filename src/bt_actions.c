@@ -6,6 +6,7 @@
 
 #include "stdio.h"
 enum bt_node_status tell_current_node(entity_t* e, void* context){
+    (void)context;
     #ifdef _DEBUG
     printf("%s\n", ((struct creature_context*)e->context)->bt_current->name);
     #endif
@@ -13,6 +14,7 @@ enum bt_node_status tell_current_node(entity_t* e, void* context){
 }
 
 enum bt_node_status tell_current_node_fail(entity_t* e, void* context){
+    (void)context;
     #ifdef _DEBUG
     printf("%s\n", ((struct creature_context*)e->context)->bt_current->name);
     #endif
@@ -53,6 +55,8 @@ enum bt_node_status square_move(entity_t* e, void* context){
                         if( Y <= UL_Y ){ DIR = DIR_W; continue; }
                         Y--;
                         break;
+                    default:
+                        break;
                     }
                 flag = 1;
             } while(!flag);
@@ -79,6 +83,8 @@ enum bt_node_status square_move(entity_t* e, void* context){
                     case DIR_W:
                         if( X <= UL_X ){ DIR = DIR_S; continue; }
                         X--;
+                        break;
+                    default:
                         break;
                 }
                 flag = 1;

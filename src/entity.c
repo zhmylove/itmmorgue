@@ -3,9 +3,9 @@
 #include "entity.h"
 
 entity_t* entities[MAX_ENTITIES];
-uint32_t entities_len = 1;
+size_t entities_len = 1;
 
-uint32_t entity_add(entity_t* e) {
+size_t entity_add(entity_t* e) {
     entities[entities_len] = e;
     return entities_len++;
 }
@@ -126,23 +126,23 @@ void s_send_entities_unsafe(entity_t* player, size_t ecount, size_t pcount,
     char *buffer = (char *)(msg->entities);
 
     size_t i = 0;
-    while (*(ids + i)) {
-        if (*ids >= entities_len) {
+    while (ids[i]) {
+        if (ids[i] >= entities_len) {
             panic("Invalid id specified for s_send_entities_unsafe()!");
         }
 
-        memcpy(buffer, entities[*(ids + i)], sizeof(entity_t));
+        memcpy(buffer, entities[ids[i]], sizeof(entity_t));
 
         buffer += sizeof(entity_t);
         ecount--;
 
-        if (entities[*(ids + i)]->type == PLAYER) {
-            if (entities[*(ids + i)]->player_context->connection ==
+        if (entities[ids[i]]->type == PLAYER) {
+            if (entities[ids[i]]->player_context->connection ==
                     player->player_context->connection) {
                 msg->self = i;
             }
 
-            memcpy(buffer, entities[*(ids + i)]->player_context,
+            memcpy(buffer, entities[ids[i]]->player_context,
                     sizeof(struct player_context));
             buffer += sizeof(struct player_context);
             pcount--;

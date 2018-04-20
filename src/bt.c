@@ -13,7 +13,7 @@
 
 static inline int bt_init_tree(bt_root_t*);
 
-int bt_init(){
+void s_bt_init(){
     for( bt_root_t** p = bt_trees; NULL != *p; ++p)
         bt_init_tree(*p);
 }
@@ -47,7 +47,7 @@ static inline int bt_init_tree(bt_root_t* root){
     #define D_CHILD(c) (c)->u.decorator.child
 
     do {
-        switch( current->type ){
+        switch (current->type) {
             case _BT_COMPOSITE:
                 child = C_CHILD(current, stack[stack_idx]);
 
@@ -152,7 +152,6 @@ static inline int bt_execute_creature(entity_t* e){
     #define SET_STATUS(s) *last_status_p = (s)
 
 // 1. Walk up to the first node with unfinished execution
-stage_up:
     // No check for BT_RUNNING - see stage 0 (rerun).
     do{
         switch( current->type ){
@@ -267,6 +266,10 @@ stage_execute:
 }
 
 int bt_execute(entity_t* e){
+    if (e == NULL) {
+        return 1;
+    }
+
     switch(e->type){
         case CREATURE:;
             return bt_execute_creature(e);

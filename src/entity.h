@@ -15,7 +15,7 @@
 
 #define MAX_ENTITIES (2 * 1048576)
 extern entity_t* entities[];
-extern uint32_t entities_len;
+extern size_t entities_len;
 
 struct entity {
     size_t id;
@@ -69,7 +69,7 @@ struct creature_context {
 // Defined for every type of object therefore left as a helpful comment
 // struct object_context {};
 
-uint32_t entity_add(entity_t*);
+size_t entity_add(entity_t*);
 
 // c2s mbuf structure
 typedef struct {
