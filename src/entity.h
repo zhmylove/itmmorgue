@@ -75,7 +75,7 @@ typedef struct {
     entity_t entities[];
 } entities_mbuf_t;
 
-void s_send_entities_unsafe(entity_t*, size_t, size_t, uint32_t*);
+void s_send_entities_unsafe(entity_t*, size_t, size_t, size_t*);
 void s_send_entities_full(entity_t* player);
 void c_receive_entities(entities_mbuf_t* mbuf);
 

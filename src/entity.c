@@ -100,7 +100,7 @@ void c_receive_entities(entities_mbuf_t* mbuf) {
  * Unsafe: performance in a loss of reliability
  */
 void s_send_entities_unsafe(entity_t* player, size_t ecount, size_t pcount, 
-        uint32_t* ids) {
+        size_t* ids) {
     if (! player || ! ids) {
         panic("Invalid s_send_entities_unsafe() pointers!");
     }
@@ -169,17 +169,17 @@ void s_send_entities_unsafe(entity_t* player, size_t ecount, size_t pcount,
 }
 
 void s_send_entities_full(entity_t* player) {
-    uint32_t* ids = (uint32_t*)malloc(sizeof(uint32_t) * entities_len + 1);
+    size_t* ids = (size_t*)malloc(sizeof(size_t) * entities_len);
     if (ids == NULL) {
         panic("Error allocating ids[]!");
     }
 
-    for (uint32_t i = 0; i < entities_len; i++) {
-        ids[i] = i;
+    for (size_t i = 1; i < entities_len; i++) {
+        ids[i - 1] = i;
     }
-    ids[entities_len] = 0;
+    ids[entities_len - 1] = 0;
 
-    s_send_entities_unsafe(player, entities_len, players_len, ids);
+    s_send_entities_unsafe(player, entities_len - 1, players_len, ids);
 
     free(ids);
 }

@@ -102,12 +102,12 @@ size_t player_init(enum colors color, char *nickname,
 }
 
 void s_send_players_full(entity_t* player) {
-    uint32_t* ids = (uint32_t*)malloc(sizeof(uint32_t) * players_len + 1);
+    size_t* ids = (size_t*)malloc(sizeof(size_t) * players_len + 1);
     if (ids == NULL) {
         panic("[S] Error allocating ids[]!");
     }
 
-    for (uint32_t i = 0; i < players_len; i++) {
+    for (size_t i = 0; i < players_len; i++) {
         ids[i] = players_id[i];
     }
     ids[players_len] = 0;
