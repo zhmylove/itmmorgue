@@ -67,6 +67,35 @@ void s_levels_init() {
 
     pclose(gen);
 
+    /* entities init */
+    // TODO fix entities and remove this stub entity
+    entity_t* entity = (entity_t *)malloc(
+        sizeof(struct entity) +
+        sizeof(struct creature_context)
+    );
+    if (NULL == entity) {
+        panic("Cannot allocate entity!");
+    }
+    struct creature_context* creature_ctx = (struct creature_context*)(
+        (char*) entity + sizeof(struct entity)
+    );
+
+    entity->type = CREATURE;
+    entity->y = 10;
+    entity->x = 25;
+    entity->stuff_type = S_SCROLL;
+    entity->color = L_WHITE;
+
+    entity->context = creature_ctx;
+    entity->player_context = NULL;
+
+    creature_ctx->bt_root = NULL;
+    creature_ctx->bt_current = NULL;
+
+    entity->id = entity_add(entity);
+
+    /* TODO end of stub entities */
+
     levels_count++;
 }
 

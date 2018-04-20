@@ -176,6 +176,15 @@ void draw_area() {
 #undef ME
 #undef AREA
 
+    /* Draw the entities */
+    // TODO reduce the area
+    for (size_t i = 1; i < entities_len; i++) {
+        if (entities[i] == NULL) continue;
+
+        mvwaddch(W(W_AREA), entities[i]->y - top_y, entities[i]->x - top_x,
+                S[entities[i]->stuff_type] | color2attr(entities[i]->color));
+    }
+
     /* Draw the players */
     for (size_t i = 0; i < players_len; i++) {
         mvwaddch(W(W_AREA), players[i]->y - top_y, players[i]->x - top_x,

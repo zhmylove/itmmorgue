@@ -175,7 +175,7 @@ void* process_client(connection_t *connection) {
             // TODO make some of this periodically (at the end of every tick)
             s_level_send(0, players[id]);
             s_area_send(0, players[id]);
-            s_send_players_full(players[id]);
+            s_send_entities_full(players[id]);
 
             players[id]->player_context->start = 0;
             start = 2;
