@@ -18,6 +18,8 @@ extern entity_t* entities[];
 extern uint32_t entities_len;
 
 struct entity {
+    size_t id;
+
     enum {
         NONE,
         PLAYER,
@@ -36,6 +38,8 @@ struct entity {
 };
 
 struct player_context {
+    size_t id;
+
     char nickname[PLAYER_NAME_MAXLEN];
     uint8_t ready;              // ready for the game
     uint8_t connected;          // connected to the server

@@ -21,7 +21,7 @@ void c_receive_entities(entities_mbuf_t* mbuf) {
 #define OLD_PLAYER (OLD_ENTITY->player_context)
 
     while (mbuf->ecount) {
-        size_t curr = (size_t)NEW_ENTITY->context;
+        size_t curr = NEW_ENTITY->id;
         if (curr >= entities_len) entities_len = curr;
 
         if (! OLD_ENTITY) {
@@ -48,11 +48,13 @@ void c_receive_entities(entities_mbuf_t* mbuf) {
                         sizeof(struct creature_context)
                         );
 
-                players[players_len] = entity;
+                players[NEW_PLAYER->id] = entity;
                 if (mbuf->self == 0) {
-                    player_self = players_len;
+                    player_self = NEW_PLAYER->id;
                 }
-                players_len++;
+                if (NEW_PLAYER->id + 1 > players_len) {
+                    players_len = NEW_PLAYER->id + 1;
+                }
             } else {
                 entity->player_context = NULL;
             }
@@ -71,6 +73,7 @@ void c_receive_entities(entities_mbuf_t* mbuf) {
                 panic("[C] There is no player_context for entity!");
             }
 
+            OLD_PLAYER->id        = NEW_PLAYER->id;
             OLD_PLAYER->ready     = NEW_PLAYER->ready;
             OLD_PLAYER->connected = NEW_PLAYER->connected;
             OLD_PLAYER->start     = NEW_PLAYER->start;
@@ -129,9 +132,6 @@ void s_send_entities_unsafe(entity_t* player, size_t ecount, size_t pcount,
         }
 
         memcpy(buffer, entities[*(ids + i)], sizeof(entity_t));
-
-        // pseudo-union for id transfer. Due to we don't need to send context
-        ((entity_t *)buffer)->context = (void *)i;
 
         buffer += sizeof(entity_t);
         ecount--;

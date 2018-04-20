@@ -96,7 +96,9 @@ size_t player_init(enum colors color, char *nickname,
         player->x = 48;
     }
     players[players_len] = player;
+    player_ctx->id = players_len;
     players_id[players_len] = entity_add(player);
+    player->id = players_id[players_len];
 
     return players_len++;
 }
