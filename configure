@@ -166,6 +166,9 @@ clean:
 debug: $EXECUTABLE
 	gdb $EXECUTABLE
 
+debug_headless: $EXECUTABLE
+	gdb --args $EXECUTABLE --server-only
+
 $WORKDIR:
 	mkdir $WORKDIR
 
