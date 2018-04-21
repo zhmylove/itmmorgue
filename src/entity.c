@@ -10,6 +10,46 @@ size_t entity_add(entity_t* e) {
     return entities_len++;
 }
 
+size_t entity_create(enum stuff type, size_t y, size_t x) {
+    entity_t* entity = (entity_t *)malloc(
+        sizeof(struct entity) +
+        sizeof(struct creature_context)
+    );
+    if (entity == NULL) {
+        panic("Cannot allocate entity!");
+    }
+    struct creature_context* creature_ctx = (struct creature_context*)(
+        (char*) entity + sizeof(struct entity)
+    );
+
+    entity->y = y;
+    entity->x = x;
+    entity->stuff_type = type;
+    entity->color = L_WHITE; // TODO set on the type basis
+
+    entity->type = CREATURE;
+
+    entity->context = creature_ctx;
+    entity->player_context = NULL;
+
+    creature_ctx->bt_root = &guard_behaviour; // TODO set on the type basis
+    creature_ctx->bt_current = NULL;
+
+    void* bt_context = creature_ctx->bt_context = calloc(
+            1, guard_behaviour.context_size // TODO set on the type basis
+            );
+
+    // TODO do this dynamically (perhaps with BTree traversal)
+    square_move_init(entity, 
+            (void*)(((char *)bt_context) +
+                guard_behaviour.child ->u.composite.children[0]
+                ->u.decorator.child ->u.leaf.u.offset
+                ),
+            NULL);
+
+    return entity->id = entity_add(entity);
+}
+
 void c_receive_entities(entities_mbuf_t* mbuf) {
     if (! mbuf) return;
 

@@ -70,47 +70,10 @@ void s_levels_init() {
     pclose(gen);
 
     /* entities init */
-    // TODO fix entities and remove this stub entity
-    entity_t* entity = (entity_t *)malloc(
-        sizeof(struct entity) +
-        sizeof(struct creature_context)
-    );
-    if (NULL == entity) {
-        panic("Cannot allocate entity!");
-    }
-    struct creature_context* creature_ctx = (struct creature_context*)(
-        (char*) entity + sizeof(struct entity)
-    );
-
-    entity->type = CREATURE;
-    entity->y = 10;
-    entity->x = 25;
-    entity->stuff_type = S_SCROLL;
-    entity->color = L_WHITE;
-
-    entity->context = creature_ctx;
-    entity->player_context = NULL;
-
-    creature_ctx->bt_root = &guard_behaviour;
-    creature_ctx->bt_current = NULL;
-
-    void* bt_context = creature_ctx->bt_context = calloc(
-            1, guard_behaviour.context_size
-            );
-
-    #define OFFSET(p, o) (((char*)(p))+(o))
-
-    // TODO do this dynamically (perhaps with BTree traversal)
-    square_move_init(entity, 
-            (void*)(((char *)bt_context) +
-                guard_behaviour.child ->u.composite.children[0]
-                ->u.decorator.child ->u.leaf.u.offset
-                ),
-            NULL);
-
-    entity->id = entity_add(entity);
-
-    /* TODO end of stub entities */
+    // TODO make this dynamically
+    entity_create(S_SCROLL, 11, 26);
+    entity_create(S_SCROLL, 11, 36);
+    entity_create(S_SCROLL, 11, 46);
 
     levels_count++;
 }

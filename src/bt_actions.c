@@ -116,11 +116,10 @@ void square_move_init(entity_t *entity, void* context, void* init_data){
     ctx->ul_corner.y = entity->y;
     ctx->ul_corner.x = entity->x;
     ctx->side_length = 7;
-    ctx->direction = ROT_CW;
+    ctx->direction = (random() % 2) ? ROT_CW : ROT_CCW;
     ctx->step_direction = DIR_E;
 
-    (void)init_data;
-
     // TODO fill properly (maybe)
+    (void)init_data;
     //*(struct square_move_context*)context = *(struct square_move_context*)init_data;
 }

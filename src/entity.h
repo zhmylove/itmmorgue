@@ -10,6 +10,7 @@
 #include "connection.h"
 #include "event.h"
 #include "stuff.h"
+#include "npc.h"
 
 #include <stdint.h>
 
@@ -82,5 +83,6 @@ typedef struct {
 void s_send_entities_unsafe(entity_t*, size_t, size_t, size_t*);
 void s_send_entities_full(entity_t* player);
 void c_receive_entities(entities_mbuf_t* mbuf);
+size_t entity_create(enum stuff type, size_t y, size_t x);
 
 #endif /* _ENTITY_H_ */
