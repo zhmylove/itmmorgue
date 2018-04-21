@@ -140,6 +140,9 @@ static inline int bt_execute_creature(entity_t* e){
 
     enum bt_node_status* last_status_p = &GET_ROOT_CTX(bt_ctx)->last_status;
 
+    if( NULL == current )
+        current = cr_ctx->bt_current = root->child;
+
     #define UP() current = current->parent
 
 // 0. Rerun if did not finish

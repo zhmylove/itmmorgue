@@ -13,6 +13,8 @@ enum bt_node_status tell_current_node(entity_t* e, void* context){
     return BT_SUCCESS;
 }
 
+void tell_current_node_init(void* a, void* b){(void)a; (void)b;}
+
 enum bt_node_status tell_current_node_fail(entity_t* e, void* context){
     (void)context;
     #ifdef _DEBUG
@@ -20,6 +22,8 @@ enum bt_node_status tell_current_node_fail(entity_t* e, void* context){
     #endif
     return BT_FAILURE;
 }
+
+void tell_current_node_fail_init(void* a, void* b){(void)a; (void)b;}
 
 enum bt_node_status square_move(entity_t* e, void* context){
     struct square_move_context* ctx = (struct square_move_context*) context;
@@ -42,7 +46,7 @@ enum bt_node_status square_move(entity_t* e, void* context){
                         break;
 
                     case DIR_S:
-                        if( Y >= UL_Y + SQ_LEN){ DIR = DIR_E; continue; }
+                        if( Y >= UL_Y + SQ_LEN){ DIR = DIR_W; continue; }
                         Y++;
                         break;
 
@@ -52,7 +56,7 @@ enum bt_node_status square_move(entity_t* e, void* context){
                         break;
 
                     case DIR_N:
-                        if( Y <= UL_Y ){ DIR = DIR_W; continue; }
+                        if( Y <= UL_Y ){ DIR = DIR_E; continue; }
                         Y--;
                         break;
                     default:
@@ -76,7 +80,7 @@ enum bt_node_status square_move(entity_t* e, void* context){
                         break;
 
                     case DIR_N:
-                        if( Y <= UL_Y ){ DIR = DIR_E; continue; }
+                        if( Y <= UL_Y ){ DIR = DIR_W; continue; }
                         Y--;
                         break;
 
@@ -100,4 +104,9 @@ enum bt_node_status square_move(entity_t* e, void* context){
     #undef DIR
 
     return BT_RUNNING;
+}
+
+void square_move_init(void* context, void* init_data){
+    // TODO fill properly
+    *(struct square_move_context*)context = *(struct square_move_context*)init_data;
 }

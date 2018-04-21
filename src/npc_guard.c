@@ -9,8 +9,7 @@ BT_ROOT(
     BT_SEQUENCE( Test Sequence,
         BT_UNTIL_FAILURE( Move around square,
             BT_ACTION( Move,
-                square_move,
-                struct square_move_context
+                square_move
             )
         )
     )
