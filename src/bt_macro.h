@@ -46,15 +46,19 @@
  * f    : pointer to function for execution
  * c    : context type (primitive/structure).
  *        Used with sizeof
+ *
+ * NOTE: for every leaf function f()
+ * struct f_context and f_init() must be declared and defined
  */
-#define BT_LEAF(name, f, context)          \
-&(bt_node_t) {                             \
-    BT_SETNAME(#name " | _BT_LEAF")        \
-    .type = _BT_LEAF,                      \
-    .u.leaf = {                            \
-        .u.context_size = sizeof context,  \
-        .function=(f)                      \
-    }                                      \
+#define BT_LEAF(name, f)                              \
+&(bt_node_t) {                                        \
+    BT_SETNAME(#name " | _BT_LEAF")                   \
+    .type = _BT_LEAF,                                 \
+    .u.leaf = {                                       \
+        .u.context_size = sizeof(struct f##_context), \
+        .function=(f),                                \
+        .init=(f##_init)                              \
+    }                                                 \
 }
 
 // Following macros are the same as the ones above
@@ -66,7 +70,7 @@
 #define BT_UNTIL_FAILURE(name, c)    BT_DECORATOR(name, _BT_UNTIL_FAILURE, (c))
 #define BT_SUCCEEDER(name, c)        BT_DECORATOR(name, _BT_SUCCEEDER, (c))
 
-#define BT_ACTION(name, f, context)      BT_LEAF(name, (f), (context))
-#define BT_CONDITION(name, f, context)   BT_LEAF(name, (f), (context))
+#define BT_ACTION(name, f)      BT_LEAF(name, f)
+#define BT_CONDITION(name, f)   BT_LEAF(name, f)
 
 #endif /* _BT_MACRO_H_ */

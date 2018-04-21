@@ -3,6 +3,7 @@
 #include "server.h"
 #include "stuff.h"
 #include "npc.h"
+#include "bt_leaf.h"
 
 level_t *levels;
 size_t levels_count = 0;
@@ -92,8 +93,31 @@ void s_levels_init() {
 
     // TODO fix initialization !!!
     creature_ctx->bt_root = &guard_behaviour;
-    creature_ctx->bt_current = creature_ctx->bt_root->child;
+    creature_ctx->bt_current = NULL;
+
+
     // TODO fix: creature_ctx->bt_context = calloc(1048576, sizeof(char));
+    void* bt_context = creature_ctx->bt_context = calloc(1, guard_behaviour.context_size);
+
+    #define OFFSET(p, o) (((char*)(p))+(o))
+
+    *(size_t*)OFFSET(bt_context,
+        guard_behaviour.child
+            ->u.composite.offset
+        ) = 0;
+
+    *(struct square_move_context*)OFFSET(bt_context,
+        guard_behaviour.child
+            ->u.composite.children[0]
+            ->u.decorator.child
+            ->u.leaf.u.offset
+        ) = (struct square_move_context){
+            .ul_corner.y = 11,
+            .ul_corner.x = 26,
+            .side_length = 7,
+            .direction = ROT_CW,
+            .step_direction = DIR_E
+    };
 
     entity->id = entity_add(entity);
 
@@ -111,8 +135,8 @@ void s_area_send(size_t level, entity_t *player) {
 
     /* "1" is because tileblocks are unneeded in the game:
      * we had decided to send only visible data (.top)
-     * before we implemented tileblocks due to lack of 
-     * our memory... 
+     * before we implemented tileblocks due to lack of
+     * our memory...
      * Why don't we have panic() for malloc in our brains? :(
      */
     size_t wholesize = sizeof(tile_t) * size +
