@@ -5,6 +5,10 @@
 #include "entity.h"
 
 #include "stdio.h"
+
+#define EMPTY_LEAF_FUNCTION(f) \
+    void f##_init(entity_t *a, void *b, void*c){(void)a,(void)b,(void)c;}
+
 enum bt_node_status tell_current_node(entity_t* e, void* context){
     (void)context;
     #ifdef _DEBUG
@@ -13,7 +17,7 @@ enum bt_node_status tell_current_node(entity_t* e, void* context){
     return BT_SUCCESS;
 }
 
-void tell_current_node_init(void* a, void* b){(void)a; (void)b;}
+EMPTY_LEAF_FUNCTION(tell_current_node)
 
 enum bt_node_status tell_current_node_fail(entity_t* e, void* context){
     (void)context;
@@ -23,7 +27,7 @@ enum bt_node_status tell_current_node_fail(entity_t* e, void* context){
     return BT_FAILURE;
 }
 
-void tell_current_node_fail_init(void* a, void* b){(void)a; (void)b;}
+EMPTY_LEAF_FUNCTION(tell_current_node_fail)
 
 enum bt_node_status square_move(entity_t* e, void* context){
     struct square_move_context* ctx = (struct square_move_context*) context;
@@ -106,7 +110,17 @@ enum bt_node_status square_move(entity_t* e, void* context){
     return BT_RUNNING;
 }
 
-void square_move_init(void* context, void* init_data){
-    // TODO fill properly
-    *(struct square_move_context*)context = *(struct square_move_context*)init_data;
+void square_move_init(entity_t *entity, void* context, void* init_data){
+    struct square_move_context * ctx = (struct square_move_context *)context;
+
+    ctx->ul_corner.y = entity->y;
+    ctx->ul_corner.x = entity->x;
+    ctx->side_length = 7;
+    ctx->direction = ROT_CW;
+    ctx->step_direction = DIR_E;
+
+    (void)init_data;
+
+    // TODO fill properly (maybe)
+    //*(struct square_move_context*)context = *(struct square_move_context*)init_data;
 }

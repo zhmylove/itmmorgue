@@ -8,6 +8,8 @@
 
 #include <stdint.h>
 
+#define EMPTY_LEAF_CONTEXT(f) struct f##_context {char empty;}
+
 struct square_move_context {
     struct {
         uint16_t x;
@@ -18,17 +20,18 @@ struct square_move_context {
     enum direction step_direction;
 };
 
-#define EMPTY_LEAF_CONTEXT(f) struct f##_context {char empty;}
+enum bt_node_status square_move(entity_t* e, void* context);
+void square_move_init(entity_t *, void*, void*);
+
 EMPTY_LEAF_CONTEXT(tell_current_node);
 EMPTY_LEAF_CONTEXT(tell_current_node_fail);
 
 enum bt_node_status tell_current_node(entity_t* e, void* context);
 enum bt_node_status tell_current_node_fail(entity_t* e, void* context);
 
-void tell_current_node_init(void* a, void* b);
-void tell_current_node_fail_init(void* a, void* b);
+void tell_current_node_init(entity_t *, void* a, void* b);
+void tell_current_node_fail_init(entity_t *, void* a, void* b);
 
-enum bt_node_status square_move(entity_t* e, void* context);
-void square_move_init(void*, void*);
+#undef EMPTY_LEAF_CONTEXT
 
 #endif /* _BT_ACTIONS_H_ */

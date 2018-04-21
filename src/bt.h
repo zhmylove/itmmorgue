@@ -76,7 +76,7 @@ struct bt_leaf {
     } u;
 
     leaf_function_t function;
-    void (*init)(void* context, void* init_data);
+    void (*init)(entity_t *entity, void* context, void* init_data);
 };
 
 struct bt_node {

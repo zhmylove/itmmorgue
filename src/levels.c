@@ -91,33 +91,22 @@ void s_levels_init() {
     entity->context = creature_ctx;
     entity->player_context = NULL;
 
-    // TODO fix initialization !!!
     creature_ctx->bt_root = &guard_behaviour;
     creature_ctx->bt_current = NULL;
 
-
-    // TODO fix: creature_ctx->bt_context = calloc(1048576, sizeof(char));
-    void* bt_context = creature_ctx->bt_context = calloc(1, guard_behaviour.context_size);
+    void* bt_context = creature_ctx->bt_context = calloc(
+            1, guard_behaviour.context_size
+            );
 
     #define OFFSET(p, o) (((char*)(p))+(o))
 
-    *(size_t*)OFFSET(bt_context,
-        guard_behaviour.child
-            ->u.composite.offset
-        ) = 0;
-
-    *(struct square_move_context*)OFFSET(bt_context,
-        guard_behaviour.child
-            ->u.composite.children[0]
-            ->u.decorator.child
-            ->u.leaf.u.offset
-        ) = (struct square_move_context){
-            .ul_corner.y = 11,
-            .ul_corner.x = 26,
-            .side_length = 7,
-            .direction = ROT_CW,
-            .step_direction = DIR_E
-    };
+    // TODO do this dynamically (perhaps with BTree traversal)
+    square_move_init(entity, 
+            (void*)(((char *)bt_context) +
+                guard_behaviour.child ->u.composite.children[0]
+                ->u.decorator.child ->u.leaf.u.offset
+                ),
+            NULL);
 
     entity->id = entity_add(entity);
 
