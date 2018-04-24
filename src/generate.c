@@ -11,7 +11,16 @@
 #include <math.h>
 #include <sys/time.h>
 
+#define _GENERATE_INTERNAL
 #include "generate.h"
+#include "itmmorgue.h"
+
+// Global variable for this file to verify generation process
+int generate_fail = 0;
+
+static inline double rand_double(double x) {
+    return ((double)(random()) / RAND_MAX * (x));
+}
 
 ///////////////////////////////////////ARRAY//////////////////////////////////
 
@@ -36,18 +45,18 @@ void copy_array(array_t* dst, char* array, int H, int W) {
     int i, j;
     init_array(dst, H, W);
 
-    for (i = 0; i < H; i++)
-        for (j = 0; j < W; j++) 
+    for (i = 0; i < H; i++) {
+        for (j = 0; j < W; j++) {
             dst->array[i][j] = *(array + i * W + j);
-
+        }
+    }
 }
 
 array_t* create_array(int H, int W) {
 
     array_t* arr = (array_t*)malloc(sizeof(array_t));
     if (arr == NULL) {
-        perror("could not allocate memory for array_t\n");
-        exit(1);
+        panic("[S] Could not allocate memory for array_t");
     }
     init_array(arr, H, W);
 
@@ -58,16 +67,16 @@ void init_array(array_t* arr, int H, int W) {
     int i;
     arr->size.height = H;
     arr->size.width = W;
+
     arr->array = (char**)calloc(H, sizeof(char*));
     if (arr->array == NULL) {
-        perror("could not allocate memory for array_t->array\n");
-        exit(1);
+        panic("[S] Could not allocate memory for array_t->array");
     }
+
     for (i = 0; i < H; i++) {
         arr->array[i] = (char*)calloc(W, sizeof(char));
         if (arr->array[i] == NULL) {
-            perror("could not allocate memory for array_t->array[%d]\n");
-            exit(1);
+            panic("[S] could not allocate memory for array_t->array[i]");
         }
     }
 }
@@ -97,6 +106,7 @@ void resize_array(array_t* arr, int H, int W) {
 
 void free_array(array_t *arr) {
 
+    if (arr == NULL) return;
     if (array_is_free(arr)) return;
 
     int i;
@@ -154,8 +164,10 @@ array_t** _get_world_ref() {
 array_t* get_level_ref(int lvl) {
 
     int curr = (lvl >= 0) ? lvl : _LEVEL;
+
     if (curr > _SIZE - 1) 
         return NULL;
+
     return WORLD[curr];
 }
 
@@ -189,7 +201,9 @@ array_t* read_level(int lvl) {
         if (nread > W) W = nread;
         i++;
         if (i == H) {
-            T->array = (char**)realloc(T->array, (H = 2 * H - 1) * sizeof(char*));
+            T->array = (char**)realloc(
+                    T->array, (H = 2 * H - 1) * sizeof(char*)
+                    );
         }
     }
 
@@ -210,6 +224,9 @@ array_t* read_level(int lvl) {
 // arg: level number (current level if < 0)
 psize_t get_size(int lvl) {
     int curr = (lvl >= 0) ? lvl : _LEVEL;
+
+    psize_t rc = { 0, 0 };
+    if (WORLD[curr] == NULL) return rc;
 
     return WORLD[curr]->size;
 }
@@ -265,7 +282,7 @@ static void _cw(array_t *arr) {
 void array_rotate(array_t *array, int direction) {
 
     if (direction < 0 || direction > 3) {
-        direction = rand() % 4;
+        direction = random() % 4;
     }
     if (direction == 0)
         return;
@@ -301,7 +318,12 @@ void overlay_somehow(array_t* array, int rotate, int overlay) {
 void overlay_anywhere(array_t *array, int padding, char pchar) {
 
     psize_t size;
-    size = get_free_area(array->size.height, array->size.width, padding, pchar);
+    size = get_free_area(
+            array->size.height, array->size.width, padding, pchar
+            );
+
+    if (generate_fail) return;
+
     overlay_unsafe(size.height, size.width, array);
 }
 
@@ -329,22 +351,24 @@ void overlay_unsafe(int y, int x,  array_t* building) {
 // arg4: padding character
 psize_t get_free_area(int h, int w, int p, char pchar) {
 
+    psize_t rc = { 0, 0 };
+
     // default padding is 0
     if (p < 0) p = 0;
 
     if (h < 0 || w < 0) {
-        fprintf(stderr, "Invalid height or width of area\n");
-        exit(1);
+        panic("Invalid height or width of area");
     }
 
     psize_t size = get_size(DEFAULT);
     int H = size.height, W = size.width;
 
     if ((H < h + 2 * p) || (W < w + 2 * p)) {
-        fprintf(stderr, 
-                "Level (%d.%d) is too small for area (%d.%d) with padding %d!\n",
-                W, H, w, h, p);
-        exit(1);
+        //panicf("Level (%d.%d) too small for area (%d.%d) with padding %d!",
+        //        W, H, w, h, p);
+        warn("Error in get_free_area!");
+        generate_fail = 1;
+        return rc;
     }
 
     // random X and Y on the level
@@ -356,16 +380,13 @@ psize_t get_free_area(int h, int w, int p, char pchar) {
     do {
         ry = p + (int)rand_double(H - 1 - h - 2 * p);
         rx = p + (int)rand_double(W - 1 - w - 2 * p);
-        //printf("ry=%d, rx=%d not ok\n", ry, rx);
     } while (ttl-- > 0 &&
             check_area_is_free(ry - p, rx - p, h + 2 * p, w + 2 * p) == 0);
 
     if (ttl <= 0) {
-        print_level(DEFAULT);
-        fprintf(stderr, "Unable to get free area\n");
-        printf("H=%d, W=%d, h=%d, w=%d, padding=%d, qr_free=%s\n", H, W, h, w,
-                p, qr_free);
-        exit(1);
+        warn("[S] Unable to get free area");
+        generate_fail = 1;
+        return rc;
     }
 
     // fill padding area if character specified
@@ -405,11 +426,9 @@ void recreate_level_unsafe(int y, int x, char pchar) {
 // arg4: area width
 char check_area_is_free(int y, int x, int h, int w) {
     if (x < 0 || y < 0 || h < 0 || w < 0) {
-        fprintf(stderr, 
-                "Wrong arguments in check_area_is_free(int y = %d, int x = %d, "
+        panicf("Wrong arguments in check_area_is_free(int y = %d, int x = %d, "
                 "int h = %d, int w = %d)\n",
                 y, x, h, w);
-        exit(1);
     }
 
     array_t *T = get_level_ref(DEFAULT);
@@ -431,11 +450,9 @@ char check_area_is_free(int y, int x, int h, int w) {
 // (internal, unsafe) Fill specified area with char
 void _fill_area_with_char(int y, int x, int h, int w, char pchar) {
     if (x < 0 || y < 0 || h < 0 || w < 0 || pchar <= 0) {
-        fprintf(stderr, 
-                "Wrong arguments in _fill_area_with_char(int y = %d, int x = %d, "
-                "int h = %d, int w = %d, char pchar = %d)\n",
+        panicf("Wrong arguments in _fill_area_with_char(int y = %d, "
+                "int x = %d, int h = %d, int w = %d, char pchar = %d)\n",
                 y, x, h, w, (int)pchar);
-        exit(1);
     }
 
     int i, j;
@@ -488,13 +505,11 @@ static char* _get_line(char* L, int length, int start_solid, int stop_solid,
 array_t* generate_blurred_area(int level, char pchar, double factor) {
 
     if (level >= _SIZE || array_is_free(WORLD[level])) {
-        fprintf(stderr, "Level %d does not exist\n", level);
-        exit(1);
+        panicf("Level %d does not exist", level);
     }
 
     if (factor < 0 || factor > 1) {
-        fprintf(stderr, "Invalid factor = %.2f <> (0..1)\n", factor);
-        exit(1);
+        panicf("Invalid factor = %.2f <> (0..1)", factor);
     }
 
     psize_t size = get_size(level);
@@ -580,8 +595,11 @@ void place_doors(int w, int h, array_t* bldg) {
             if (bldg->array[i][j] == '+') {
                 cnt = 0;
                 // Doors count
-                for (k = i - (i > 0 ? 1 : 0); k <= i + (i < h - 1 ? 1 : 0); k++)
-                    for (m = j - (j - 1 < 0 ? 0 : 1); m <= j + (j < w - 1 ? 1 : 0);
+                for (k = i - (i > 0 ? 1 : 0);
+                        k <= i + (i < h - 1 ? 1 : 0);
+                        k++)
+                    for (m = j - (j - 1 < 0 ? 0 : 1);
+                            m <= j + (j < w - 1 ? 1 : 0);
                             m++)
                         if (bldg->array[k][m] == '+')
                             cnt++;
@@ -649,7 +667,8 @@ int everything_is_reachable(int edy, int edx, int w, int h, array_t* bldg) {
                 // Now we have to check that we are looking onto door. It means
                 // that should check reachability without diagonal tiles.
                 if (
-                        ('+' == bldg->array[i][j] || '+' == bldg->array[y][x]) &&
+                        ('+' == bldg->array[i][j] ||
+                         '+' == bldg->array[y][x]) &&
                         (abs(x - j) + abs(y - i) != 1)
                    ) continue;
                 if (visited->array[i][j] == 0 && bldg->array[i][j] != '#') {
@@ -696,8 +715,7 @@ array_t* get_building(int w, int h) {
     if (w <= 0) w = 20;
     if (h <= 0) h = 20;
     if (w < 5 || h < 5) {
-        fprintf(stderr, "Building width and height must be at least 5 tails\n");
-        exit(1);
+        panic("Building width and height must be at least 5 tails");
     }
 
     array_t* bldg = create_array(h, w); // building
@@ -723,13 +741,13 @@ array_t* get_building(int w, int h) {
     int x, y;
     // Rooms
     for (i = 0; i <= h * 0.11; i++) {
-        y = rand() % h;
+        y = random() % h;
         for (j = 0; j < w; j++)
             bldg->array[y][j] = '#';
     }
 
     for (j = 0; j <= w * 0.11; j++) {
-        x = rand() % w;
+        x = random() % w;
         for (i = 0; i < h; i++)
             bldg->array[i][x] = '#';
     }
@@ -788,7 +806,8 @@ array_t* get_building(int w, int h) {
                         }
                         if (wpos != -1) {
                             // Conduct to the left
-                            for (k = wpos; k <= j - 1; k++) bldg->array[i][k] = '#';
+                            for (k = wpos; k <= j - 1; k++)
+                                bldg->array[i][k] = '#';
                             wall_fixed = 1;
                             continue;
                         }
@@ -802,7 +821,8 @@ array_t* get_building(int w, int h) {
                         }
                         if (wpos != -1) {
                             // Conduct to the right
-                            for (k = j + 1; k <= wpos; k++) bldg->array[i][k] = '#';
+                            for (k = j + 1; k <= wpos; k++)
+                                bldg->array[i][k] = '#';
                             wall_fixed = 1;
                             continue;
                         }
@@ -826,7 +846,8 @@ array_t* get_building(int w, int h) {
                         }
                         if (wpos != -1) {
                             // Conduct to the top
-                            for (k = wpos; k <= i - 1; k++) bldg->array[k][j] = '#';
+                            for (k = wpos; k <= i - 1; k++)
+                                bldg->array[k][j] = '#';
                             wall_fixed = 1;
                             continue;
                         }
@@ -840,7 +861,8 @@ array_t* get_building(int w, int h) {
                         }
                         if (wpos != -1) {
                             // Conduct to the bottom
-                            for (k = i + 1; k <= wpos; k++) bldg->array[k][j] = '#';
+                            for (k = i + 1; k <= wpos; k++)
+                                bldg->array[k][j] = '#';
                             wall_fixed = 1;
                             continue;
                         }
@@ -1032,7 +1054,8 @@ array_t* build(builder_t builder) {
 
         // Choose a direction
         if (direction == 1) {
-            direction = rand_double(2) >= 0.9 ? 2 : 1; // TODO s/1/0/ (really ???)
+            // TODO s/1/0/ (really ???)
+            direction = rand_double(2) >= 0.9 ? 2 : 1;
         } else if (direction == 2) {
             direction = rand_double(2) >= 0.9 ? 1 : 2;
         } else {
@@ -1084,17 +1107,18 @@ array_t* build(builder_t builder) {
 // range -- more mountains, less plains (also vertical contraction)
 // Height and Width
 int range = 40;
-int H = 24;
-int W = 80;
+int H = -1;
+int W = -1;
 
-// levels   -- something for normalization (21 : see gradiens in GD.pm)
+// gen_levels   -- something for normalization (21 : see gradiens in GD.pm)
 // step_min -- keyline distance stepping (aka horizontal contraction)
 // step_max
-double levels = 0.9;
+double gen_levels = 0.9;
 int step_min = 15;
 int step_max = 55;
 
-int line = 0, steps;
+//int line = 0, steps;
+int steps;
 
 // Generate smoooth random line
 // arg: array pointer for generated line
@@ -1131,7 +1155,7 @@ void get_line(double* out) {
 // Print out any line in human-readable format
 void print_line(double *line, double* dst) {
     int i = 0;
-    if (levels == 1) {
+    if (gen_levels == 1) {
         for (i = 0; i < W; i++) {
             if (dst == NULL) printf("%02.02f ", line[i]);
             else dst[i] = line[i];
@@ -1149,9 +1173,8 @@ void print_line(double *line, double* dst) {
 // This function (for now) divides the whole line into S_GRASS and S_TREE,
 // and prints it out in parsable format.
 void print_tiles(double *line, char* dst) {
-    if (levels > 1) {
-        fprintf(stderr, "Levels must be less than 1 for print_tiles()\n");
-        exit(EXIT_FAILURE);
+    if (gen_levels > 1) {
+        panic("Levels must be less than 1 for print_tiles()");
     }
     // 4 S_TREE
     // 5 S_GRASS
@@ -1186,6 +1209,7 @@ void print_tiles(double *line, char* dst) {
 
 int gen_surface(array_t* arr) {
 
+    int line = 0;
     double abs_max = DBL_MIN, abs_min = DBL_MAX;
     // C -- current
     // N -- next
@@ -1242,7 +1266,7 @@ int gen_surface(array_t* arr) {
     int j;
     for (i = 0; i < H; i++) {
         for (j = 0; j < W; j++) {
-            T[i][j] = levels * (T[i][j] - abs_min) / abs_max;
+            T[i][j] = gen_levels * (T[i][j] - abs_min) / abs_max;
         }
     }
 
@@ -1310,7 +1334,9 @@ int gen_fields(array_t* arr, int finalize) {
 
     for (i = 0; i < H; i++) {
         for (j = 0; j < W; j++) {
-            for (k = i - (i == 0 ? 0 : 1); k <= (i + (i < H - 1 ? 1 : 0)); k++) {
+            for (k = i - (i == 0 ? 0 : 1);
+                    k <= (i + (i < H - 1 ? 1 : 0));
+                    k++) {
                 count = 0;
                 for (m = j - (j == 0 ? 0 : 1); m <= (j + (j < W - 1 ? 1 : 0));
                         m++) {
@@ -1464,14 +1490,20 @@ int gen_castle() {
     array_rotate(&castle_top, DEFAULT);
     overlay_anywhere(&castle_top, 2, ',');
 
+    free_array(&castle_top);
+    if (generate_fail) return -1;
+
     overlay_anywhere(&castle_front, 0, 0);
+
+    free_array(&castle_front);
+    if (generate_fail) return -1;
 
     array_rotate(&castle_wtf, rand_double(1) >= 0.5 ? 0 : 2);
     overlay_anywhere(&castle_wtf, 0, 0);
 
-    free_array(&castle_top);
-    free_array(&castle_front);
     free_array(&castle_wtf);
+    if (generate_fail) return -1;
+
     return 0;
 }
 
@@ -1482,10 +1514,13 @@ int gen_buildings() {
     array_t* building;
     int i;
     for (i = 0; i < 5; i++) {
-        building = get_building(rand() % 13 + 6, rand() % 13 + 6);
+        building = get_building(random() % 13 + 6, random() % 13 + 6);
         overlay_anywhere(building, 2, ',');
+
         free_array(building);
         free(building);
+
+        if (generate_fail) return -1;
     }
     return 0;
 }
@@ -1500,11 +1535,11 @@ int gen_cities() {
     level(1);
 
     // Get random angle for the city being built
-    int city_angle = rand() % 4;
+    int city_angle = random() % 4;
 
     // Create a new level for city
     int city_factor = 6;
-    int size = 24 * city_factor + rand() % city_factor;
+    int size = 24 * city_factor + random() % city_factor;
     double city_h = 0.4 * size, city_w = 0.6 * size;
     if (city_angle % 2)
         recreate_level_unsafe(city_w, city_h, DEFAULT);
@@ -1517,6 +1552,7 @@ int gen_cities() {
     // Use ',' as free space too
     free_regex(".,\"^");
 
+    // It's not a mistype ;-)
     char *TYPES = "STEHG           ";
     int types_p = 0;
     int bh, bw, tmp;
@@ -1525,7 +1561,7 @@ int gen_cities() {
     int rotate;
     do {
         if (rand_double(2) >= 1) {
-            building = get_building(rand() % 8 + 5, rand() % 8 + 5);
+            building = get_building(random() % 8 + 5, random() % 8 + 5);
         }
         else {
             builder.TYPE = TYPES[types_p++];
@@ -1545,6 +1581,11 @@ int gen_cities() {
 
         // Overlay the building with rotation
         overlay_somehow(building, rotate, DEFAULT);
+
+        if (generate_fail) {
+            free_array(building);
+            return -1;
+        }
     } while (city_factor-- > 0);
 
     // Place some grass/trees inside the city
@@ -1594,79 +1635,168 @@ int gen_placeholders(array_t* arr) {
 
 int generate(char** LEVEL, int H, int W) {
 
-    //srand(sysutime());
+    srandom(sysutime());
+    array_t* T = NULL;
+
+#define CHECKPOINT do {           \
+    if (generate_fail) {          \
+        free_array(T);            \
+        free(_get_world_ref());   \
+        return -1;                \
+    }                             \
+} while(0)
 
     level(0);
-    array_t* T = get_level_ref(0);
+
+    //CHECKPOINT;
+
+    T = get_level_ref(0);
+
+    //CHECKPOINT;
+
     init_array(T, H, W);
 
+    CHECKPOINT;
+
     gen_surface(T);			// surface creation
+
+    CHECKPOINT;
+
     gen_fields(T, 0);		// fields normalization
+
+    CHECKPOINT;
+
     gen_fields(T, 1); 		// fields correction
+
+    CHECKPOINT;
+
     gen_castle();			// castles creation
+
+    CHECKPOINT;
+
     gen_buildings();		// building buildings
+
+    CHECKPOINT;
+
     gen_cities();			// building city
+
+    CHECKPOINT;
+
     gen_cities();			// building city
+
+    CHECKPOINT;
+
     gen_placeholders(T);	// final preparations
+
+    CHECKPOINT;
+
 
     int i, j;
     for (i = 0; i < H; i++)
-        for (j = 0; j < W; j++)
-            LEVEL[i][j] = T->array[i][j];
+    for (j = 0; j < W; j++)
+    LEVEL[i][j] = T->array[i][j];
 
     free_array(T);
     free(_get_world_ref());
 
+    generate_fail = 0;
+
     return 0;
-}
-
-int main(int argc, char *argv[]) {
-
-    int i = 0, tmp = 0;
-
-    // Parse options
-    for (i = 1; i < argc; i++) {
-        if (argv[i][0] == '-' && argv[i][1] == 'h') {
-            if ((tmp = atoi(&argv[i][2])) > 0)
-                H = tmp;
-        } 
-        else if (argv[i][0] == '-' && argv[i][1] == 'w') {
-            if ((tmp = atoi(&argv[i][2])) > 0)
-                W = tmp;
-        }
-        else {
-            fprintf(stderr, "Usage: %s -h<Y> -w<X>\n", argv[0]);
-            return 1;
-        }
     }
 
-    struct timeval tv;
-    if (gettimeofday(&tv, NULL) < 0) {
-        return 1;
-    }
-    unsigned int seed = tv.tv_sec * 1000000 + tv.tv_usec;
-    srand(seed);
+// int main(int argc, char *argv[]) {
+// 
+//     int i = 0, tmp = 0;
+// 
+//     // Parse options
+//     for (i = 1; i < argc; i++) {
+//         if (argv[i][0] == '-' && argv[i][1] == 'h') {
+//             if ((tmp = atoi(&argv[i][2])) > 0)
+//                 H = tmp;
+//         } 
+//         else if (argv[i][0] == '-' && argv[i][1] == 'w') {
+//             if ((tmp = atoi(&argv[i][2])) > 0)
+//                 W = tmp;
+//         }
+//         else {
+//             panicf("Usage: %s -h<Y> -w<X>", argv[0]);
+//             return 1;
+//         }
+//     }
+// 
+//     struct timeval tv;
+//     if (gettimeofday(&tv, NULL) < 0) {
+//         return 1;
+//     }
+//     unsigned int seed = tv.tv_sec * 1000000 + tv.tv_usec;
+//     srandom(seed);
+// 
+// 
+//     ////array generated in levels.c 
+//     char** LEVEL;
+//     LEVEL = (char**)calloc(H, sizeof(char*));
+//     for (i = 0; i < H; i++) {
+//         LEVEL[i] = (char*)calloc(W, sizeof(char));
+//     }
+// 
+//     //------->INTEGRATION POINT<-------------
+//     generate(LEVEL, H, W);
+//     //------->INTEGRATION POINT<-------------
+// 
+//     int j;
+//     for (i = 0; i < H; i++) {
+//         for (j = 0; j < W; j++) 
+//             printf("%c", LEVEL[i][j]);
+//         printf("\n");
+//     }
+// 
+// 
+// 
+//     return 0;
+// }
+//
 
+/* 
+ * TODO
+ * - check free()
+ * - perhaps re-write with stuff S_*
+ * - add additional error checks
+ * - refactor int -> size_t
+ */
 
-    ////array generated in levels.c 
+/*
+ * Integration for terra.c
+ * Returns char** with character-based level.
+ * Needs to be parsed or re-implemented.
+ */
+char** terra_generate(int height, int width) {
     char** LEVEL;
-    LEVEL = (char**)calloc(H, sizeof(char*));
-    for (i = 0; i < H; i++) {
-        LEVEL[i] = (char*)calloc(W, sizeof(char));
+
+    // Don't think. Just do it!
+    H = height;
+    W = width;
+
+    // Will be freed later on
+    LEVEL = (char**)calloc(height, sizeof(char*));
+    if (LEVEL == NULL) {
+        panic("[S] Error allocating LEVEL!");
+    }
+    for (int i = 0; i < height; i++) {
+        LEVEL[i] = (char*)calloc(width, sizeof(char));
+        if (LEVEL[i] == NULL) {
+            panic("[S] Error allocating LEVEL[i]!");
+        }
     }
 
-    //------->INTEGRATION POINT<-------------
-    generate(LEVEL, H, W);
-    //------->INTEGRATION POINT<-------------
+    int ttl = 1000;
 
-    int j;
-    for (i = 0; i < H; i++) {
-        for (j = 0; j < W; j++) 
-            printf("%c", LEVEL[i][j]);
-        printf("\n");
+    do {
+        generate(LEVEL, height, width);
+    } while(generate_fail > 0 && ttl-- > 0);
+
+    if (ttl == 0) {
+        panic("[S] Unable to generate the terra!");
     }
 
-
-
-    return 0;
+    return LEVEL;
 }

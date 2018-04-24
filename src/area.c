@@ -41,6 +41,7 @@ void c_level_add(level_t *level) {
     c_levels_curr = c_levels_len++;
 }
 
+// TODO really uint16 ???
 size_t lvltilepos(uint16_t max_x, uint16_t y, uint16_t x) {
     return y * max_x + x;
 }

@@ -2,6 +2,8 @@
 #ifndef GENERATE_H
 #define GENERATE_H
 
+#ifdef _GENERATE_INTERNAL
+
 ////////////////////////////////////////////////ARRAY.H///////////////////////
 
 typedef struct psize_t {
@@ -25,7 +27,6 @@ int array_is_free(array_t *arr);
 ////////////////////////////////////////////////GEN.H/////////////////////////
 
 #define DEFAULT (-1)
-#define rand_double(x) ((double)rand() / RAND_MAX * (x))
 
 int level(int lvl);
 void free_regex(char* regex);
@@ -78,5 +79,9 @@ int gen_buildings();
 int gen_cities();
 int gen_placeholders(array_t* arr);
 int generate(char** LEVEL, int H, int W);
+
+#else 
+char** terra_generate(int height, int width);
+#endif /* _GENERATE_INTERNAL */
 
 #endif /* GENERATE_H */
