@@ -1,16 +1,17 @@
+// vim: sw=4 ts=4 et :
 #ifndef GENERATE_H
 #define GENERATE_H
 
-////////////////////////////////////////////////ARRAY.H//////////////////////////////////////////////////
+////////////////////////////////////////////////ARRAY.H///////////////////////
 
 typedef struct psize_t {
-	int 	height;
-	int 	width;
+    int 	height;
+    int 	width;
 } psize_t;
 
 typedef struct array_t {
-	char** 		array;
-	psize_t 	size;
+    char** 		array;
+    psize_t 	size;
 } array_t;
 
 void print_array(array_t *arr);
@@ -21,7 +22,7 @@ void resize_array(array_t* arr, int H, int W);
 void free_array(array_t *arr);
 int array_is_free(array_t *arr);
 
-////////////////////////////////////////////////GEN.H//////////////////////////////////////////////////
+////////////////////////////////////////////////GEN.H/////////////////////////
 
 #define DEFAULT (-1)
 #define rand_double(x) ((double)rand() / RAND_MAX * (x))
@@ -45,30 +46,30 @@ char check_area_is_free(int y, int x, int h, int w);
 void _fill_area_with_char(int y, int x, int h, int w, char pchar);
 array_t* generate_blurred_area(int level, char pchar, double factor);
 
-////////////////////////////////////////////////BUILD.H//////////////////////////////////////////////////
+////////////////////////////////////////////////BUILD.H///////////////////////
 
 array_t* get_building(int w, int h);
 array_t* _decorate(int edx, int edy, int w, int h, array_t* bldg);
 void place_doors(int w, int h, array_t* bldg);
 int everything_is_reachable(int edy, int edx, int w, int h, array_t* bldg);
 
-////////////////////////////////////////////////HOUSE.H//////////////////////////////////////////////////
+////////////////////////////////////////////////HOUSE.H///////////////////////
 
 typedef struct builder_t {
-	char 	TYPE;
-	int 	ROOMS;
-	int 	width;
-	int 	height;
-	double 	xfactor;
-	double 	yfactor;
-	int 	xmin;
-	int 	ymin;
-	
+    char 	TYPE;
+    int 	ROOMS;
+    int 	width;
+    int 	height;
+    double 	xfactor;
+    double 	yfactor;
+    int 	xmin;
+    int 	ymin;
+
 } builder_t;
 
 array_t* build(builder_t builder);
 
-////////////////////////////////////////////////GENERATE.H//////////////////////////////////////////////////
+////////////////////////////////////////////////GENERATE.H////////////////////
 
 int gen_surface(array_t* arr);
 int gen_fields(array_t* arr, int finalize);
@@ -77,5 +78,5 @@ int gen_buildings();
 int gen_cities();
 int gen_placeholders(array_t* arr);
 int generate(char** LEVEL, int H, int W);
-						
+
 #endif /* GENERATE_H */
