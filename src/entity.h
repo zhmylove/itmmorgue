@@ -1,5 +1,10 @@
 // vim: et sw=4 ts=4 :
 
+/*
+ * Entity - a structure that defines an object with any distinct behaviour,
+ * be it player, NPC, or inanimate object
+ */
+
 #ifndef _ENTITY_H_
 #define _ENTITY_H_
 
@@ -18,6 +23,10 @@
 extern entity_t* entities[];
 extern size_t entities_len;
 
+/*
+ * Base definition of entity for any type of it: player, NPC, etc.
+ * Contains data common to any type of entity.
+ */
 struct entity {
     size_t id;
 
@@ -38,6 +47,9 @@ struct entity {
     void* context;
 };
 
+/*
+ * Player-specific data
+ */
 struct player_context {
     size_t id;
 
@@ -53,6 +65,9 @@ struct player_context {
     /* player specific stats  */
 };
 
+/*
+ * Data specific to creature, that is, NPCs, inanimate objects, etc.
+ */
 struct creature_context {
     char name[PLAYER_NAME_MAXLEN];
     /* inventory_t */
@@ -67,10 +82,32 @@ struct creature_context {
     void* memory;
 };
 
+/*
+ * Data specific to inanimate objects
+ */
+
 // Defined for every type of object therefore left as a helpful comment
 // struct object_context {};
 
-size_t entity_add(entity_t*);
+/*
+ * Add entity to global scope. MUST be called in the end of entity creation
+ *
+ * entity : pointer to entity that is to be added
+ *
+ * ret    : entity ID
+*/
+size_t entity_add(entity_t* entity);
+
+/*
+ * Create entity of specific type
+ * TODO: currently a stub with square_move action
+ */
+size_t entity_create(enum stuff type, size_t y, size_t x);
+
+
+/*
+ * Network part
+ */
 
 // c2s mbuf structure
 typedef struct {
@@ -80,9 +117,28 @@ typedef struct {
     entity_t entities[];
 } entities_mbuf_t;
 
-void s_send_entities_unsafe(entity_t*, size_t, size_t, size_t*);
+/*
+ * Send entities to the player.
+ * Unsafe: performance in a loss of reliability
+ *
+ * player : player send entities to
+ * ecount : number of entities to send
+ * pcount : number of players to send
+ * ids    : array of entities[] id to transmit, terminated with 0.
+ *
+ * ret    : nothing
+ */
+void s_send_entities_unsafe(entity_t* player, size_t ecount, size_t pcount,
+        size_t* ids);
+
+/*
+ * Send all entities to the player.
+ *
+ * player : player send entities to
+ *
+ * ret    : nothing
+ */
 void s_send_entities_full(entity_t* player);
 void c_receive_entities(entities_mbuf_t* mbuf);
-size_t entity_create(enum stuff type, size_t y, size_t x);
 
 #endif /* _ENTITY_H_ */

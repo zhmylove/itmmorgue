@@ -1,3 +1,14 @@
+// vim: sw=4 ts=4 et :
+
+/*
+ * Example of Behaviour Tree defined with Macros from bt_macro.h
+ * To be updated after any adjustment or extension to BT,
+ * e.g. refactoring, architecture change,
+ *      adding new composite, decorator, etc.
+ * Since this BT does nothing (or prints names of Nodes in DEBUG mode),
+ * it is ill-advised to use this tree as a behaviour of any actual entity
+ */
+
 #include "npc.h"
 
 #include "bt_macro.h"
@@ -26,10 +37,10 @@ BT_ROOT(                                // Any behavior starts with Root
             )
         ),
         BT_SELECTOR(Selector with succeeder,
-            BT_SUCCEEDER(Succeeder,    // Succeeder is a type of Decorator
-                                       // Decorators have only 1 child
-                                       // They alter execution of their children
-                                       // Succeeder always returns Success
+            BT_SUCCEEDER(Succeeder,     // Succeeder is a type of Decorator
+                                        // Decorators have only 1 child
+                                        // They alter execution of their children
+                                        // Succeeder always returns Success
                 BT_ACTION(Failed. But Succeeder saved us,
                     tell_current_node_fail
                 )
@@ -52,13 +63,13 @@ BT_ROOT(                                // Any behavior starts with Root
                 )
             )
         ),
-        BT_NOT(Simple inversion,  // Decorator that inverts Success <-> Failure
+        BT_NOT(Simple inversion,        // Decorator that inverts Success <-> Failure
             BT_ACTION(Fails and is inverted,
                 tell_current_node_fail
             )
         ),
-        BT_ACTION(Fail,         // This action fails main sequence
-                                // BT is restarted from the root
+        BT_ACTION(Fail,                 // This action fails main sequence
+                                        // BT is restarted from the root
             tell_current_node_fail
         ),
         BT_ACTION(Wont happen IV,

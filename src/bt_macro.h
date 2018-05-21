@@ -1,5 +1,11 @@
 // vim: et sw=4 ts=4 :
 
+/*
+ * BT Macro - macros to ease a process of definition of Behavior Tree
+ * This file contains only definitions of this macros.
+ * For example, see bt_example.c
+ */
+
 #ifndef _BT_MACRO_H_
 #define _BT_MACRO_H_
 
@@ -10,6 +16,45 @@
 #else
 #define BT_SETNAME(n)
 #endif
+
+/*
+ * Macros to be used for BT definition
+ */
+
+/*
+ * Composites
+ *
+ * name : name of node. Used only in DEBUG mode
+ * ...  : children nodes
+ */
+#define BT_SEQUENCE(name, ...)    BT_COMPOSITE(name, _BT_SEQUENCE, __VA_ARGS__)
+#define BT_SELECTOR(name, ...)    BT_COMPOSITE(name, _BT_SELECTOR, __VA_ARGS__)
+
+/*
+ * Decorators
+ * name : name of node. Used only in DEBUG mode
+ * ...  : child node
+ */
+#define BT_NOT(name, c)              BT_DECORATOR(name, _BT_NOT, (c))
+#define BT_UNTIL_FAILURE(name, c)    BT_DECORATOR(name, _BT_UNTIL_FAILURE, (c))
+#define BT_SUCCEEDER(name, c)        BT_DECORATOR(name, _BT_SUCCEEDER, (c))
+
+/*
+ * Leafs
+ * name : name of node. Used only in DEBUG mode
+ * f    : base name of leaf.
+ *        struct f_context, f_init and f must be declared and defined somewhere
+ *
+ * Note: the difference between two types of leaf is only semantic
+ */
+#define BT_ACTION(name, f)      BT_LEAF(name, f)
+#define BT_CONDITION(name, f)   BT_LEAF(name, f)
+
+
+/*
+ * Base Macros used for ones above.
+ * It is discouraged to used this explicitly (i.e. not in the form above)
+ */
 
 /* Composite node macro
  * name : debug name of node
@@ -60,17 +105,5 @@
         .init=(f##_init)                              \
     }                                                 \
 }
-
-// Following macros are the same as the ones above
-// Except absence of type parameter
-#define BT_SEQUENCE(name, ...)    BT_COMPOSITE(name, _BT_SEQUENCE, __VA_ARGS__)
-#define BT_SELECTOR(name, ...)    BT_COMPOSITE(name, _BT_SELECTOR, __VA_ARGS__)
-
-#define BT_NOT(name, c)              BT_DECORATOR(name, _BT_NOT, (c))
-#define BT_UNTIL_FAILURE(name, c)    BT_DECORATOR(name, _BT_UNTIL_FAILURE, (c))
-#define BT_SUCCEEDER(name, c)        BT_DECORATOR(name, _BT_SUCCEEDER, (c))
-
-#define BT_ACTION(name, f)      BT_LEAF(name, f)
-#define BT_CONDITION(name, f)   BT_LEAF(name, f)
 
 #endif /* _BT_MACRO_H_ */

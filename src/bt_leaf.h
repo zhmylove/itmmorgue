@@ -1,3 +1,9 @@
+// vim: sw=4 ts=4 et :
+
+/*
+ * Common constants that describe movement (and actions)
+ */
+
 #ifndef _BT_LEAF_H_
 #define _BT_LEAF_H_
 

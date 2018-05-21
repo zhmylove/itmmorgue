@@ -1,4 +1,15 @@
 // vim: et sw=4 ts=4 :
+
+/*
+ * God Header for all NPCs (and NPEs in general)
+ * Include this file CAREFULLY,
+ * since it has NO Include Guard for the purpose of reusage
+ * For general use, no BT_* macros must be defined before including this file.
+ *
+ * List of macros forbidden for general use before including this header:
+ *   - BT_ARRAY
+ */
+
 #include "bt_actions.h"
 
 /*
