@@ -1,5 +1,11 @@
 // vim: et sw=4 ts=4 :
 
+/*
+ * Separate header for basic definitions of entity types.
+ * Used and created to get rid of circular dependency
+ * (entity.h -> bt.h -> entity.h)
+ */
+
 #ifndef _ENTITY_DEF_H_
 #define _ENTITY_DEF_H_
 

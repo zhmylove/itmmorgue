@@ -40,7 +40,7 @@ size_t entity_create(enum stuff type, size_t y, size_t x) {
             );
 
     // TODO do this dynamically (perhaps with BTree traversal)
-    square_move_init(entity, 
+    square_move_init(entity,
             (void*)(((char *)bt_context) +
                 guard_behaviour.child ->u.composite.children[0]
                 ->u.decorator.child ->u.leaf.u.offset
@@ -62,7 +62,7 @@ void c_receive_entities(entities_mbuf_t* mbuf) {
 
     while (mbuf->ecount) {
         size_t curr = NEW_ENTITY->id;
-        if (curr >= entities_len) entities_len = curr;
+        if (curr >= entities_len) entities_len = curr + 1;
 
         if (! OLD_ENTITY) {
             entity_t* entity = (entity_t *)malloc(
@@ -137,12 +137,7 @@ void c_receive_entities(entities_mbuf_t* mbuf) {
 #undef OLD_PLAYER
 }
 
-/* 
- * Send ecount entities to the player. ids[] contains pcount of players.
- * ids: array of entities[] id to transmit, terminated with NULL.
- * Unsafe: performance in a loss of reliability
- */
-void s_send_entities_unsafe(entity_t* player, size_t ecount, size_t pcount, 
+void s_send_entities_unsafe(entity_t* player, size_t ecount, size_t pcount,
         size_t* ids) {
     if (! player || ! ids) {
         panic("Invalid s_send_entities_unsafe() pointers!");
