@@ -2,6 +2,7 @@
 #include "itmmorgue.h"
 #include "server.h"
 #include "stuff.h"
+#include "generate.h"
 
 level_t *levels;
 size_t levels_count = 0;
@@ -26,52 +27,38 @@ void s_levels_init() {
         panic("Error allocating level area!");
     }
 
-    // TODO realloc from the script
-    FILE *gen;
-    char gen_cmd[GEN_MAX];
-    if (snprintf(gen_cmd, GEN_MAX, GEN_SH,
-                conf("level_width").ival, conf("level_height").ival) < 0) {
-        panic("Error formatting gen_cmd!");
-    }
-    if ((gen = popen(gen_cmd, "r")) == NULL) {
-        panic("Error running Gen.sh!");
-    }
+    int x, y; // Iterators
 
-    int ch, x = 0, y = 0;
-    while ((ch = getc(gen)) != EOF) {
-        // TODO parse ch
-        tile_t buftile;
-        // Unfortunately we can't write anything except switch()
-        switch ((char)ch) {
-            case '\n':
-                y++;
-                x = 0;
-                continue;
-#define MAP(CHAR, TOP, COLOR) case CHAR: buftile.top = TOP; buftile.color = COLOR; break;
-                MAP('#', S_WALL        , D_WHITE   );
-                MAP('.', S_GRASS       , D_GREEN   );
-                MAP('^', S_TREE        , L_GREEN   );
-                MAP(',', S_CITY        , L_BLACK   );
-                MAP('_', S_FLOOR       , D_WHITE   );
-                MAP('"', S_FIELD       , D_YELLOW  );
-                MAP('+', S_DOOR        , L_WHITE   );
+    // Would panic on any problems
+    char **text_level = terra_generate(HEAD.max_y, HEAD.max_x);
+
+    tile_t buftile;
+    for (y = 0; y < HEAD.max_y; y++) {
+        for (x = 0; x < HEAD.max_x; x++) {
+            switch (text_level[y][x]) {
+                /* Can't be simplified with stuff.c => hardcode */
+#define MAP(CHAR, TOP, COLOR) \
+                case CHAR: buftile.top = TOP; buftile.color = COLOR; break;
+                           MAP('#', S_WALL        , D_WHITE   );
+                           MAP('.', S_GRASS       , D_GREEN   );
+                           MAP('^', S_TREE        , L_GREEN   );
+                           MAP(',', S_CITY        , L_BLACK   );
+                           MAP('_', S_FLOOR       , D_WHITE   );
+                           MAP('"', S_FIELD       , D_YELLOW  );
+                           MAP('+', S_DOOR        , L_WHITE   );
 #undef MAP
-            default:
-                buftile.top = S_NONE;
-                buftile.color = L_BLACK;
+                default:
+                           buftile.top = S_NONE;
+                           buftile.color = L_BLACK;
+            }
+            buftile.x = x;
+            buftile.y = y;
+            buftile.underlying = NULL;
+
+            // TODO Could be optimized
+            HEAD.area[lvltilepos(HEAD.max_x, y, x)] = buftile;
         }
-        buftile.x = x;
-        buftile.y = y;
-        buftile.underlying = NULL;
-
-        HEAD.area[lvltilepos(HEAD.max_x, y, x++)] = buftile;
     }
-
-    if (! feof(gen)) {
-        panic("Not EOF on Gen.sh!");
-    }
-
-    pclose(gen);
 
     levels_count++;
 }

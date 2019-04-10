@@ -93,4 +93,7 @@ size_t anystrunplen(char *str, size_t maxlen, char ** endp);
 size_t strnlen(const char *str, size_t maxlen);
 #endif /* __sun */
 
+unsigned long long systime();
+unsigned long long sysutime();
+
 #endif /* ITMMORGUE_H */
