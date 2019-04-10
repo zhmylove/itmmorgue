@@ -88,8 +88,15 @@ void resize_array(array_t* arr, int H, int W) {
     int min_w = W < arr->size.width ? W : arr->size.width;
 
     char **new_array = (char**)malloc(H * sizeof(char*));
-    for (i = 0; i < H; i++)
+    if (new_array == NULL) {
+        panic("[S] could not allocate memory for resize_array()");
+    }
+    for (i = 0; i < H; i++) {
         new_array[i] = (char*)malloc(W * sizeof(char));
+        if (new_array[i] == NULL) {
+            panic("[S] could not allocate memory for resize_array()");
+        }
+    }
 
     for (i = 0; i < min_h; i++) {
         for (j = 0; j < min_w; j++) {
@@ -137,9 +144,16 @@ int level(int lvl) {
     int curr = (lvl >= 0) ? lvl : _LEVEL;
     if (curr > _SIZE - 1 || _SIZE == 0) {
         WORLD = (array_t**)realloc(WORLD, (curr + 1) * sizeof(array_t*));
+        if (WORLD == NULL) {
+            panic("[S] could not reallocate memory WORLD");
+        }
         int i;
-        for (i = _SIZE; i <= curr; i++)
+        for (i = _SIZE; i <= curr; i++) {
             WORLD[i] = (array_t*)calloc(1, sizeof(array_t));
+            if (WORLD[i] == NULL) {
+                panic("[S] could not allocate memory WORLD[i]");
+            }
+        }
         _SIZE = curr + 1;
     }
     _LEVEL = curr;
@@ -150,6 +164,9 @@ int level(int lvl) {
 void free_regex(char* regex) {
     if (regex == NULL) regex = ".\"^";
     qr_free = (char*)realloc(qr_free, strlen(regex) * sizeof(char));
+    if (qr_free == NULL) {
+        panic("[S] could not reallocate memory qr_free");
+    }
     strcpy(qr_free, regex);
 }
 
@@ -192,6 +209,9 @@ array_t* read_level(int lvl) {
     array_t* T = get_level_ref(curr);
 
     T->array = (char**)malloc((H = H + 1) * sizeof(char*));
+    if (T->array == NULL) {
+        panic("[S] could not allocate memory T->array");
+    }
 
     size_t len = 0;
     ssize_t nread;
@@ -204,11 +224,17 @@ array_t* read_level(int lvl) {
             T->array = (char**)realloc(
                     T->array, (H = 2 * H - 1) * sizeof(char*)
                     );
+            if (T->array == NULL) {
+                panic("[S] could not reallocate memory T->array");
+            }
         }
     }
 
     if (H + 1 > i) {
         T->array = (char**)realloc(T->array, i * sizeof(char*));
+        if (T->array == NULL) {
+            panic("[S] could not reallocate memory T->array again");
+        }
         H = i;
     }
 
@@ -263,8 +289,15 @@ static void _cw(array_t *arr) {
     int H = arr->size.height, W = arr->size.width;
 
     char **tmp = (char**)malloc(W * sizeof(char*));
-    for (i = 0; i < W; i++)
+    if (tmp == NULL) {
+        panic("[S] could not allocate memory for _cw() buffer: tmp");
+    }
+    for (i = 0; i < W; i++) {
         tmp[i] = (char*)malloc(H * sizeof(char));
+        if (tmp[i] == NULL) {
+            panic("[S] could not allocate memory for _cw() buffer: tmp[i]");
+        }
+    }
 
     for (i = W - 1; i >= 0; i--) {
         for (j = 0; j < H; j++) {
@@ -308,7 +341,7 @@ void array_rotate(array_t *array, int direction) {
 void overlay_somehow(array_t* array, int rotate, int overlay) {
 
     array_rotate(array, rotate);
-    overlay_anywhere(array, overlay, DEFAULT);
+    overlay_anywhere(array, overlay, DEFAULT_PCHAR);
 }
 
 // Overlay arg1 array over current level on free space
@@ -333,7 +366,7 @@ void overlay_anywhere(array_t *array, int padding, char pchar) {
 // arg3: building being built (array ref)
 void overlay_unsafe(int y, int x,  array_t* building) {
 
-    array_t *T = get_level_ref(DEFAULT);
+    array_t *T = get_level_ref(DEFAULT_PCHAR);
     int i, j;
 
     for (i = 0; i < building->size.height; i++) {
@@ -360,7 +393,7 @@ psize_t get_free_area(int h, int w, int p, char pchar) {
         panic("Invalid height or width of area");
     }
 
-    psize_t size = get_size(DEFAULT);
+    psize_t size = get_size(DEFAULT_PCHAR);
     int H = size.height, W = size.width;
 
     if ((H < h + 2 * p) || (W < w + 2 * p)) {
@@ -405,7 +438,7 @@ psize_t get_free_area(int h, int w, int p, char pchar) {
 // arg3: 	a character to fill the level with
 void recreate_level_unsafe(int y, int x, char pchar) {
 
-    array_t* T = get_level_ref(DEFAULT);
+    array_t* T = get_level_ref(DEFAULT_PCHAR);
     if (pchar <= 0) pchar = ' ';
 
     // Feast for garbage collector
@@ -431,7 +464,7 @@ char check_area_is_free(int y, int x, int h, int w) {
                 y, x, h, w);
     }
 
-    array_t *T = get_level_ref(DEFAULT);
+    array_t *T = get_level_ref(DEFAULT_PCHAR);
 
     if (qr_free == NULL) free_regex(NULL);
 
@@ -456,7 +489,7 @@ void _fill_area_with_char(int y, int x, int h, int w, char pchar) {
     }
 
     int i, j;
-    array_t *T = get_level_ref(DEFAULT);
+    array_t *T = get_level_ref(DEFAULT_PCHAR);
 
     for (i = y; i < y + h; i++) {
         for (j = x; j < x + w; j++) {
@@ -518,12 +551,15 @@ array_t* generate_blurred_area(int level, char pchar, double factor) {
     double sy = 0.5 * (1 - factor) * h;
     double sx = 0.5 * (1 - factor) * w;
 
-    array_t* T = get_level_ref(DEFAULT);
+    array_t* T = get_level_ref(DEFAULT_PCHAR);
 
     array_rotate(T, 1);
 
     int x, y;
     char *L = (char*)malloc(h * sizeof(char));
+    if (L == NULL) {
+        panic("[S] could not allocate memory for L");
+    }
 
     for (x = sx / 2; x < w - sx / 2; x++) {
         _get_line(L, h, sy, h - sy, pchar);
@@ -533,6 +569,9 @@ array_t* generate_blurred_area(int level, char pchar, double factor) {
     array_rotate(T, 3);
 
     L = (char*)realloc(L, w * sizeof(char));
+    if (L == NULL) {
+        panic("[S] could not reallocate memory for L");
+    }
 
     for (y = sy; y < h - sy; y++) {
         _get_line(L, w, sx, w - sx, pchar);
@@ -646,6 +685,9 @@ int everything_is_reachable(int edy, int edx, int w, int h, array_t* bldg) {
             visited->array[i][j] = 0;
 
     q = malloc(q_len * sizeof(psize_t));
+    if (q == NULL) {
+        panic("[S] could not allocate memory for gen.queue");
+    }
 
     q[q_last].height = edy;
     q[q_last].width = edx;
@@ -683,6 +725,10 @@ int everything_is_reachable(int edy, int edx, int w, int h, array_t* bldg) {
                             q_first = 0;
                         }
                         q = realloc(q, (q_len *= 2) * sizeof(psize_t));	
+                        if (q == NULL) {
+                            panic("[S] could not reallocate memory"
+                                    "for gen.queue");
+                        }
                     }
 
                     visited->array[i][j] = 1;
@@ -952,6 +998,9 @@ static void _chamber(int x, int y, int h, int w) {
     if (_HOUSE_W < y + w) _HOUSE_W = y + w;
 
     char *line = (char*) malloc(w * sizeof(char));
+    if (line == NULL) {
+        panic("[S] could not allocate memory for gen.line");
+    }
     memset(line, '#', w);
     int i = 0, j;
 
@@ -1220,14 +1269,34 @@ int gen_surface(array_t* arr) {
     double **T;
 
     C = (double*) malloc(W * sizeof(double));
+    if (C == NULL) {
+        panic("[S] could not allocate memory for gen.C");
+    }
     N = (double*) malloc(W * sizeof(double));
+    if (N == NULL) {
+        panic("[S] could not allocate memory for gen.N");
+    }
     D = (double*) malloc(W * sizeof(double));
+    if (D == NULL) {
+        panic("[S] could not allocate memory for gen.D");
+    }
     S = (double*) malloc(W * sizeof(double));
+    if (S == NULL) {
+        panic("[S] could not allocate memory for gen.S");
+    }
 
     T = (double**) malloc(H * sizeof(double*));
+    if (T == NULL) {
+        panic("[S] could not allocate memory for gen.T");
+    }
+
     int i;
-    for (i = 0; i < H; i++) 
+    for (i = 0; i < H; i++) {
         T[i] = (double*) malloc(W * sizeof(double));
+        if (T[i] == NULL) {
+            panic("[S] could not allocate memory for gen.T[i]");
+        }
+    }
 
     // Let's generate level 0 -- the surface
     //level(0);
@@ -1327,8 +1396,15 @@ int gen_fields(array_t* arr, int finalize) {
     char **f = arr->array;
 
     int **nf = (int**) calloc(H, sizeof(int*));
-    for (i = 0; i < H; i++) 
+    if (nf == NULL) {
+        panic("[S] could not allocate memory for gen.nf");
+    }
+    for (i = 0; i < H; i++) {
         nf[i] = (int*) calloc(W, sizeof(int));
+        if (nf[i] == NULL) {
+            panic("[S] could not allocate memory for gen.nf[i]");
+        }
+    }
 
     int count = 0;
 
@@ -1487,7 +1563,7 @@ int gen_castle() {
     copy_array(&castle_front, (char*)CASTLE_FRONT, 23, 74);
     copy_array(&castle_wtf, (char*)CASTLE_WTF, 37, 65);
 
-    array_rotate(&castle_top, DEFAULT);
+    array_rotate(&castle_top, DEFAULT_PCHAR);
     overlay_anywhere(&castle_top, 2, ',');
 
     free_array(&castle_top);
@@ -1542,9 +1618,9 @@ int gen_cities() {
     int size = 24 * city_factor + random() % city_factor;
     double city_h = 0.4 * size, city_w = 0.6 * size;
     if (city_angle % 2)
-        recreate_level_unsafe(city_w, city_h, DEFAULT);
+        recreate_level_unsafe(city_w, city_h, DEFAULT_PCHAR);
     else
-        recreate_level_unsafe(city_h, city_w, DEFAULT);
+        recreate_level_unsafe(city_h, city_w, DEFAULT_PCHAR);
 
     // Generate city ground
     generate_blurred_area(1, ',', 0.45);
@@ -1580,7 +1656,7 @@ int gen_cities() {
             rotate = rand_double(2) >= 1 ? 0 : 2;
 
         // Overlay the building with rotation
-        overlay_somehow(building, rotate, DEFAULT);
+        overlay_somehow(building, rotate, DEFAULT_PCHAR);
 
         if (generate_fail) {
             free_array(building);
@@ -1605,7 +1681,7 @@ int gen_cities() {
     free_regex(NULL);
 
     // Overlay generated city over it
-    overlay_somehow(CITY, city_angle, DEFAULT);
+    overlay_somehow(CITY, city_angle, DEFAULT_PCHAR);
 
     free_array(CITY);
     free_array(building);

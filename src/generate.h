@@ -26,7 +26,7 @@ int array_is_free(array_t *arr);
 
 ////////////////////////////////////////////////GEN.H/////////////////////////
 
-#define DEFAULT (-1)
+#define DEFAULT_PCHAR (-1)
 
 int level(int lvl);
 void free_regex(char* regex);
