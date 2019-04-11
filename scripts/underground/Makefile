@@ -1,0 +1,27 @@
+CC=gcc
+CFLAGS=-g -std=gnu99 -Wall -Wextra -Werror
+LDFLAGS=
+
+CAVES_SOURCES=gen_cave.c gen_underground.c
+CAVES_OBJECTS=$(CAVES_SOURCES:.c=.o)
+CAVES_EXECUTABLE=gencaves
+
+DUNGEON_SOURCES=gen_dungeon.c gen_dungeon_parts.c gen_underground.c 
+DUNGEON_OBJECTS=$(DUNGEON_SOURCES:.c=.o)
+DUNGEON_EXECUTABLE=gendungeon
+
+all: $(CAVES_EXECUTABLE) $(DUNGEON_EXECUTABLE)
+
+$(CAVES_EXECUTABLE): $(CAVES_OBJECTS)
+	$(CC) $(CAVES_OBJECTS) -o $@ $(LDFLAGS)
+
+$(DUNGEON_EXECUTABLE): $(DUNGEON_OBJECTS)
+	$(CC) $(DUNGEON_OBJECTS) -o $@ $(LDFLAGS)
+
+.c.o:
+	$(CC) $(CFLAGS) -c $< -o $@
+
+clean:
+	rm -f $(CAVES_OBJECTS) $(DUNGEON_OBJECTS)
+	rm $(CAVES_EXECUTABLE)
+	rm $(DUNGEON_EXECUTABLE)
