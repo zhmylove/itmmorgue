@@ -32,6 +32,10 @@ typedef struct msg {
         MSG_PUT_SYSMSG,       // s2c sysmsg history update
         MSG_SUBSCRIBE_SYSMSG, // c2s sysmsg subscription mask
 
+        MSG_MOVE_PLAYER,      // c2s send player's move
+
+        MSG_PUT_ENTITIES,     // s2c entities[...] transmission
+
         MSG_PUT_STATUS,       // s2c player status update
     } type;
     int version;              // Protocol version, generated during compilation
@@ -55,6 +59,7 @@ typedef struct msg {
 enum msg_sysmsg_type {
     SM_CHAT_NEW_MESSAGE = 0x01,    // New message in chat
     SM_PLAYER_JOINED    = 0x02,    // New player joined to the ITMMORGUE
+    SM_PLAYER_LEFT      = 0x03,    // Some player left the ITMMORGUE
 };
 
 typedef struct mbuf {
@@ -75,6 +80,5 @@ void mqueue_put(mqueue_t *queue, mbuf_t mbuf);
 void mqueue_destroy(mqueue_t *queue);
 
 int send_mbuf(int socket, mbuf_t *mbuf);
-
 
 #endif /* PROTOCOL_H */

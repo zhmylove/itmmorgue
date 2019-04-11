@@ -4,7 +4,7 @@
 
 #define MAX_LEVEL_NAME 32
 
-#define GEN_SH "scripts/Gen.sh -w%d -h%d"
+#define GEN_SH "./scripts/Gen.sh -w%d -h%d"
 #define GEN_MAX 128
 
 typedef struct level {
@@ -17,7 +17,9 @@ typedef struct level {
 } level_t;
 
 void s_levels_init();
-void s_level_send(size_t level, player_t *player);
-void s_area_send(size_t level, player_t *player);
+void s_level_send(size_t level, entity_t *player);
+void s_area_send(size_t level, entity_t *player);
+
+extern size_t levels_count;
 
 #endif /* LEVELS_H */

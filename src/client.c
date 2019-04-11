@@ -46,11 +46,14 @@ void* worker() {
     // Send nickname
     mbuf_t mbuf;
     mbuf.msg.type = MSG_REPORT_NICKNAME;
-    mbuf.msg.size = strlen(CONF_SVAL("player_nickname")) + 1;
+    mbuf.msg.size = strlen(CONF_SVAL("player_nickname")) + 2;
     if (NULL == (mbuf.payload = (char*)malloc(mbuf.msg.size))) {
         panic("[C] Cannot allocate nickname payload buffer");
     }
-    strcpy(mbuf.payload, CONF_SVAL("player_nickname"));
+    char color[2] = "0";
+    color[0] = '0' + CONF_IVAL("player_color");
+    strcpy(mbuf.payload, color);
+    strcat(mbuf.payload, CONF_SVAL("player_nickname"));
     mqueue_put(&c2s_queue, mbuf);
 
     do {
@@ -67,6 +70,8 @@ void* worker() {
         }
 
         do {
+            timeout.tv_sec  = 0;
+            timeout.tv_usec = 50000;
             rc = select(sock + 1, &fds, NULL, NULL, &timeout);
         } while (rc < 0 && errno == EINTR);
 
@@ -77,7 +82,6 @@ void* worker() {
         } else if (rc == 0) {
             continue;
         }
-
 
         if ((rc = readall(sock, &mbuf.msg, sizeof(mbuf.msg))) == 0) {
             server_connected = 0;
@@ -100,6 +104,9 @@ void* worker() {
                 break;
             case MSG_PUT_AREA:
                 logger("[C] [PUT_AREA]");
+                break;
+            case MSG_PUT_ENTITIES:
+                logger("[C] [PUT_ENTITIES]");
                 break;
             case MSG_PUT_LEVEL:
                 logger("[C] [PUT_LEVEL]");
@@ -142,6 +149,12 @@ void* worker() {
                 break;
             case MSG_PUT_AREA:
                 c_area_update(1, (tileblock_t *)payload);
+
+                free(payload);
+
+                break;
+            case MSG_PUT_ENTITIES:
+                c_receive_entities((entities_mbuf_t*)payload);
 
                 free(payload);
 
@@ -229,6 +242,18 @@ int client() {
             c_chat_open();
         } else if (K[K_SYSMSG_LARGE] == last_key) {
             c_sysmsg_open();
+#define HANDLE_MOVE(move) \
+        } else if (K[move] == last_key) { \
+            c_send_move(move)
+            HANDLE_MOVE(K_MOVE_LEFT);
+            HANDLE_MOVE(K_MOVE_RIGHT);
+            HANDLE_MOVE(K_MOVE_UP);
+            HANDLE_MOVE(K_MOVE_DOWN);
+            HANDLE_MOVE(K_MOVE_LEFT_UP);
+            HANDLE_MOVE(K_MOVE_RIGHT_UP);
+            HANDLE_MOVE(K_MOVE_LEFT_DOWN);
+            HANDLE_MOVE(K_MOVE_RIGHT_DOWN);
+#undef HANDLE_MOVE
         } else if (K[K_INVENTORY_LARGE] == last_key) {
             c_inventory_open();
         } else if (K[K_EXIT] == last_key) {

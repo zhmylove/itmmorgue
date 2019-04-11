@@ -17,4 +17,14 @@ void server_fork_start();
 
 void* process_client(connection_t *connection);
 
+/*
+ * Global game state. 
+ * 0 = new game, never played
+ * 1 = game created, populating players with areas
+ * 2 = normal game state
+ * 3 = resurrection phase
+ * 4 = resurrected by nickname, needs to be repopulated
+ */
+extern char start;
+
 #endif /* SERVER_H */

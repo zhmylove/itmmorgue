@@ -9,6 +9,7 @@
 char input[CHAT_MSG_MAXLEN + 2];
 size_t inputpos;
 size_t scrolloff = 0;
+size_t visible_top = 0;
 
 void c_chat_init() {
     if ((chat = malloc(CHAT_MSG_MAXLEN + 1)) == NULL) {
@@ -17,7 +18,6 @@ void c_chat_init() {
     
     chat[0] = '\0';
     input[0] = '\0';
-    chat_num_lines = 0;
     strncpy(nickname, CONF_SVAL("player_nickname"), sizeof(nickname));
 
     mbuf_t mbuf;
@@ -27,13 +27,14 @@ void c_chat_init() {
 }
 
 void draw_chat() {
+    // This function is full of dark magic. Do hesitate even read it.
     if (chat == NULL) {
         return;
     }
 
     int square = WIN(CHAT, max_x) * WIN(CHAT, max_y);
     size_t len = strlen(chat);
-    char *chatptr = chat + len - 2;
+    char *chatptr = chat + len - 1;
     char *inputptr = NULL;
     char *inputptr_new = NULL;
 
@@ -45,30 +46,37 @@ void draw_chat() {
         square -= WIN(CHAT, max_x);
     }
 
-    for (size_t soff = scrolloff; soff; soff--) {
-        while (chatptr > chat && *chatptr-- != '\n');
+    // skip scrolloff lines from the end
+    square += scrolloff * WIN(CHAT, max_x);
 
-        if (chatptr == chat) {
+    // skip 'square' characters
+    while (chatptr > chat && square > 0) {
+        int msglen = 0;
+        char *msgptr = chatptr;
+        while (--msgptr > chat && *msgptr != '\n');
+        char *nextptr = msgptr++;
+        while (msgptr < chatptr) {
+            if ((*++msgptr & 0xC0) != 0x80) {
+                msglen++;
+            }
+        }
+        square -= WIN(CHAT, max_x) - msglen % WIN(CHAT, max_x);
+        if (msglen > square) {
+            while (square) {
+                if ((*--chatptr & 0xC0) != 0x80) {
+                    --square;
+                }
+            }
             break;
         }
+        square -= msglen;
+        chatptr = nextptr;
     }
 
-    int curr = 0;
-    while (chatptr > chat && curr < square) {
-        switch (*chatptr) {
-            case '\n':
-                curr += WIN(CHAT, max_x) - curr % WIN(CHAT, max_x);
-                break;
-            default:
-                if ((*chatptr & 0xC0) != 0x80) {
-                    curr++;
-                }
-        }
-        chatptr--;
-    }
+    visible_top = (chatptr == chat);
 
-    if (chatptr != chat && *(chatptr - 1) != '\n') {
-        while (*chatptr++ != '\n');
+    if (*chatptr == '\n') {
+        chatptr++;
     }
 
     MVW(W_CHAT, 0, 0, "%s", chatptr);
@@ -116,12 +124,6 @@ void c_chat_add(char *str) {
     }
 
     strcat(chat, str);
-
-    while (*str) {
-        if (*str++ == '\n') {
-            chat_num_lines++;
-        }
-    }
 }
 
 void c_chat_open() {
@@ -144,7 +146,7 @@ void c_chat_open() {
             break;
         } else if (last_key == K[K_SCROLL_UP]) {
             // TODO what can we do with elastic windows scrolloff ?
-            if (scrolloff < chat_num_lines - WIN(CHAT, max_y)) {
+            if (! visible_top) {
                 scrolloff++;
             }
         } else if (last_key == K[K_SCROLL_DOWN]) {
@@ -172,7 +174,9 @@ void c_chat_open() {
             char *buf = malloc(bufsize);
             snprintf(buf, bufsize, "<%s> %s", nickname, input);
             size_t size = strlen(buf) + 1;
-            mbuf.payload = malloc(size);
+            if ((mbuf.payload = malloc(size)) == NULL) {
+                panic("[C] Error allocating chat buf!");
+            }
             mbuf.msg.type = MSG_NEW_CHAT;
             mbuf.msg.size = size;
             memcpy(mbuf.payload, buf, size);

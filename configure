@@ -10,10 +10,12 @@ LIBDIR='lib'
 WORKDIR='bin'
 SRC='itmmorgue.c client.c config.c splash.c locale.c menu.c stuff.c'
 SRC="$SRC windows.c area.c chat.c keyboard.c server.c protocol.c sysmsg.c"
-SRC="$SRC connection.c levels.c tiles.c player.c generate.c"
+SRC="$SRC connection.c levels.c tiles.c player.c event.c entity.c"
+SRC="$SRC bt.c bt_actions.c npc_guard.c generate.c"
 HDR='itmmorgue.h client.h config.h default_config.h stuff.h windows.h'
 HDR="$HDR area.h chat.h keyboard.h server.h protocol.h sysmsg.h"
-HDR="$HDR connection.h levels.h tiles.h player.h generate.h"
+HDR="$HDR connection.h levels.h tiles.h player.h event.h entity.h"
+HDR="$HDR bt.h bt_actions.h bt_leaf.h bt_macro.h npc.h generate.h"
 LIB='trie/trie.o'
 DEBUG=1
 ####################################################################
@@ -130,6 +132,7 @@ if ls lib/trie/Makefile >/dev/null 2>&1 ;then
     echo OK
 else
     echo FAIL
+    echo '    git submodule update --init'
     exit 1
 fi
 
@@ -150,6 +153,9 @@ run: run_client
 test: all
 	@echo "Your test not passed! "
 
+headless: $EXECUTABLE
+	$EXECUTABLE --server-only
+
 run_client: $EXECUTABLE
 	$VARS_CLIENT $EXECUTABLE
 
@@ -159,6 +165,9 @@ clean:
 
 debug: $EXECUTABLE
 	gdb $EXECUTABLE
+
+debug_headless: $EXECUTABLE
+	gdb --args $EXECUTABLE --server-only
 
 $WORKDIR:
 	mkdir $WORKDIR
@@ -181,9 +190,18 @@ done
 
 # libs
 for L in $LIBS ;do
+    case $L in
+        /*)
+            _ABS=""
+            ;;
+        *)
+            _ABS=./
+            ;;
+    esac
+
 cat >>Makefile <<EOF
 $L:
-	( cd `dirname "$L"` && \$(MAKE) "CC=$CC" "CFLAGS=$CFLAGS" ) 
+	( cd $_ABS`dirname "$L"` && \$(MAKE) "CC=$CC" "CFLAGS=$CFLAGS" ) 
 EOF
 done
 

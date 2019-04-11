@@ -3,6 +3,8 @@
 #include "server.h"
 #include "stuff.h"
 #include "generate.h"
+#include "npc.h"
+#include "bt_leaf.h"
 
 level_t *levels;
 size_t levels_count = 0;
@@ -60,10 +62,16 @@ void s_levels_init() {
         }
     }
 
+    /* entities init */
+    // TODO make this dynamically
+    entity_create(S_SCROLL, 11, 26);
+    entity_create(S_SCROLL, 11, 36);
+    entity_create(S_SCROLL, 11, 46);
+
     levels_count++;
 }
 
-void s_area_send(size_t level, player_t *player) {
+void s_area_send(size_t level, entity_t *player) {
     tileblock_t *tbl;
     size_t size = LVL(level).max_y * LVL(level).max_x;
 
@@ -72,8 +80,8 @@ void s_area_send(size_t level, player_t *player) {
 
     /* "1" is because tileblocks are unneeded in the game:
      * we had decided to send only visible data (.top)
-     * before we implemented tileblocks due to lack of 
-     * our memory... 
+     * before we implemented tileblocks due to lack of
+     * our memory...
      * Why don't we have panic() for malloc in our brains? :(
      */
     size_t wholesize = sizeof(tile_t) * size +
@@ -97,10 +105,10 @@ void s_area_send(size_t level, player_t *player) {
     s2c_mbuf.msg.size = wholesize;
 
     loggerf("[S] Sending AREA: size=%zu", wholesize);
-    mqueue_put(player->connection->mqueueptr, s2c_mbuf);
+    mqueue_put(player->player_context->connection->mqueueptr, s2c_mbuf);
 }
 
-void s_level_send(size_t level, player_t *player) {
+void s_level_send(size_t level, entity_t *player) {
     mbuf_t s2c_mbuf;
     level_t *lvl;
     if ((lvl = (level_t *)malloc(sizeof(level_t))) == NULL) {
@@ -112,5 +120,5 @@ void s_level_send(size_t level, player_t *player) {
     s2c_mbuf.msg.size = sizeof(level_t);
 
     loggerf("[S] Sending LEVEL: size=%zu", sizeof(level_t));
-    mqueue_put(player->connection->mqueueptr, s2c_mbuf);
+    mqueue_put(player->player_context->connection->mqueueptr, s2c_mbuf);
 }

@@ -4,6 +4,38 @@
 connection_t *first_connection;
 connection_t *last_connection;
 
+// TODO check / re-implement connected players checks
+// TODO get rid of this shit
+char start = 0;
+
+void player_connected_off(size_t id) {
+    if (start) {
+        players[id]->player_context->connected = 0;
+        players[id]->color ^= L_BLACK;
+        if (players_total > 0) players_total--;
+    } else {
+        // TODO remove player[id]
+    }
+
+    if (players_total == 0 && start) {
+        // TODO make smth else (?)
+        logger("[S] No players left in. Server terminated successfully!");
+        exit(EXIT_SUCCESS);
+    }
+
+    char join_msg[PLAYER_NAME_MAXLEN * 4];
+    sprintf(join_msg,
+            "Player %s has fallen out of the world!\n",
+            players[id]->player_context->nickname);
+    for (size_t i = 0; i < players_len; i++) {
+        if (! players[i]->player_context->connected) continue;
+
+        send_sysmsg(players[i]->player_context->connection,
+                SM_PLAYER_LEFT, join_msg);
+        s_send_players_full(players[i]);
+    }
+}
+
 void server() {
     int s, rc, cs, one = 1;
     struct sockaddr_in addr;
@@ -14,7 +46,11 @@ void server() {
         panic("Server is already running!");
     }
 
+    // TODO do this asynchronously
+    s_bt_init();
     s_levels_init();
+    // Start event loop thread
+    event_init();
 
     server_started = 1;
 
@@ -49,10 +85,25 @@ void server() {
     schat[0] = '\0';
 
     // TODO implement workers
-    while ((cs = accept(s, (struct sockaddr *)&client, &client_len)) >= 0) {
+    while (usleep(1000) == 0) {
+        /* Waiting for new players */
+        if ((cs = accept(s, (struct sockaddr *)&client, &client_len)) < 0) {
+            break;
+        }
+        if (start) { /* Handle connections after !start */
+            if (players_len == players_total) { /* Nobody left */
+                // TODO Send graceful disconnect to client
+                write(cs, ".", 1);
+                usleep(100000);
+                close(cs);
+                continue;
+            } else {
+                start = 3;
+            }
+        }
         connection_t *connection;
         if (NULL == (connection =
-                (connection_t*)malloc(sizeof(connection_t)))) {
+                    (connection_t*)malloc(sizeof(connection_t)))) {
             panic("Cannot allocate memory for client connection!");
         }
         connection->curr_client = client;
@@ -61,7 +112,7 @@ void server() {
         pthread_mutex_init(&connection->socket_mutex, NULL);
         connection->sysmsg_mask = ~0;
         if (NULL == (connection->mqueueptr =
-                (mqueue_t*)malloc(sizeof(mqueue_t)))) {
+                    (mqueue_t*)malloc(sizeof(mqueue_t)))) {
             panic("Cannot allocate memory for client message queue!");
         }
         connection->next = NULL;
@@ -95,15 +146,17 @@ void* process_client(connection_t *connection) {
         panic("Error detaching processor pthread!");
     }
 
-    // TODO move this section under obtaining color + nickname
+    /*
+     * TODO move this section under obtaining color + nickname (really?)
+     * s_send_players() requires this id.
+     * The best solution is to fill this values here and change them
+     * after reception of the actual ones.
+     */
     size_t id = player_init(L_YELLOW, "bsi", connection);
+    players[id]->player_context->connected = 1;
 
     mqueue_t *s2c_queue = connection->mqueueptr;
     mqueue_init(s2c_queue);
-
-    // TODO make this periodically
-    s_level_send(0, players + id);
-    s_area_send(0, players + id);
 
     struct timeval timeout;
     timeout.tv_sec  = 0;
@@ -117,6 +170,18 @@ void* process_client(connection_t *connection) {
         FD_SET(cs, &fds);
         mbuf_t mbuf;
 
+        /* Handle start state (see server.h) */
+        if (start == 1 || (start > 0 &&
+                    players[id]->player_context->start == 1)) {
+            // TODO make some of this periodically (at the end of every tick)
+            s_level_send(0, players[id]);
+            s_area_send(0, players[id]);
+            s_send_entities_full(players[id]);
+
+            players[id]->player_context->start = 0;
+            start = 2;
+        }
+
         // send messages to the client if any
         while (mqueue_get(s2c_queue, &mbuf) > 0) {
             if (1 == send_mbuf(cs, &mbuf)) {
@@ -125,11 +190,14 @@ void* process_client(connection_t *connection) {
         }
 
         do {
+            timeout.tv_sec  = 0;
+            timeout.tv_usec = 50000;
             rc = select(cs + 1, &fds, NULL, NULL, &timeout);
         } while (rc < 0 && errno == EINTR);
 
         if (rc < 0) {
             client_connected = 0;
+            /* TODO make something graceful, wait for they */
             panic("client disconnected!");
             break;
         } else if (rc == 0) {
@@ -141,11 +209,13 @@ void* process_client(connection_t *connection) {
         if ((rc = synchronized_readall(&connection->socket_mutex, cs,
                         &mbuf.msg, sizeof(mbuf.msg))) == 0) {
             logger("[S] Client closed connection!");
+            player_connected_off(id);
             close_connection(connection);
             pthread_exit(NULL);
         } else if (rc < 0) {
             loggerf("[S] Error reading from socket [%d][%s]!",
                     rc, strerror(errno));
+            player_connected_off(id);
             close_connection(connection);
             pthread_exit(NULL);
         }
@@ -160,6 +230,9 @@ void* process_client(connection_t *connection) {
                 break;
             case MSG_REPORT_NICKNAME:
                 logger("[S] [REPORT_NICKNAME]");
+                break;
+            case MSG_MOVE_PLAYER:
+                logger("[S] [MOVE_PLAYER]");
                 break;
             default:
                 warnf("Unknown type: %d", mbuf.msg.type);
@@ -186,8 +259,66 @@ void* process_client(connection_t *connection) {
             loggerf("[S] Received buf: [%s]", payload);
         }
 
-        // TODO do smth with message
+        // Even not started messages routine
         switch (mbuf.msg.type) {
+            // TODO MSG_REPORT_COLOR
+            case MSG_REPORT_NICKNAME:
+                if (mbuf.msg.size >= PLAYER_NAME_MAXLEN + 1) {
+                    logger("[S] Long nickname received");
+                    s2c_mbuf.msg.type = MSG_ERROR_NICKNAME;
+                    s2c_mbuf.msg.size = strlen("Nickname is too long") + 1;
+                    if (NULL == (s2c_mbuf.payload =
+                                (char*)malloc(s2c_mbuf.msg.size))) {
+                        panic("[S] Cannot allocate ERRROR_NICKNAME payload!");
+                    }
+                    strcpy(s2c_mbuf.payload, "Nickname is too long");
+                    mqueue_put(s2c_queue, s2c_mbuf);
+
+                    player_connected_off(id);
+                    close_connection(connection);
+                    pthread_exit(NULL);
+                }
+                /* Get the color */
+                unsigned char color = ((char *)payload++)[0];
+                players[id]->color = color - '0';
+                /* Handle reconnects */
+                for (size_t i = 0; start == 3 && i < players_len; i++) {
+                    if (players[i]->player_context->connected) continue;
+                    if (strcmp(players[i]->player_context->nickname,
+                                payload) != 0) continue;
+
+                    // Resurrect necessary fields of old player
+                    players[i]->player_context->connection =
+                        players[id]->player_context->connection;
+                    players[i]->player_context->connected = 1;
+                    players[i]->color ^= L_BLACK;
+
+                    // TODO eliminate races (safely remove players[id])
+                    memset(players[id]->player_context->nickname, 0,
+                            PLAYER_NAME_MAXLEN);
+                    players_len--;
+                    players_total = players_len;
+
+                    // Finally replace the id's
+                    id = i;
+                    players[id]->player_context->start = 1;
+                }
+                strncpy(players[id]->player_context->nickname, payload,
+                        mbuf.msg.size);
+
+                char join_msg[PLAYER_NAME_MAXLEN * 4];
+                sprintf(join_msg,
+                        "Player %s has found his place in the world!\n",
+                        players[id]->player_context->nickname);
+                for (connection_t *curr = first_connection; curr;
+                        curr = curr->next) {
+                    send_sysmsg(curr, SM_PLAYER_JOINED, join_msg);
+                }
+
+                for (size_t i = 0; i < players_len; i++) {
+                    s_send_players_full(players[i]);
+                }
+                break;
             case MSG_GET_CHAT:
                 size = strlen(schat) + 1;
 
@@ -203,6 +334,17 @@ void* process_client(connection_t *connection) {
 
                 break;
             case MSG_NEW_CHAT:
+                if (!start && (
+                            strstr(payload, "!start\n") != NULL ||
+                            strstr(payload, "!s\n") != NULL
+                            )) {
+                    players[id]->player_context->ready = 1;
+
+                    for (size_t i = 0; i < players_len; i++) {
+                        s_send_players_full(players[i]);
+                    }
+                    break;
+                }
                 s_chat_add(&schat, payload);
                 size = strlen(payload) + 1;
 
@@ -226,32 +368,69 @@ void* process_client(connection_t *connection) {
                 free(payload);
 
                 break;
+            default: // Will be parsed later, if (start)
+                break;
+        }
+
+        if (! start) {
+            size_t wait = players_len;
+
+            for (size_t i = 0; i < players_len; i++) {
+                if (players[i]->player_context->ready) {
+                    wait--;
+                }
+            }
+
+            if (! wait) {
+                start = 1;
+                for (size_t i = 0; i < players_len; i++) {
+                    players[i]->player_context->start = 1;
+                }
+                players_total = players_len;
+            }
+
+            continue;
+        }
+
+        if (players_len != players_total) { /* Skip any in-game actions */
+            continue;
+        }
+
+        // Normal messages routine
+        // TODO do smth with message
+
+        // If MSG_MOVE_PLAYER
+        player_move_t *move;
+
+        switch (mbuf.msg.type) {
+            case MSG_MOVE_PLAYER:
+                switch ((enum keyboard) *payload) {
+                    case K_MOVE_LEFT:
+                    case K_MOVE_RIGHT:
+                    case K_MOVE_UP:
+                    case K_MOVE_DOWN:
+                    case K_MOVE_LEFT_UP:
+                    case K_MOVE_RIGHT_UP:
+                    case K_MOVE_LEFT_DOWN:
+                    case K_MOVE_RIGHT_DOWN:
+                        // Will be freed during event handle
+                        if ((move = (player_move_t *)malloc(
+                                        sizeof(player_move_t))) == NULL) {
+                            panic("[S] Error allocating player_move_t!");
+                        }
+                        move->player_id = id;
+                        move->direction = (enum keyboard) *payload;
+                        event_player_add(id, EV_MOVE, move);
+                        break;
+                    default:
+                        panic("[S] invalid move received!");
+                }
+                break;
+            case MSG_GET_CHAT: /* Already handled */
+                break;
+            case MSG_NEW_CHAT:
+                break;
             case MSG_REPORT_NICKNAME:
-                if (mbuf.msg.size >= PLAYER_NAME_MAXLEN) {
-                    logger("[S] Long nickname received");
-                    s2c_mbuf.msg.type = MSG_ERROR_NICKNAME;
-                    s2c_mbuf.msg.size = strlen("Nickname is too long") + 1;
-                    if (NULL == (s2c_mbuf.payload =
-                                (char*)malloc(s2c_mbuf.msg.size))) {
-                        panic("[S] Cannot allocate ERRROR_NICKNAME payload!");
-                    }
-                    strcpy(s2c_mbuf.payload, "Nickname is too long");
-                    mqueue_put(s2c_queue, s2c_mbuf);
-
-                    close_connection(connection);
-                    pthread_exit(NULL);
-                }
-                strncpy(players[id].nickname, payload, mbuf.msg.size);
-
-                char join_msg[PLAYER_NAME_MAXLEN * 4];
-                sprintf(join_msg,
-                        "Player %s has found his place in the world!\n",
-                        players[id].nickname);
-                for (connection_t *curr = first_connection; curr;
-                        curr = curr->next) {
-                    send_sysmsg(curr, SM_PLAYER_JOINED, join_msg);
-                }
-
                 break;
             default:
                 warnf("Unknown type: %d", mbuf.msg.type);
@@ -260,6 +439,7 @@ void* process_client(connection_t *connection) {
         }
     } while (client_connected == 1);
 
+    player_connected_off(id);
     close_connection(connection);
     // TODO is it reachable point?
     return NULL;
@@ -306,7 +486,8 @@ void server_fork_start() {
 
         server();
 
-        exit(0);
+        // Never reaches due to server() has infinite loop
+        panic("[S] Server has done infinite loop for the first time!");
     }
 
     // client code

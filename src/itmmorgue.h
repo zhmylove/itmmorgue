@@ -2,17 +2,18 @@
 #ifndef ITMMORGUE_H
 #define ITMMORGUE_H
 
+// Must be defined as 0 (false) or 1 (true)
+#define _LOG_PANIC 1
+
 #include <unistd.h>
 #if defined(__FreeBSD__) || defined(__linux__)
 #include <ncurses.h>
+#include <sys/uio.h>
 #else // Other OSes
 #include <ncurses/ncurses.h>
 #undef RAND_MAX // which is in stdlib_iso.h and equals 32768
 #define RAND_MAX 0x7ffffffd // stdlib.h definition for random()
 #endif /* __FreeBSD__ || __linux__ */
-#if defined(__FreeBSD__)
-#include <sys/uio.h>
-#endif /* __FreeBSD__ */
 #include <stdlib.h>
 #include <string.h>
 #include <ctype.h>
@@ -42,6 +43,8 @@ enum colors {
 #define PLAYER_NAME_MAXLEN 32
 
 #include "config.h"
+#include "keyboard.h"
+#include "event.h"
 #include "protocol.h"
 #include "connection.h"
 #include "player.h"
@@ -91,6 +94,9 @@ size_t anystrlen(char *str);
 size_t anystrnlen(char *str, size_t maxlen);
 size_t anystrnplen(char *str, size_t maxlen, char ** endp);
 size_t anystrunplen(char *str, size_t maxlen, char ** endp);
+unsigned long long systime();
+unsigned long long sysutime();
+void player_move(player_move_t *move);
 #ifdef __sun
 size_t strnlen(const char *str, size_t maxlen);
 #endif /* __sun */

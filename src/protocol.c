@@ -23,7 +23,7 @@ void mqueue_put(mqueue_t *queue, mbuf_t mbuf) {
         if (EDEADLK == rc) {
             panic("Message queue: deadlock!");
         }
-        panic("Message queue: failure during mutex locking");
+        panic("[put] Message queue: failure during mutex locking");
     }
 
     size_t pos = queue->start_position;
@@ -56,7 +56,7 @@ int mqueue_get(mqueue_t *queue, mbuf_t *mbuf) {
         if (EDEADLK == rc) {
             panic("Message queue: deadlock!");
         }
-        panic("Message queue: failure during mutex locking");
+        panic("[get] Message queue: failure during mutex locking");
     }
 
     if (queue->size == 0) {
@@ -85,7 +85,7 @@ void mqueue_destroy(mqueue_t *queue) {
  *
  * ret    : -1 on failure
 */
-static int send_fat_mbuf( int socket, mbuf_t *mbuf) {
+static int send_fat_mbuf(int socket, mbuf_t *mbuf) {
     struct iovec parts[2];
     parts[0].iov_base = (caddr_t)&mbuf->msg;
     parts[0].iov_len = sizeof(mbuf->msg);
