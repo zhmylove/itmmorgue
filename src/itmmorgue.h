@@ -5,8 +5,10 @@
 #include <unistd.h>
 #if defined(__FreeBSD__) || defined(__linux__)
 #include <ncurses.h>
-#else
+#else // Other OSes
 #include <ncurses/ncurses.h>
+#undef RAND_MAX // which is in stdlib_iso.h and equals 32768
+#define RAND_MAX 0x7ffffffd // stdlib.h definition for random()
 #endif /* __FreeBSD__ || __linux__ */
 #if defined(__FreeBSD__)
 #include <sys/uio.h>

@@ -33,7 +33,12 @@ void free_regex(char* regex);
 array_t** _get_world_ref(void);
 array_t* get_level_ref(int lvl);
 void print_level(int lvl);
+
+// We need this due to getline() absense in libc
+#if defined(__FreeBSD__) || defined(__linux__)
 array_t* read_level(int lvl);
+#endif /* __FreeBSD__ || __linux__ */
+
 psize_t get_size(int lvl);
 
 void array_rotate(array_t *array, int direction);

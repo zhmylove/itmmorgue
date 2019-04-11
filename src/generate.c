@@ -196,6 +196,9 @@ void print_level(int lvl) {
         print_array(WORLD[curr]);
 }
 
+// We need this due to getline() absense in libc
+#if defined(__FreeBSD__) || defined(__linux__)
+
 // Slurp the level from stdin
 // arg: level number (current level if < 0)
 array_t* read_level(int lvl) {
@@ -245,6 +248,8 @@ array_t* read_level(int lvl) {
 
     return T;
 }
+
+#endif /* __FreeBSD__ || __linux__ */
 
 // Just return size[2] of the level
 // arg: level number (current level if < 0)
@@ -405,7 +410,7 @@ psize_t get_free_area(int h, int w, int p, char pchar) {
     }
 
     // random X and Y on the level
-    int rx, ry;
+    int rx = 0, ry = 0;
 
     // TODO correct ttl value
     int ttl = 10000;
