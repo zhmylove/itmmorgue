@@ -11,7 +11,7 @@ size_t entity_add(entity_t* e) {
 }
 
 size_t entity_create(enum stuff type, size_t y, size_t x) {
-    entity_t* entity = (entity_t *)malloc(
+    entity_t* entity = (entity_t *)calloc(1, 
         sizeof(struct entity) +
         sizeof(struct creature_context)
     );
@@ -65,7 +65,7 @@ void c_receive_entities(entities_mbuf_t* mbuf) {
         if (curr >= entities_len) entities_len = curr + 1;
 
         if (! OLD_ENTITY) {
-            entity_t* entity = (entity_t *)malloc(
+            entity_t* entity = (entity_t *)calloc(1, 
                     sizeof(struct entity) +
                     sizeof(struct creature_context) +
                     (
