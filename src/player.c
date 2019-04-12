@@ -54,7 +54,7 @@ void player_move(player_move_t *move) {
 size_t player_init(enum colors color, char *nickname,
         connection_t *connection) {
 
-    entity_t* player = (entity_t *)malloc(
+    entity_t* player = (entity_t *)calloc(1, 
         sizeof(struct entity) +
         sizeof(struct creature_context) +
         sizeof(struct player_context)
