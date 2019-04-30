@@ -1,0 +1,127 @@
+@startuml
+' vim: ft=txt sw=2 ts=2 et :
+
+'hide circles
+ 
+rectangle Client {
+class Connection {
+  pthread_t connection_thread
+  mbuf_t *connection_queue
+  ..
+  void connection_worker()
+  ==
+  ..
+}
+enum windows {
+  W_NULL
+  W_AREA
+  W_MAP
+  W_STATUS
+  W_SYSMSG
+  W_CHAT
+  W_SIZE
+}
+enum direction {
+  D_NULL
+  D_LU
+  D_U
+  D_RU
+  D_L
+  D_C
+  D_R
+  D_LD
+  D_D
+  D_RD
+  D_DOWNWARDS
+  D_UPWARDS
+  D_SIZE
+}
+class Player {
+  char *player_name
+  size_t player_secret
+  struct player_status player_status
+  ..
+  ==
+  ..
+}
+class Map {
+  ..
+  void map_draw()
+  int map_move(size_t z, size_t y, size_t x)
+  ==
+  size_t y
+  size_t x
+  size_t z
+  pthread_t map_thread
+  area_t *map_area
+  ..
+  int map_recv_update(tileblock_t *blocks)
+}
+class Area {
+  ..
+  void area_draw()
+  ==
+  int area_camera
+  area_t *area_area
+  entity_t *area_entities
+  size_t area_level
+  pthread_t area_thread
+  ..
+  int area_camera_set(int camera)
+  int area_recv_area(tileblock_t *blocks)
+  int area_recv_entities(entity_t *entities)
+  int area_send_move(enum direction)
+}
+class Status {
+  ..
+  void status_draw()
+  ==
+  pthread_t status_thread
+  ..
+  int status_recv_update(struct player_status status)
+}
+class Sysmsg {
+  size_t sysmsg_size
+  size_t sysmsg_scrolloff
+  ..
+  int sysmsg_set_size(size_t size)
+  void sysmsg_scroll(enum direction)
+  void sysmsg_draw()
+  ==
+  pthread_t sysmsg_thread
+  char *sysmsg_buf
+  ..
+  int sysmsg_recv_str(char *str)
+}
+class Chat {
+  size_t chat_size
+  size_t chat_scrolloff
+  ..
+  int chat_set_size(size_t size)
+  void chat_scroll(char direction)
+  void chat_draw()
+  ==
+  pthread_t chat_thread
+  char *chat_buf
+  ..
+  int chat_recv_str(char *str)
+  int chat_send_msg(char *msg)
+}
+class Windows {
+  size_t windows[]
+  pthread_mutex_t windows_mtx
+  ..
+  int windows_set_focus(enum windows id)
+  ==
+  ..
+}
+}
+ 
+Connection --> Map
+Connection --> Area
+Connection --> Status
+Connection --> Sysmsg
+Connection --> Chat
+Area --> Connection : move
+Chat --> Connection : chat
+@enduml
