@@ -1,5 +1,5 @@
 #!/bin/sh -e
-# vim: sw=4 ts=4 et :
+# vim: sw=4 ts=4 noet list lcs=tab\:>- :
 
 exec >&2
 
@@ -14,7 +14,7 @@ SRC="$SRC connection.c levels.c tiles.c player.c event.c"
 HDR='itmmorgue.h client.h config.h default_config.h stuff.h windows.h'
 HDR="$HDR area.h chat.h keyboard.h server.h protocol.h sysmsg.h"
 HDR="$HDR connection.h levels.h tiles.h player.h event.h"
-LIB='trie/trie.o'
+LIB='trie/trie.o zstructs/pst.o zstructs/kdh.o'
 DEBUG=1
 ####################################################################
 
@@ -124,15 +124,17 @@ else
     echo FAIL
 fi
 
-# Check for lib/trie/Makefile
-printf "Checking lib/trie/Makefile..."
-if ls lib/trie/Makefile >/dev/null 2>&1 ;then
+# Check for lib Makefiles
+for lib in lib/* ;do
+printf "Checking $lib/Makefile..."
+if ls "$lib/Makefile" >/dev/null 2>&1 ;then
     echo OK
 else
     echo FAIL
     echo '    git submodule update --init'
     exit 1
 fi
+done
 
 # Remove stale files
 rm -f bin/style.o bin/ncursesw.c bin/ncursesw
