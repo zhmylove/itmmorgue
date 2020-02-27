@@ -1,3 +1,6 @@
 [submodule "lib/trie"]
 	path = lib/trie
 	url = https://github.com/ValeriyKr/trie
+[submodule "lib/zstructs"]
+	path = lib/zstructs
+	url = https://github.com/zhmylove/zstructs
