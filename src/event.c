@@ -1,5 +1,6 @@
 // vim: sw=4 ts=4 et :
 #include "itmmorgue.h"
+#include "npc.h"
 
 // Thread object for event_loop
 pthread_t ev_thread;
@@ -116,9 +117,23 @@ static inline void event_loop() {
         P_EV_UNLOCK;
     }
 
+    // 5. Calculate new NPC actions and apply them
+    for (size_t id = 0; id < npcs_len; ++id) {
+        if (npcs[id].trait) {
+            // Well, context is not defined yet
+            npcs[id].trait(&npcs[id], NULL);
+        }
+    }
+
     // 7. Send new state to the players
     for (size_t id = 0; id < players_len; id++) {
         s_send_players_full(players + id);
+        // 7b. Send new NPC states to the players
+        /* TODO: send updates only for visible NPCs
+           (maybe even only for ones that changed their state) */
+        for (size_t npc_id = 0; npc_id < npcs_len; ++npc_id) {
+            s_send_npc(players[id].connection, &npcs[npc_id]);
+        }
     }
 }
 

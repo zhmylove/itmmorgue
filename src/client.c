@@ -1,5 +1,6 @@
 // vim: sw=4 ts=4 et :
 #include "itmmorgue.h"
+#include "npc.h"
 
 void at_exit(void) {
     if (! isendwin()) {
@@ -114,13 +115,16 @@ void* worker() {
             case MSG_PUT_LEVEL:
                 logger("[C] [PUT_LEVEL]");
                 break;
+            case MSG_PUT_NPC:
+                logger("[C] [PUT_NPC]");
+                break;
             default:
                 warnf("Unknown type: %d", mbuf.msg.type);
                 logger("[C] [UNKNOWN]");
                 continue;
         }
 
-        char *payload;
+        char *payload = NULL;
 
         if (mbuf.msg.size > 0) {
             payload = malloc(mbuf.msg.size);
@@ -140,45 +144,31 @@ void* worker() {
         switch (mbuf.msg.type) {
             case MSG_PUT_CHAT:
                 c_chat_add(payload);
-
-                free(payload);
-
                 break;
             case MSG_PUT_SYSMSG:
                 c_sysmsg_add(payload);
-
-                free(payload);
-
                 break;
             case MSG_PUT_AREA:
                 c_area_update(1, (tileblock_t *)payload);
-
-                free(payload);
-
                 break;
             case MSG_PUT_PLAYERS_FULL:
                 c_receive_players_full((players_full_mbuf_t *)payload);
-
-                free(payload);
-
                 break;
             case MSG_PUT_PLAYERS:
                 c_receive_players((players_mbuf_t *)payload);
-
-                free(payload);
-
                 break;
             case MSG_PUT_LEVEL:
                 c_level_add((level_t *)payload);
-
-                free(payload);
-
+                break;
+            case MSG_PUT_NPC:
+                c_receive_npc((npc_mbuf_t *) payload);
                 break;
             default:
                 warnf("Unknown type: %d", mbuf.msg.type);
                 logger("[C] [UNKNOWN]");
                 continue;
         }
+        free(payload);
     } while (server_connected == 1 && ! end);
 
     return NULL;

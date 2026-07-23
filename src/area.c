@@ -3,6 +3,7 @@
 #include "client.h"
 #include "windows.h"
 #include "stuff.h"
+#include "npc.h"
 
 tile_t *c_curr;
 level_t *c_levels = NULL;
@@ -176,6 +177,12 @@ void draw_area() {
     for (size_t i = 0; i < players_len; i++) {
         mvwaddch(W(W_AREA), players[i].y - top_y, players[i].x - top_x,
                 S[S_PLAYER] | color2attr(players[i].color));
+    }
+
+    /* Draw the NPCs */
+    for (size_t i = 0; i < npcs_len; ++i) {
+        mvwaddch(W(W_AREA), npcs[i].y - top_y, npcs[i].x - top_x,
+                S[npcs[i].tile] | color2attr(npcs[i].color));
     }
 
     return;

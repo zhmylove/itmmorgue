@@ -37,6 +37,8 @@ typedef struct msg {
         MSG_MOVE_PLAYER,      // c2s send player's move
 
         MSG_PUT_STATUS,       // s2c player status update
+
+        MSG_PUT_NPC,          // s2c npc transmission
     } type;
     int version;              // Protocol version, generated during compilation
     size_t size;              // Size of payload or zero if there is no payload
