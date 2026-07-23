@@ -1,6 +1,9 @@
 // vim: sw=4 ts=4 et :
 #include "server.h"
 
+#include "npc.h"
+#include "npc_traits.h"
+
 connection_t *first_connection;
 connection_t *last_connection;
 
@@ -335,8 +338,62 @@ void* process_client(connection_t *connection) {
                     for (size_t i = 0; i < players_len; i++) {
                         s_send_players_full(players + i);
                     }
-                    break;
+
+                    goto chat_out;
                 }
+
+                char * scan = NULL;
+                if ( (scan = strstr(payload, "!spawn")) ) {
+                    char * x_arg = NULL,
+                         * y_arg = NULL,
+                         * distance_arg = NULL;
+
+                    while (*scan++) {
+                        if (*scan == ' ' && scan[1] != ' ') {
+                            if (!x_arg) {
+                                x_arg = ++scan;
+                            } else if (!y_arg) {
+                                y_arg = ++scan;
+                            } else if (!distance_arg) {
+                                distance_arg = ++scan;
+                            } else {
+                                break;
+                            }
+                        }
+                    }
+
+                    int x = 15, y = 15, distance = 5;
+                    if (x_arg) {
+                        x = atoi(x_arg);
+                    }
+                    if (y_arg) {
+                        y = atoi(y_arg);
+                    }
+                    if (distance_arg) {
+                        distance = atoi(distance_arg);
+                    }
+
+                    trait_square_movement_ctx_t * spawned_ctx =
+                        (trait_square_movement_ctx_t *) calloc(sizeof(trait_square_movement_ctx_t), 1);
+                    spawned_ctx->distance = distance;
+
+                    npc_t spawned = {
+                        .id = npcs_len,
+
+                        .tile = S_TRAP,
+                        .color = D_WHITE,
+
+                        .x = x,
+                        .y = y,
+
+                        .trait_ctx = spawned_ctx,
+                        .trait = npc_trait_square_movement
+                    };
+                    npcs[npcs_len++] = spawned;
+
+                    goto chat_out;
+                }
+
                 s_chat_add(&schat, payload);
                 size = strlen(payload) + 1;
 
@@ -357,6 +414,7 @@ void* process_client(connection_t *connection) {
                             "New message in your chat!\n");
                 }
 
+chat_out:
                 free(payload);
 
                 break;
